@@ -22,11 +22,12 @@ class wavefunction {
       double norm();
       void set_dipole(double *vector);
       void show_dipole(double *vector);
-      void add_wf(std::complex<double>* a,wavefunction* y);
+      void add_wf(std::complex<double>* a,wavefunction* y=NULL);
       void set_wf(wavefunction* x);
       void set_psi_elwise(int i,std::complex<double> val);
       void wf_vec(std::complex<double>* neut_vec,std::complex<double>* cat_vec);
       std::complex<double> dot_prod(wavefunction* Bra);
+      void matrix_prod(wavefunction* mat,wavefunction* ket);
    private:
       int m_gsize_x;
       int m_n_states_neut;

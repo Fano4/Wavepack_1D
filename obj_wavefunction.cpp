@@ -274,8 +274,16 @@ void wavefunction::set_wf(wavefunction* x)
 //##########################################################################
 void wavefunction::add_wf(std::complex<double>* a,wavefunction* y)
 {
-   cblas_zaxpy(this->m_n_states_neut*this->m_gsize_x,a,y->m_neut_part,1,this->m_neut_part,1);
-   cblas_zaxpy(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,a,y->m_cat_part,1,this->m_cat_part,1);
+   if( y != NULL)
+   {
+      cblas_zaxpy(this->m_n_states_neut*this->m_gsize_x,a,y->m_neut_part,1,this->m_neut_part,1);
+      cblas_zaxpy(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,a,y->m_cat_part,1,this->m_cat_part,1);
+   }
+   else
+   {
+      cblas_zscal(this->m_n_states_neut*this->m_gsize_x,a,this->m_neut_part,1);
+      cblas_zscal(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,a,this->m_cat_part,1);
+   }
 }
 //##########################################################################
 //
@@ -334,6 +342,16 @@ void wavefunction::wf_vec(std::complex<double>* neut_vec,std::complex<double>* c
 {
    cblas_zcopy(this->m_n_states_neut*this->m_gsize_x,this->m_neut_part,1,neut_vec,1);
    cblas_zcopy(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,this->m_cat_part,1,cat_vec,1);
+}
+//##########################################################################
+//
+//##########################################################################
+void wavefunction::matrix_prod(wavefunction* mat,wavefunction* ket);
+{
+   for(int i=0;i!=this->m_n_states_neut*this->m_gsize_x,i++)
+   {
+      this->set_psi_elwise(i,ket->dot_prod(mat[i]));
+   }
 }
 //##########################################################################
 //
