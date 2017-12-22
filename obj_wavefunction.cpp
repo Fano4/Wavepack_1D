@@ -346,11 +346,11 @@ void wavefunction::wf_vec(std::complex<double>* neut_vec,std::complex<double>* c
 //##########################################################################
 //
 //##########################################################################
-void wavefunction::matrix_prod(wavefunction* mat,wavefunction* ket);
+void wavefunction::matrix_prod(wavefunction* mat,wavefunction* ket)
 {
-   for(int i=0;i!=this->m_n_states_neut*this->m_gsize_x,i++)
+   for(int i=0;i!=this->m_n_states_neut*this->m_gsize_x;i++)
    {
-      this->set_psi_elwise(i,ket->dot_prod(mat[i]));
+      this->set_psi_elwise(i,ket->dot_prod(&mat[i]));
    }
 }
 //##########################################################################

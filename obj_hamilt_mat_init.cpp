@@ -445,6 +445,9 @@ void hamilton_matrix::set_PICE(std::string file_address)
    double Im_value;
    double pos;
 
+   double *ref_px=new double[this->m_n_states_cont];
+   double *ref_py=new double[this->m_n_states_cont];
+   double *ref_pz=new double[this->m_n_states_cont];
    double *new_px=new double[this->m_n_states_cont];
    double *new_py=new double[this->m_n_states_cont];
    double *new_pz=new double[this->m_n_states_cont];
@@ -521,23 +524,26 @@ void hamilton_matrix::set_PICE(std::string file_address)
                                   }   
                                }   
    //END OF CLOSEST PAIR DETERMINATION
-#pragma omp parallel for
+         for(int i=0;i!=this->m_n_states_cont;i++)
+         {
+            ref_px[i]=this->k_modulus[i%this->m_n_angles]*sin(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles])*cos(this->k_orientation[1][i-i%this->m_n_angles*this->m_n_angles]);
+            ref_py[i]=this->k_modulus[i%this->m_n_angles]*sin(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles])*sin(this->k_orientation[1][i-i%this->m_n_angles*this->m_n_angles]);
+            ref_pz[i]=this->k_modulus[i%this->m_n_angles]*cos(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles]);
+         }
+//#pragma omp parallel for
    for(int t=0;t!=this->m_n_times;t++)
    {
-#pragma omp parallel for
+//#pragma omp parallel for
          for(int i=0;i!=this->m_n_states_cont;i++)
          {
             this->translation_vector[i][t]=i;
          }
-      if(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2))>min_distance/2)
+      if(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2))>=min_distance)
       {
-#pragma omp parallel for
+//#pragma omp parallel for
          for(int i=0;i!=this->m_n_states_cont;i++)
          {
             potential_vector(t,pot_vec);
-            ref_px[i]=this->k_modulus[i%this->m_n_angles]*sin(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles])*cos(this->k_orientation[1][i-i%this->m_n_angles*this->m_n_angles]);
-            ref_py[i]=this->k_modulus[i%this->m_n_angles]*sin(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles])*sin(this->k_orientation[1][i-i%this->m_n_angles*this->m_n_angles]);
-            ref_pz[i]=this->k_modulus[i%this->m_n_angles]*cos(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles]);
             new_px[i]=ref_px[i]-pot_vec[0];
             new_py[i]=ref_py[i]-pot_vec[1];
             new_pz[i]=ref_pz[i]-pot_vec[2];
@@ -545,10 +551,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
             trial_py[i]=ref_py[i];
             trial_pz[i]=ref_pz[i];
 
-#pragma omp parallel for
-         for(int i=0;this->m_n_states_cont;i++)
-         {
-#pragma omp parallel for
+//#pragma omp parallel for
             for(int j=0;j!=this->m_n_states_cont;j++)
             {
                if(pow(new_px[i]-ref_px[i],2)+pow(new_py[i]-ref_py[i],2)+pow(new_pz[i]-ref_pz[i],2) < pow(new_px[i]-trial_px[i],2)+pow(new_py[i]-trial_py[i],2)+pow(new_pz[i]-trial_pz[i],2) && i!=j)
@@ -568,6 +571,9 @@ void hamilton_matrix::set_PICE(std::string file_address)
    delete [] new_px;
    delete [] new_py;
    delete [] new_pz;
+   delete [] ref_px;
+   delete [] ref_py;
+   delete [] ref_pz;
 }
 //##########################################################################
 //

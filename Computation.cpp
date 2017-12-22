@@ -16,7 +16,12 @@ bool Runge_kutta_notdH(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     wavefunction* temp=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
     wavefunction* temp2=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
 
-    wavefunction* dpsi_mat=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont()) [Psi0->n_states_neut()*Psi0->gsize_x()+Psi0->n_states_cat()*Psi0->n_states_cont()*Psi0->gsize_x()];
+    wavefunction** dpsi_mat=new *wavefunction [(Psi0->n_states_neut())*(Psi0->gsize_x())+(Psi0->n_states_cat())*(Psi0->n_states_cont())*(Psi0->gsize_x())] 
+       for(int i=0;i!=(Psi0->n_states_neut())*(Psi0->gsize_x())+(Psi0->n_states_cat())*(Psi0->n_states_cont())*(Psi0->gsize_x());i++)
+       {
+          dpsi_mat[i]=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
+       }
+
 
     int state_index;
     int grid_index;
@@ -135,21 +140,21 @@ bool t_deriv_matrix(hamilton_matrix *H,wavefunction *dPsi_mat,double time_index)
    std::complex<double> ctemp(0,-1);
 
 #pragma omp parallel for
-      for(int i=0;i!=(dPsi_mat[0]->n_states_neut())*(dPsi_mat[0]->gsize_x());i++)
+      for(int i=0;i!=(dPsi_mat[0].n_states_neut())*(dPsi_mat[0].gsize_x());i++)
       {//LOOP OVER THE LINES OF THE H MATRIX
          int j(0);
-         j=(i%dPsi_mat[0]->gsize_x()-2)*bool(i%dPsi_mat[0]->gsize_x()-2 >= 0);
+         j=(i%dPsi_mat[0].gsize_x()-2)*bool(i%dPsi_mat[0].gsize_x()-2 >= 0);
       //WE USE FINITE DIFFERENCE METHOD TO FOURTH ORDER. ONLY THE 5 DIAGONALS ARE NON-ZERO. WE BEGIN AT i-2
          //std::cout<<"probe1 : "<<i<<" , "<<j<<std::endl;
-         wavefunction* temp=new wavefunction (Psi->gsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
+         wavefunction* temp=new wavefunction (dPsi_mat[0].gsize_x(),dPsi_mat[0].n_states_neut(),dPsi_mat[0].n_states_cat(),dPsi_mat[0].n_states_cont());
 
-         for(int s=0;s!=dPsi_mat[0]->n_states_neut();s++)
+         for(int s=0;s!=dPsi_mat[0].n_states_neut();s++)
          {//LOOP OVER THE ELECTRONIC STATES OF THE NEUTRAL, COLUMN OF H
-            while( (j%dPsi_mat[0]->gsize_x()) <= i%dPsi_mat[0]->gsize_x()+2)
+            while( (j%dPsi_mat[0].gsize_x()) <= i%dPsi_mat[0].gsize_x()+2)
             {//LOOP OVER THE GRID POINTS AROUND THE DIAGONAL
                //std::cout<<" j = "<<j<<" : "<<j%Psi->gsize_x()<<"/"<<(i%Psi->gsize_x()+2)<<" => "<<bool( (j%Psi->gsize_x()) <= (i%Psi->gsize_x()+2))<<std::endl;
                temp->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-               if(!(j%dPsi_mat[0]->gsize_x() == dPsi_mat[0]->gsize_x()-1))
+               if(!(j%dPsi_mat[0].gsize_x() == dPsi_mat[0].gsize_x()-1))
                   j++;
                else
                {
@@ -157,43 +162,43 @@ bool t_deriv_matrix(hamilton_matrix *H,wavefunction *dPsi_mat,double time_index)
                   break;
                }
             }
-            j += dPsi_mat[0]->gsize_x() - 5 + 2*bool(i%dPsi_mat[0]->gsize_x() == 0) + bool (i%dPsi_mat[0]->gsize_x() == 1) + 2*bool(i%dPsi_mat[0]->gsize_x() == dPsi_mat[0]->gsize_x()-1) + bool (i%dPsi_mat[0]->gsize_x() == dPsi_mat[0]->gsize_x()-2);
+            j += dPsi_mat[0].gsize_x() - 5 + 2*bool(i%dPsi_mat[0].gsize_x() == 0) + bool (i%dPsi_mat[0].gsize_x() == 1) + 2*bool(i%dPsi_mat[0].gsize_x() == dPsi_mat[0].gsize_x()-1) + bool (i%dPsi_mat[0].gsize_x() == dPsi_mat[0].gsize_x()-2);
             //std::cout<<"probe2 j = "<<j<<std::endl;
          }
          j+=2;
          if(efield_magnitude > H->efield_thresh())
          {
-            for(int s=0;s!=dPsi_mat[0]->n_states_cat()*dPsi_mat[0]->n_states_cont();s++)
+            for(int s=0;s!=dPsi_mat[0].n_states_cat()*dPsi_mat[0].n_states_cont();s++)
             {
                temp->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-               j += dPsi_mat[0]->gsize_x();
+               j += dPsi_mat[0].gsize_x();
             }
          }
-         dPsi_mat[i]->add_wf(&ctemp,temp);
+         dPsi_mat[i].add_wf(&ctemp,temp);
 
          delete temp;
       }
 
 #pragma omp parallel for
-      for(int i=(dPsi_mat[0]->n_states_neut())*(dPsi_mat[0]->gsize_x());i!=(dPsi_mat[0]->n_states_neut())*(dPsi_mat[0]->gsize_x())+(dPsi_mat[0]->n_states_cat())*(dPsi_mat[0]->n_states_cont())*(dPsi_mat[0]->gsize_x());i++)
+      for(int i=(dPsi_mat[0].n_states_neut())*(dPsi_mat[0].gsize_x());i!=(dPsi_mat[0].n_states_neut())*(dPsi_mat[0].gsize_x())+(dPsi_mat[0].n_states_cat())*(dPsi_mat[0].n_states_cont())*(dPsi_mat[0].gsize_x());i++)
       {
          int j(0);
-         wavefunction* temp=new wavefunction (dPsi_mat[0]->gsize_x(),dPsi_mat[0]->n_states_neut(),dPsi_mat[0]->n_states_cat(),dPsi_mat[0]->n_states_cont());
-         j=i%dPsi_mat[0]->gsize_x();
+         wavefunction* temp=new wavefunction (dPsi_mat[0].gsize_x(),dPsi_mat[0].n_states_neut(),dPsi_mat[0].n_states_cat(),dPsi_mat[0].n_states_cont());
+         j=i%dPsi_mat[0].gsize_x();
          if(efield_magnitude > H->efield_thresh())
          {
-            for(int s=0;s!=dPsi_mat[0]->n_states_neut();s++)
+            for(int s=0;s!=dPsi_mat[0].n_states_neut();s++)
             {
                temp->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-               j += dPsi_mat[0]->gsize_x();
+               j += dPsi_mat[0].gsize_x();
             }
          }
-         for(int s=0;s!=dPsi_mat[0]->n_states_cat()*dPsi_mat[0]->n_states_cont();s++)
+         for(int s=0;s!=dPsi_mat[0].n_states_cat()*dPsi_mat[0].n_states_cont();s++)
          {
-            while(j%dPsi_mat[0]->gsize_x() <= (i+2)%dPsi_mat[0]->gsize_x())
+            while(j%dPsi_mat[0].gsize_x() <= (i+2)%dPsi_mat[0].gsize_x())
             {
                temp->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-               if(!(j%dPsi_mat[0]->gsize_x() == dPsi_mat[0]->gsize_x()-1))
+               if(!(j%dPsi_mat[0].gsize_x() == dPsi_mat[0].gsize_x()-1))
                   j++;
                else
                {
@@ -201,9 +206,9 @@ bool t_deriv_matrix(hamilton_matrix *H,wavefunction *dPsi_mat,double time_index)
                   break;
                }
             }
-            j += dPsi_mat[0]->gsize_x() - 5 + 2*bool(i%dPsi_mat[0]->gsize_x() == 0) + bool (i%dPsi_mat[0]->gsize_x() == 1) + 2*bool(i%dPsi_mat[0]->gsize_x() == dPsi_mat[0]->gsize_x()-1) + bool (i%dPsi_mat[0]->gsize_x() ==dPsi_mat[0]->gsize_x()-2);
+            j += dPsi_mat[0].gsize_x() - 5 + 2*bool(i%dPsi_mat[0].gsize_x() == 0) + bool (i%dPsi_mat[0].gsize_x() == 1) + 2*bool(i%dPsi_mat[0].gsize_x() == dPsi_mat[0].gsize_x()-1) + bool (i%dPsi_mat[0].gsize_x() ==dPsi_mat[0].gsize_x()-2);
          }
-         dPsi_mat[i]->add_wf(&ctemp,temp);
+         dPsi_mat[i].add_wf(&ctemp,temp);
          delete temp;
       }
 }
