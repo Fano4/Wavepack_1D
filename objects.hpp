@@ -27,7 +27,7 @@ class wavefunction {
       void set_psi_elwise(int i,std::complex<double> val);
       void wf_vec(std::complex<double>* neut_vec,std::complex<double>* cat_vec);
       std::complex<double> dot_prod(wavefunction* Bra);
-      void matrix_prod(wavefunction* mat,wavefunction* ket);
+      void matrix_prod(wavefunction** mat,wavefunction* ket);
    private:
       int m_gsize_x;
       int m_n_states_neut;
