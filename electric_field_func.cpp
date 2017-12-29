@@ -3,7 +3,7 @@
 
 double hamilton_matrix::electric_field(double time_index,double* vector)
 {
-   double strength(0.025);
+   double strength(0.015);
    double origin(10/0.02418884);
    double sigma(2/0.02418884);
    double energy(0.1);

@@ -265,6 +265,8 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     const double a71(15.*(22.+7*sqrt(21.))/180.),a72(120./180.),a73(40.*(7.*sqrt(21.)-5.)/180.),a74(-63.*(3.*sqrt(21.)-2.)/180.),a75(-14.*(49.+9.*sqrt(21))/180.),a76(70.*(7.-sqrt(21.))/180.);
     const double ddc1(9./180.),ddc2(0.),ddc3(64./180.),ddc4(0.),ddc5(49./180.),ddc6(49./180.),ddc7(9./180.);//SIXTH ORDER RK COEFF
 
+//    std::cout<<Psi0->show_neut_psi(21,0).real()<<std::endl;
+
     t_deriv(Psi0,H,k1,time_index);
     temp->set_wf(Psi0);
     ctemp=std::complex<double>(a21*H->h(),0);
@@ -466,6 +468,7 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     temp->add_wf(&ctemp,k7);
     Psi0->set_wf(temp);
 
+//    std::cout<<"Then "<<Psi0->show_neut_psi(21,0).real()<<std::endl;
 //#pragma omp parallel for
 /*
     for(int i=0;i!=(Psi0->n_states_neut()+Psi0->n_states_cat()*Psi0->n_states_cont())*Psi0->gsize_x();i++)
@@ -541,42 +544,56 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
       for(int i=0;i!=(Psi->n_states_neut())*(Psi->gsize_x());i++)
       {
          int j(0);
-         j=(i%Psi->gsize_x()-2)*bool(i%Psi->gsize_x()-2 >= 0);
-         //std::cout<<"probe1 : "<<i<<" , "<<j<<std::endl;
+         int state_index;
+         int grid_index;
+         int state_index_cont;
          wavefunction* Hvec=new wavefunction (Psi->gsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
 
+         H->show_indexes(i,i,&state_index,&grid_index,&state_index_cont,&state_index,&grid_index,&state_index_cont);
+
+//#pragma omp parallel for
          for(int s=0;s!=Psi->n_states_neut();s++)
          {
-            while( (j%Psi->gsize_x()) <= i%Psi->gsize_x()+2)
+            if(state_index == s)
             {
-               //std::cout<<" j = "<<j<<" : "<<j%Psi->gsize_x()<<"/"<<(i%Psi->gsize_x()+2)<<" => "<<bool( (j%Psi->gsize_x()) <= (i%Psi->gsize_x()+2))<<std::endl;
-               Hvec->set_psi_elwise(i,H->hamilt_element(time_index,i,j));
-               if(!(j%Psi->gsize_x() == Psi->gsize_x()-1))
-                  j++;
-               else
+               j=(s*(Psi->gsize_x())+(grid_index-2))*bool(grid_index-2 >= 0);
+
+               while( (j%Psi->gsize_x()) <= grid_index + 2 && j%Psi->gsize_x() != Psi->gsize_x()-1 ) 
                {
+                  Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
                   j++;
-                  break;
+               }
+               //j += Psi->gsize_x() - 5 + 2*bool(i%Psi->gsize_x() == 0) + bool (i%Psi->gsize_x() == 1) + 2*bool(i%Psi->gsize_x() == Psi->gsize_x()-1) + bool (i%Psi->gsize_x() ==Psi->gsize_x()-2);
+            }
+            else
+            {
+               j=(s*(Psi->gsize_x())+(grid_index-2))*bool(grid_index-2 >= 0);
+               while( (j%Psi->gsize_x()) <= grid_index + 2 && j%Psi->gsize_x() != Psi->gsize_x()-1 )
+               {
+                  Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
+                  j++;
                }
             }
-            j += Psi->gsize_x() - 5 + 2*bool(i%Psi->gsize_x() == 0) + bool (i%Psi->gsize_x() == 1) + 2*bool(i%Psi->gsize_x() == Psi->gsize_x()-1) + bool (i%Psi->gsize_x() ==Psi->gsize_x()-2);
-            //std::cout<<"probe2 j = "<<j<<std::endl;
          }
-         j+=2;
-         if(efield_magnitude > H->efield_thresh())
+/*         j+=2;
+         if(efield_magnitude >= H->efield_thresh())
          {
             for(int s=0;s!=Psi->n_states_cat()*Psi->n_states_cont();s++)
             {
-               Hvec->set_psi_elwise(i,H->hamilt_element(time_index,i,j));
+               Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
                j += Psi->gsize_x();
             }
-         }
+         }*/
+         //std::cout<<"Then "<<Hvec->show_neut_psi(21,0).real()<<std::endl;
          dPsi->set_psi_elwise(i,std::complex<double>(0,-1)*Psi->dot_prod(Hvec));
 
          delete Hvec;
       }
-
-#pragma omp parallel for
+/*         for(int m=0;m!=Psi->gsize_x();m++)
+         {
+            std::cout<<(H->xmin()+m*(H->xmax()-H->xmin())/(Psi->gsize_x()))*0.529<<"  ,"<<H->pot_neut(1,m)<<" ,"<<norm(Psi->show_neut_psi(m,1))<<","<<norm(dPsi->show_neut_psi(m,1))<<std::endl;
+         }std::cout<<"##########################################################"<<std::endl;
+*/
       for(int i=(Psi->n_states_neut())*(Psi->gsize_x());i!=(Psi->n_states_neut())*(Psi->gsize_x())+(Psi->n_states_cat())*(Psi->n_states_cont())*(Psi->gsize_x());i++)
       {
          int j(0);
@@ -586,7 +603,7 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
          {
             for(int s=0;s!=Psi->n_states_neut();s++)
             {
-               Hvec->set_psi_elwise(i,H->hamilt_element(time_index,i,j));
+               Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
                j += Psi->gsize_x();
             }
          }
@@ -594,7 +611,7 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
          {
             while(j%Psi->gsize_x() <= (i+2)%Psi->gsize_x())
             {
-               Hvec->set_psi_elwise(i,H->hamilt_element(time_index,i,j));
+               Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
                if(!(j%Psi->gsize_x() == Psi->gsize_x()-1))
                   j++;
                else
@@ -605,6 +622,7 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
             }
             j += Psi->gsize_x() - 5 + 2*bool(i%Psi->gsize_x() == 0) + bool (i%Psi->gsize_x() == 1) + 2*bool(i%Psi->gsize_x() == Psi->gsize_x()-1) + bool (i%Psi->gsize_x() ==Psi->gsize_x()-2);
          }
+         dPsi->set_psi_elwise(i,std::complex<double>(0,-1)*Psi->dot_prod(Hvec));
          delete Hvec;
       }
     //std::cout<<"leaving time deriv routine "<<std::endl;
@@ -619,6 +637,7 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
    {
       //std::cout<<"loop "<<i<<std::endl;
       Runge_kutta(Psi,H,*time_index);
+      //Runge_kutta_notdH(Psi,H,*time_index);
       *time_index=*time_index+1;
    }
 }

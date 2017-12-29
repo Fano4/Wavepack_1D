@@ -306,6 +306,7 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
                 for (int k=0; k!=this->m_gsize_x; k++)
                 {
                     input_file>>this->m_dmx_neut[i*this->m_n_states_neut+j][k];
+                    this->m_dmx_neut[j*this->m_n_states_neut+i][k] = this->m_dmx_neut[i*this->m_n_states_neut+j][k];
                 }
                 input_file.close();
             }
@@ -325,6 +326,7 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
                 for (int k=0; k!=this->m_gsize_x; k++)
                 {
                     input_file>>this->m_dmy_neut[i*this->m_n_states_neut+j][k];
+                    this->m_dmy_neut[j*this->m_n_states_neut+i][k]=this->m_dmy_neut[i*this->m_n_states_neut+j][k];
                 }
                 input_file.close();
             }
@@ -344,7 +346,7 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
                 for (int k=0; k!=this->m_gsize_x; k++)
                 {
                     input_file>>this->m_dmz_neut[i*this->m_n_states_neut+j][k];
-   //                 cout<<i+1<<"_"<<j+1<<" -- "<<k<<"="<<this->m_dmz_neut[i*this->m_n_states_neut+j][k]<<endl;
+                    this->m_dmz_neut[j*this->m_n_states_neut+i][k]=this->m_dmz_neut[i*this->m_n_states_neut+j][k];
                 }
                 input_file.close();
             }

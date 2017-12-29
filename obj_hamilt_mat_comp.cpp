@@ -61,11 +61,11 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
          {
             if(state_index_1 < state_index_2)//upper triangle of the matrix
             {
-               return std::complex<double>(0,-this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/this->m_mass);//Non adiabatic coupling
+               return std::complex<double>(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/this->m_mass,0);//Non adiabatic coupling
             }
             else //lower triangle of the matrix
             {
-               return std::complex<double>(0,this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/this->m_mass);//Non adiabatic coupling
+               return std::complex<double>(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/this->m_mass,0);//Non adiabatic coupling
             }
          }
       }
@@ -366,8 +366,8 @@ void hamilton_matrix::show_indexes(int index1,int index2,int *state_index_1,int 
    }
    else if(index1 < (this->m_n_states_neut)*(this->m_gsize_x))
    {
-      *state_index_1 = int(index1/this->m_gsize_x);
       *grid_index_1 = int(index1%this->m_gsize_x);
+      *state_index_1 = int((index1-*grid_index_1)/this->m_gsize_x);
       *state_index_cont_1 = -1;
    }
    else
@@ -394,6 +394,20 @@ void hamilton_matrix::show_indexes(int index1,int index2,int *state_index_1,int 
       *state_index_cont_2=int(((index2-this->m_n_states_neut*this->m_gsize_x)-*state_index_2*(this->m_gsize_x*this->m_n_states_cont))/this->m_gsize_x);
       *grid_index_2=int(((index2-this->m_n_states_neut*this->m_gsize_x)-*state_index_2*(this->m_gsize_x*this->m_n_states_cont))%this->m_gsize_x);
    }
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::xmin()
+{
+   return this->m_xmin;
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::xmax()
+{
+   return this->m_xmax;
 }
 //##########################################################################
 //

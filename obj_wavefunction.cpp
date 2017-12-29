@@ -268,6 +268,9 @@ void wavefunction::set_wf(wavefunction* x)
 
       cblas_zcopy(this->m_n_states_neut*this->m_gsize_x,x_neut,1,this->m_neut_part,1);
       cblas_zcopy(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,x_cat,1,this->m_cat_part,1);
+
+      delete [] x_neut;
+      delete [] x_cat;
 }
 //##########################################################################
 //
@@ -276,8 +279,13 @@ void wavefunction::add_wf(std::complex<double>* a,wavefunction* y)
 {
    if( y != NULL)
    {
-      cblas_zaxpy(this->m_n_states_neut*this->m_gsize_x,a,y->m_neut_part,1,this->m_neut_part,1);
-      cblas_zaxpy(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,a,y->m_cat_part,1,this->m_cat_part,1);
+      std::complex<double>* x_neut = new std::complex<double>[this->m_n_states_neut*this->m_gsize_x];
+      std::complex<double>* x_cat = new std::complex<double>[this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x];
+      y->wf_vec(x_neut,x_cat);
+      cblas_zaxpy(this->m_n_states_neut*this->m_gsize_x,a,x_neut,1,this->m_neut_part,1);
+      cblas_zaxpy(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,a,x_cat,1,this->m_cat_part,1);
+      delete [] x_neut;
+      delete [] x_cat;
    }
    else
    {
@@ -301,8 +309,8 @@ void wavefunction::set_psi_elwise(int i,std::complex<double> val)
    }
    else if(i < (this->n_states_neut())*(this->gsize_x()))
    {
-      state_index_1 = int(i/this->gsize_x());
       grid_index_1 = int(i%this->gsize_x());
+      state_index_1 = int((i-grid_index_1)/this->gsize_x());
       state_index_cont_1 = -1;
    }
    else
@@ -311,6 +319,7 @@ void wavefunction::set_psi_elwise(int i,std::complex<double> val)
       state_index_cont_1=int(((i-this->n_states_neut()*this->gsize_x())-state_index_1*(this->gsize_x()*this->n_states_cont()))/this->gsize_x());
       grid_index_1=int(((i-this->n_states_neut()*this->gsize_x())-state_index_1*(this->gsize_x()*this->n_states_cont()))%this->gsize_x());
    }
+
    if(state_index_cont_1 == -1)
       this->set_neut_psi(state_index_1,grid_index_1,val);
    else
@@ -352,6 +361,21 @@ void wavefunction::matrix_prod(wavefunction** mat,wavefunction* ket)
    {
       this->set_psi_elwise(i,ket->dot_prod(mat[i]));
    }
+}
+//##########################################################################
+//
+//##########################################################################
+double wavefunction::state_pop(bool species,int state_index)
+{
+   std::complex<double> value;
+
+   if(!species)
+      cblas_zdotc_sub(this->m_gsize_x,&this->m_neut_part[this->m_gsize_x*state_index],1,&this->m_neut_part[this->m_gsize_x*state_index],1,&value);
+   else
+      cblas_zdotc_sub(this->m_gsize_x*this->m_n_states_cont,&this->m_cat_part[this->m_gsize_x*this->m_n_states_cont*state_index],1,&this->m_cat_part[this->m_gsize_x*this->m_n_states_cont*state_index],1,&value);
+
+   return value.real();
+
 }
 //##########################################################################
 //

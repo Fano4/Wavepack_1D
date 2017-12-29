@@ -28,6 +28,7 @@ class wavefunction {
       void wf_vec(std::complex<double>* neut_vec,std::complex<double>* cat_vec);
       std::complex<double> dot_prod(wavefunction* Bra);
       void matrix_prod(wavefunction** mat,wavefunction* ket);
+      double state_pop(bool species,int state);
    private:
       int m_gsize_x;
       int m_n_states_neut;
@@ -97,7 +98,10 @@ class hamilton_matrix {
       double energy(wavefunction* Psi,double time_index);
       void rescale_pot(double min_pot);
       void show_indexes(int index1,int index2,int *state_index_1,int *grid_index_1,int *state_index_cont_1,int *state_index_2,int *grid_index_2,int *state_index_cont_2);
+      double xmin();
+      double xmax();
 };
+
 #include "obj_wavefunction.cpp"
 #include "obj_hamilt_mat_init.cpp"
 #include "obj_hamilt_mat_comp.cpp"
