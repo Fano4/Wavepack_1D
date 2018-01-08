@@ -554,8 +554,6 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
 //#pragma omp parallel for
          for(int s=0;s!=Psi->n_states_neut();s++)
          {
-            if(state_index == s)
-            {
                j=(s*(Psi->gsize_x())+(grid_index-2))*bool(grid_index-2 >= 0);
 
                while( (j%Psi->gsize_x()) <= grid_index + 2 && j%Psi->gsize_x() != Psi->gsize_x()-1 ) 
@@ -564,16 +562,6 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
                   j++;
                }
                //j += Psi->gsize_x() - 5 + 2*bool(i%Psi->gsize_x() == 0) + bool (i%Psi->gsize_x() == 1) + 2*bool(i%Psi->gsize_x() == Psi->gsize_x()-1) + bool (i%Psi->gsize_x() ==Psi->gsize_x()-2);
-            }
-            else
-            {
-               j=(s*(Psi->gsize_x())+(grid_index-2))*bool(grid_index-2 >= 0);
-               while( (j%Psi->gsize_x()) <= grid_index + 2 && j%Psi->gsize_x() != Psi->gsize_x()-1 )
-               {
-                  Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-                  j++;
-               }
-            }
          }
 /*         j+=2;
          if(efield_magnitude >= H->efield_thresh())

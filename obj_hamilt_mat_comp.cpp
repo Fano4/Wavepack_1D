@@ -55,7 +55,7 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
       {
          if(grid_index_1==grid_index_2)//diagonal in the grid basis
          {
-            return std::complex<double>(-this->m_dmx_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[0]-this->m_dmy_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[1]-this->m_dmz_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[2]); //dipole coupling
+            return std::complex<double>(-this->m_dmx_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[0]-this->m_dmy_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[1]-this->m_dmz_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[2],0); //dipole coupling
          }
          else //NACME
          {

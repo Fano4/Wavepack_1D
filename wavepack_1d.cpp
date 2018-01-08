@@ -16,7 +16,7 @@ int main( int argc, char * argv [])
     //string elec_wavepack_file="LiH_elec_wvpck.txt";
     //PARAMETERS OF THE SIMULATION
     int gsize_x(512);
-    int n_states_neut(15);
+    int n_states_neut(5);
     int n_states_cat(0);
     int n_angles(0);
     int n_k(0);
