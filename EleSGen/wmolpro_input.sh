@@ -79,7 +79,7 @@ wf,4,3,0;state, ${n_states_neut_sym[2]};weight, ${weight_neut_states_sym[2]};
 wf,4,4,0;state, ${n_states_neut_sym[3]};weight, ${weight_neut_states_sym[3]};
 }
 
-!{cube,LiH_neut.cub,-1,125,125,125;
+!{cube,${orbital_name},-1,125,125,125;
 ! orbital,occ
 ! BRAGG,10
 ! }
@@ -162,5 +162,44 @@ force
    done
    let sym=$sym+1
 done
+
+}
+
+function out_and_cube_gen () {
+
+echo "
+***, LiH_NAC_computation
+
+file,2,${molpro_wfu_file}${1}.wfu
+{cube,${2},-1,125,125,125;
+orbital,occ
+BRAGG,10}
+" >> ${3} 
+
+}
+function overlap_geom () {
+
+   R1H=$(awk " BEGIN { print - ( $mLi / ( $mH + $mLi ) ) * $R } " )
+   R1Li=$(awk " BEGIN { print ( $mH / ( $mH + $mLi ) ) * $R } " )
+   R2H=$(awk " BEGIN { print - ( $mLi / ( $mH + $mLi ) ) * $1 } " )
+   R2Li=$(awk " BEGIN { print ( $mH / ( $mH + $mLi ) ) * $1 } " )
+
+   echo "***,molpro_ovlp_computation
+   gprint,basis
+   GTHRESH,THROVL=-5
+   geometry={
+   4
+   LiH
+   H    0.0000    0.0000    ${R1H}
+   Li   0.0000    0.0000    ${R1Li}
+   H    0.0000    0.0000    ${R2H}
+   Li   0.0000    0.0000    ${R2Li}
+   }
+   basis=${basis_set}
+   {matrop;
+   load,s
+   print s
+   }
+   ---">$3
 
 }
