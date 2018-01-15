@@ -11,6 +11,8 @@ function nac_findiff_gen () {
    nactau=nac_tau.txt
    nacg=nac_g.txt
 
+   bau=0.529 # Bohr to Angstrom
+
    molprom2=${fol}/molprom2
    molprom1=${fol}/molprom1
    molproR=${fol}/molproR
@@ -87,8 +89,8 @@ function nac_findiff_gen () {
       cd ${home}
 
    paste ${fol}/${tempm2} ${fol}/${tempm1} ${fol}/${tempR} ${fol}/${tempp1} ${fol}/${tempp2} ${output_loc}/${phase_output}${R}.txt > ${fol}/${temptot} 
-   cat ${fol}/${temptot} | awk " { print ( (\$1 - 8 * \$2 + 8 * \$4 - \$5) / ( 12 * ( $R - $Rm1d ) * ${mu}) )} " > ${fol}/${nactau}
-   cat ${fol}/${temptot} | awk " { print ( (-\$1 + 16 * \$2 - 30 * \$3 + 16 * \$4 - \$5) / ( 2 * 12 * ( $R - $Rm1d ) * ${mu}) ) } " > ${fol}/${nacg}
+   cat ${fol}/${temptot} | awk " { print 2 * ( (\$1 - 8 * \$2 + 8 * \$4 - \$5) / ( 12 * ( $R - $Rm1d ) ) ) * ${bau}} " > ${fol}/${nactau}
+   cat ${fol}/${temptot} | awk " { print ( (-\$1 + 16 * \$2 - 30 * \$3 + 16 * \$4 - \$5) / ( 12 * ( $R - $Rm1d ) ) ) * ${bau} } " > ${fol}/${nacg}
 #   cat ${fol}/${temptot} | awk " { print (\$1 - 8 * \$2 + 8 * \$4 - \$5) / ( 12 * ( $R - $Rm1d ) * ${mu}) } "
 #   echo "####"
 #   cat ${fol}/${temptot} | awk " { print (-\$1 + 16 * \$2 - 30 * \$3 + 16 * \$4 - \$5) / ( 2 * 12 * ( $R - $Rm1d ) * ${mu}) } " 
@@ -143,6 +145,7 @@ function get_phase() {
    R=$(awk " BEGIN { print $Rmin + $i * ( $Rmax - $Rmin ) / ($grid_size) } " )
    molprom1=${fol}/molprom1
    molproR=${fol}/molproR
+   let n_states_neut_tot=${n_states_neut_sym[0]}+${n_states_neut_sym[1]}+${n_states_neut_sym[2]}+${n_states_neut_sym[3]}
 
    if [[ $i -ge 1 ]];then
       echo "getting phase for point $i with R = $R"
@@ -174,7 +177,17 @@ function get_phase() {
          let m=$m+1
       done
 
+   fi
+
+
+   let m=0
+   while [[ $m -lt ${n_states_neut_tot} ]] 
+   do
+      let mp=${m}+1
+      head -n ${mp} ${output_loc}/${phase_output}${R}.txt | tail -n 1  >> ${output_loc}/${phase_output}${mp}.input
+      let m=$m+1
+   done
+
 #      rm ${fol}/*.cube ${fol}/*.wfu ${fol}/*.out ${fol}/*.xml ${fol}/*.com
 #      mv ${fol}/* ${output_loc}
-   fi
 }

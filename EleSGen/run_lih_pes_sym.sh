@@ -188,7 +188,7 @@ do
       fol=${tmp_loc}${j}
    done
 
-   mkdir ${fol}
+   mkdir -p ${fol}
 
    echo "creating folder ${fol}"
 
@@ -196,7 +196,7 @@ get_phase
 
 #RUN OVERLAP PHASE PROGRAM AND PRINT THE PHASE VECTOR FOR THE CURRENT GEOMETRY WITH RESPECT TO THE FIRST ONE
 
-nac_findiff_gen
+#nac_findiff_gen
 
 rm -r ${fol}
 
