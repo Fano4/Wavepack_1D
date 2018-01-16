@@ -100,6 +100,7 @@ class hamilton_matrix {
       void show_indexes(int index1,int index2,int *state_index_1,int *grid_index_1,int *state_index_cont_1,int *state_index_2,int *grid_index_2,int *state_index_cont_2);
       double xmin();
       double xmax();
+      void set_phase(std::string file_address);
 };
 
 #include "obj_wavefunction.cpp"

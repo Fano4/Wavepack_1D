@@ -12,6 +12,7 @@
 //set_dm_cat(std::string file_address)
 //set_PICE(std::string file_address)
 //set_NAC(std::string file_address)
+//set_phase(std::string file_address)
 //HAMILTON MATRIX OBJECT COMPUTATION
 
 
@@ -467,7 +468,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
          {
             pos=this->m_xmin+x*(this->m_xmax-this->m_xmin)/this->m_gsize_x;
             name_indenter.str("");
-            name_indenter<<file_address<<"pice"<<"_"<<i+1<<"_"<<j+1<<"_"<<x<<".input";
+            name_indenter<<file_address<<pos/.529<<"_"<<i+1<<"_"<<j+1<<".input";
             filename=name_indenter.str();
             input_file.open(filename.c_str());
             if(input_file.is_open())
@@ -476,7 +477,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
                {
                   for(int l=0;l!=this->m_n_angles;l++)
                   {
-                     if(k==0)
+                     if(k==100)
                      {
                         input_file>>this->k_modulus[k];
                         input_file>>this->k_orientation[0][l];
@@ -641,6 +642,57 @@ void hamilton_matrix::rescale_pot(double min_pot)
       {
          this->m_pot_cat[m*(this->m_gsize_x)+g]-=min_pot;
       }   
+   }
+}
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::set_phase(std::string file_address)
+{
+   using namespace std;
+   ifstream input_file1;
+   ifstream input_file2;
+   stringstream ss_infile1;
+   stringstream ss_infile2;
+   string s_infile1;
+   string s_infile2;
+
+   int factor1;
+   int factor2;
+   for(int i=0;i!=this->m_n_states_neut;i++)
+   {
+      for(int j=i;j!=this->m_n_states_neut;j++)
+      {
+         ss_infile1.str("");
+         ss_infile1.str(file_address.c_str());
+         ss_infile1<<i<<".input";
+         s_infile1=ss_infile1.str();
+         ss_infile2.str("");
+         ss_infile2.str(file_address.c_str());
+         ss_infile2<<j<<".input";
+         s_infile2=ss_infile2.str();
+
+         input_file1.open(s_infile1.c_str());
+         input_file2.open(s_infile2.c_str());
+         if(!input_file1.is_open() || !input_file2.is_open())
+         {
+            cout<<"ERROR WHILE OPENING PHASE FACTOR FILE: ";
+               if(!input_file1.is_open())
+                  cout<<s_infile1.c_str()<<std::endl;
+               else
+                  cout<<s_infile2.c_str()<<std::endl;
+            exit(EXIT_FAILURE);
+         }
+
+         for(int k=0;k!=this->m_gsize_x;k++)
+         {
+            input_file1>>factor1;
+            input_file2>>factor2;
+            this->m_dmx_neut[j*this->m_n_states_neut+i][k]*=factor1*factor2;
+            this->m_dmy_neut[j*this->m_n_states_neut+i][k]*=factor1*factor2;
+            this->m_dmz_neut[j*this->m_n_states_neut+i][k]*=factor1*factor2;
+         }
+      }
    }
 }
 //##########################################################################

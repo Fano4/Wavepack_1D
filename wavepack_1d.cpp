@@ -9,17 +9,18 @@ int main( int argc, char * argv [])
     string neutral_pes("/data1/home/stephan/LiH_512_points/LiH_neut_");
     string cation_pes("/data1/home/stephan/LiH_512_points/LiH_cat_");
     string neutral_dipole("/data1/home/stephan/LiH_512_points/LiH_");
-    //string ionization_coupling_file="LiH_PICE_";//LiH_PICE_0_0.txt
+    string ionization_coupling_file("/data1/home/stephan/LiH_512_points_pice/LiH_PICE_");//LiH_PICE_R_i_j.txt
+    string phase_file("/data1/home/stephan/LiH_gridtest/LiH_phase_");
     //string out_file="Output.log";
     string read_file="gnu-out.txt";
     ofstream read;
     //string elec_wavepack_file="LiH_elec_wvpck.txt";
     //PARAMETERS OF THE SIMULATION
     int gsize_x(512);
-    int n_states_neut(5);
-    int n_states_cat(0);
-    int n_angles(0);
-    int n_k(0);
+    int n_states_neut(15);
+    int n_states_cat(1);
+    int n_angles(128);
+    int n_k(150);
     double xmin(0.8/0.529);//!!! THESE VALUES ARE IN ATOMIC UNITS AND NOT IN ANGSTROM
     double xmax(21.6/0.529);
     double mass(1836*(1.007825*6.015122795/(1.007825+6.015122795)));
@@ -37,6 +38,7 @@ int main( int argc, char * argv [])
     H->set_pot_neut(neutral_pes.c_str());
     H->set_pot_cat(cation_pes.c_str());
     H->set_dm_neut(neutral_dipole.c_str());
+    H->set_phase(phase_file.c_str());
 
     Psi->initialize(H);
 
