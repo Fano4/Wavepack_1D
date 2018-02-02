@@ -180,3 +180,63 @@ do
   done
 done
 }
+
+#GATHER NAC IN NAC MOLPRO OUTPUT
+
+
+function print_nac_neutral () {
+
+#loop between the different components of the vector
+  let sym=0 #symmetry of the initial state
+  #loop over symmetries of the initial state
+  while [[ ${sym} -lt $n_sym ]]
+  do
+    let symp=${sym}+1 #symmetry of initial state in molpro output
+
+        let ts1=0 #total index of the initial state
+        let temp1=0 
+        #For a given symmetry, the total index of a state is the sum over all preivous symmetries of the number of states in each symmetry
+    ##############
+        while [[ $temp1 -lt ${sym} ]]
+        do
+           let ts1=${ts1}+${n_states_neut_sym[$temp1]} 
+           let temp1=${temp1}+1
+        done
+    ##############
+        let m=1 #initial state index 
+        #loop over states indexes of the initial state
+        while [[ $m -le ${n_states_neut_sym[${sym}]} ]]
+        do
+           let n=1 #state index of the final state
+           let ts1=${ts1}+1 
+    ##############
+        let ts2=0 #total index of the initial state
+        let temp1=0 
+        while [[ $temp1 -lt ${sym} ]]
+        do
+           let ts2=${ts2}+${n_states_neut_sym[$temp1]} 
+           let temp1=${temp1}+1
+        done
+    ##############
+
+           #loop over the states indexes of the final state
+           while [[ $n -lt $m ]]
+           do
+             let ts2=${ts2}+1
+             echo "seeking for NAC  ${m}.${symp}-${n}.${symp} = ${ts1}-${ts2}"
+             a=$(grep -a5 "Transition density (R|R-DR) from     8[012]02.2 for states ${m}.${symp} - ${n}.${symp}" ${fol}/${molpro_nac_input}${R}.out |tail -n1| awk '{print $3}')
+
+             #if there is no instance of the sought NAC, put it to zero
+             if [[ -z $a ]]; then
+               echo "0.0" >> ${output_loc}/LiH_NAC_${ts1}_${ts2}.input
+             else
+               echo "$a" >> ${output_loc}/LiH_NAC_${ts1}_${ts2}.input
+             fi
+
+             let n=$n+1
+          done
+          let m=$m+1
+        done
+    let sym=${sym}+1
+  done
+}

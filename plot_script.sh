@@ -6,15 +6,15 @@ then
 else
    file=$1
 fi
-#grep "#Electric field (z-component):" $file | sed "s/#Electric field (z-component)://" > gp_efield.txt
-for i in 1 2 3 4 5
+grep "Electric field (Z)" $file | sed "s/Electric field (Z)//" > gp_efield.txt
+for i in 2 3 4 5 6 7
 do
-grep "Population on state $i = " $file | sed "s/Population on state $i = //" > gp_pop_$i.txt
+grep "Population on neutral state $i = " $file | sed "s/Population on neutral state $i = //" > gp_pop_$i.txt
 done
-#for i in 0
-#do
-#grep "population of cation state $i = " $file | sed "s/population of cation state $i = //" > gp_pop_cat_$i.txt
-#done
+for i in 1
+do
+grep "Population on cation state $i = " $file | sed "s/Population on cation state $i = //" > gp_pop_cat_$i.txt
+done
 
 gnf=gnufile.gp
 lw1=2
@@ -63,7 +63,7 @@ set key left top
 plot "gp_efield.txt" t 'Pulse' w l ls 1 \\
 MAFG
 
-for i in 1 2 3 4 5 
+for i in 2 3 4 5 6 7
 do
    let j=$i+1
 cat >> $gnf << MAFG
@@ -71,9 +71,9 @@ cat >> $gnf << MAFG
 MAFG
 done
 
-#cat >> $gnf << MAFG
-#,"gp_pop_cat_0.txt" t 'Cation' w l ls 9 
-#MAFG
+cat >> $gnf << MAFG
+,"gp_pop_cat_1.txt" t 'Cation' w l ls 9 
+MAFG
 
 gnuplot -p "$gnf"
 

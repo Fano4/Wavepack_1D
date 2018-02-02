@@ -19,18 +19,19 @@ class wavefunction {
       int n_states_cont();
       void initialize(hamilton_matrix* H);
       void set_norm(double value);
-      double norm();
-      void set_dipole(double *vector);
+      double norm(hamilton_matrix *H);
+      void set_dipole(hamilton_matrix *H);
       void show_dipole(double *vector);
       void add_wf(std::complex<double>* a,wavefunction* y=NULL);
       void set_wf(wavefunction* x);
       void set_psi_elwise(int i,std::complex<double> val);
       void wf_vec(std::complex<double>* neut_vec,std::complex<double>* cat_vec);
-      std::complex<double> dot_prod(wavefunction* Bra);
-      void matrix_prod(wavefunction** mat,wavefunction* ket);
-      double state_pop(bool species,int state);
+      std::complex<double> dot_prod(wavefunction* Bra, hamilton_matrix *H);
+      void matrix_prod(wavefunction** mat,wavefunction* ket,hamilton_matrix *H);
+      double state_pop(bool species,int state,hamilton_matrix* H=NULL);
    private:
       int m_gsize_x;
+      int m_tgsize_x;
       int m_n_states_neut;
       int m_n_states_cat;
       int m_n_states_cont;
@@ -78,6 +79,7 @@ class hamilton_matrix {
       double min_distance;
       double *kinetic_energy;
       double *derivative_matrix;
+      double *position_array_script;
 
    public:
       hamilton_matrix(int gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh);
@@ -100,10 +102,9 @@ class hamilton_matrix {
       void show_indexes(int index1,int index2,int *state_index_1,int *grid_index_1,int *state_index_cont_1,int *state_index_2,int *grid_index_2,int *state_index_cont_2);
       double xmin();
       double xmax();
+      int n_k();
+      double dk();
       void set_phase(std::string file_address);
+      void print_dipole_neut();
 };
 
-#include "obj_wavefunction.cpp"
-#include "obj_hamilt_mat_init.cpp"
-#include "obj_hamilt_mat_comp.cpp"
-#include "electric_field_func.cpp"

@@ -161,13 +161,10 @@ function get_phase() {
 
       echo "running overlap in phase mode..."
 
-      ${overlap_code_dir}/wf_overlap.exe n_sym ${n_sym} n_elec ${n_elec} n_states ${n_states_neut_sym[0]} ${n_states_neut_sym[1]} ${n_states_neut_sym[2]} ${n_states_neut_sym[3]} molpro_output_1 ${molpro_input}${R}.out molpro_output_2 ${molpro_input}${Rm1d}.out  molpro_ovlp ${molprom1}.out > ${fol}/temp_phase.txt phase
+      ${overlap_code_dir}/wf_overlap.exe n_sym ${n_sym} n_elec ${n_elec} n_states ${n_states_neut_sym[0]} ${n_states_neut_sym[1]} ${n_states_neut_sym[2]} ${n_states_neut_sym[3]} molpro_output_1 ${molpro_input}${R}.out molpro_output_2 ${molpro_input}${Rm1d}.out  molpro_ovlp ${molprom1}.out phase > ${output_loc}/${phase_output}${R}.txt #${fol}/temp_phase.txt phase
 
-      if [[ $i -gt 1 ]]; then
-         paste ${output_loc}/${phase_output}${Rm1d}.txt ${fol}/temp_phase.txt | awk '{print $1 * $2}' > ${output_loc}/${phase_output}${R}.txt 
-      else
-         mv ${fol}/temp_phase.txt ${output_loc}/${phase_output}${R}.txt
-      fi
+        # paste ${output_loc}/${phase_output}${Rm1d}.txt ${fol}/temp_phase.txt | awk '{print $1 * $2}' > ${output_loc}/${phase_output}${R}.txt 
+
       cd ${home}
    else
       let m=0

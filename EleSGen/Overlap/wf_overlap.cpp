@@ -239,11 +239,12 @@ double wf_overlap_phase(std::string molpro_output_1,std::string molpro_output_2,
    ci_vec_reader(n_states_sym,NULL,n_occs,n_closeds,n_elec,num_of_ci_sym_1,NULL,ci_vector_1,NULL,molpro_output_1,n_sym);
    ci_vec_reader(n_states_sym,NULL,n_occs,n_closeds,n_elec,num_of_ci_sym_2,NULL,ci_vector_2,NULL,molpro_output_2,n_sym);
    //std::cout<<"##################### "<<num_of_ci_1<<"CI Coefficients"<<std::endl;
-   /*for(int m=0;m!=num_of_ci_1;m++)
+   for(int m=0;m!=num_of_ci_1;m++)
    {
       for(int n=0;n!=n_states;n++)
       {
-         std::cout<<ci_vector_1[0][(n_elec+n_states)*m+n_elec+n]<<"   ";
+         std::cout<<setw(15)<<ci_vector_1[0][(n_elec+n_states)*m+n_elec+n]<<"   ";
+         //std::cout<<ci_vector_1[0][(n_elec+n_states)*m+n]<<"   ";
       }std::cout<<"***"<<std::endl;
    }
    std::cout<<"#####################"<<num_of_ci_2<<"CI coefficients"<<std::endl;
@@ -251,9 +252,11 @@ double wf_overlap_phase(std::string molpro_output_1,std::string molpro_output_2,
    {
       for(int n=0;n!=n_states;n++)
       {
-         std::cout<<ci_vector_2[0][(n_elec+n_states)*m+n_elec+n]<<"   ";
+         std::cout<<setw(15)<<ci_vector_2[0][(n_elec+n_states)*m+n_elec+n]<<"   ";
+         //std::cout<<ci_vector_2[0][(n_elec+n_states)*m+n]<<"   ";
       }std::cout<<"***"<<std::endl;
-   }*/
+   }
+   exit(EXIT_SUCCESS);
    //std::cout<<"#####################"<<std::endl;
 
    //std::cout<<"CI-vectors obtained"<<std::endl;
@@ -262,14 +265,17 @@ double wf_overlap_phase(std::string molpro_output_1,std::string molpro_output_2,
    //mo_cube_overlap_matrix(n_sym,n_occs,mo_overlap,molpro_cube_1,molpro_cube_2);
    //std::cout<<"MO overlap computed"<<std::endl;
    //std::cout<<"MO overlap matrix between the two geometries"<<std::endl;
-   /*for(int i=0;i!=n_occ;i++)
+/*   for(int i=0;i!=n_occ;i++)
    {
       for(int j=0;j!=n_occ;j++)
       {
-         std::cout<<setw(10)<<setprecision(6)<<mo_overlap[n_occ*i+j];
-      }std::cout<<std::endl;
-   }std::cout<<std::endl<<std::endl;
-   */
+         std::cout<<setw(15)<<setprecision(6)<<mo_overlap[n_occ*i+j];
+         if(j%6 == 0 && j != 0)
+            std::cout<<std::endl;
+
+      }std::cout<<std::endl<<std::endl;
+   }std::cout<<std::endl<<std::endl<<std::endl;*/
+   
    //COMPUTE THE DETERMINANTS FOR EACH CONFIGURATION
    slater_det_overlap(n_states,n_occ,num_of_ci_1,num_of_ci_2,n_elec,ci_vector_1,ci_vector_2,mo_overlap,det_overlap);
    //std::cout<<"determinants overlap computed"<<std::endl;
@@ -321,10 +327,7 @@ for(int m=0;m!=n_states;m++)
    {
       for(int i=0;i!=n_states;i++)
       {
-         if(ES_overlap[i*n_states+i] < 0)
-            std::cout<<"-1"<<std::endl;
-         else 
-            std::cout<<"1"<<std::endl;
+         std::cout<<setw(15)<<ES_overlap[i*n_states+i]<<std::endl; 
       }
    }
 }
@@ -405,17 +408,33 @@ void slater_det_overlap(int n_states,int n_occ,int ci_size_1,int ci_size_2,int n
    bool test(0);
    bool test2(0);
 
-   double *temp;
-   temp=new double[(n_elec)*(n_elec)];
 
                 
                 for (int n=0; n!=ci_size_1; n++)//   over configurations of input 1
                 {
                     for (int l=0; l!=ci_size_2; l++)//  over configuration of input 2
                     {
+                       double *temp;
+                       temp=new double[(n_elec)*(n_elec)];
                        det_overlap[ci_size_2*n+l]=0;
                         test2=0;
                      //========================VVVVVVVVVVVVV Overlap matrix for a given configuration VVVVVVVVVVVVVVVVV==================   
+                        for (int m=0; m!=n_elec; m++)  //Over the electrons of input 1
+                        {
+                           for (int o=0; o!=n_elec; o++)//Over the electrons of input 2
+                           {
+                              temp[(n_elec)*m+o]=mo_overlap[n_occ*int(ci_vec_1[0][(n_elec+n_states)*n+m])+int(ci_vec_2[0][(n_elec+n_states)*l+o])]*kronecker_delta(ci_vec_1[1][n_elec*n+m], ci_vec_2[1][(n_elec)*l+o]);
+                           }
+                        }
+                        //========================^^^^^^^^^^^^^^ Overlap matrix for a given configuration ^^^^^^^^^^^^^==================
+                        delete [] temp;
+                        
+                        det_overlap[ci_size_2*n+l]=determinant(temp,(n_elec));
+                    }
+                }
+}
+/*
+ * 
                         for (int m=0; m!=n_elec; m++)  //Over the electrons of input 1
                         {
                             for (int p=0; p!=n_occ; p++)//Over the MO of input 1
@@ -435,11 +454,4 @@ void slater_det_overlap(int n_states,int n_occ,int ci_size_1,int ci_size_2,int n
                                     }
                             }
                         }
-                        //========================^^^^^^^^^^^^^^ Overlap matrix for a given configuration ^^^^^^^^^^^^^==================
-                        
-                        
-                        det_overlap[ci_size_2*n+l]=determinant(temp,(n_elec));
-                    }
-                }
-}
-
+ * */

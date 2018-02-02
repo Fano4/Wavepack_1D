@@ -12,3 +12,7 @@
 
 #include "objects.hpp"
 #include "Computation.cpp"
+#include "obj_wavefunction.cpp"
+#include "obj_hamilt_mat_init.cpp"
+#include "obj_hamilt_mat_comp.cpp"
+#include "electric_field_func.cpp"

@@ -25,7 +25,7 @@ orbital_name=lih_neut
 molpro_dir=/data1/apps/molpro_2012_1/bin/molpro
 home_dir=/data1/home/stephan
 phase_output=phase_
-overlap_code_dir=/data1/home/stephan/Overlap
+overlap_code_dir=/data1/home/stephan/Wavepack_1D/EleSGen/Overlap
 
 #DEFINING PES VARIABLES
 
@@ -88,14 +88,14 @@ c, 1.1, 1
 declare n_occ_sym=(11 4 4 1)
 
 ###############################
-if [[ 0 -eq 1 ]] 
+if [[ 0 -eq 0 ]] 
 then
 ##############################
 #FOR EACH POINT ON THE PES
 echo "running PES computation"
 
 let i=0
-while [[ ${i} -lt 4 ]] #${grid_size} ]]
+while [[ ${i} -lt ${grid_size} ]]
 do
 
    echo "loop $i"
@@ -104,6 +104,7 @@ do
    R=$(awk " BEGIN { print $Rmin + $i * ( $Rmax - $Rmin ) / ($grid_size) } " )
    RH=$(awk " BEGIN { print - ( $mLi / ( $mH + $mLi ) ) * $R } " )
    RLi=$(awk " BEGIN { print ( $mH / ( $mH + $mLi ) ) * $R } " )
+   dR=$(awk " BEGIN { print ( $Rmax - $Rmin ) / ($grid_size) } " )
 
    #CREATE A TEMP DIRECTORY
    let j=0
@@ -124,22 +125,24 @@ do
    #CREATE MOLPRO INPUT FILES
    echo "creating molpro input file ${fol}/${molpro_prefile}.com"
 
-   prefiles_input #write molpro prefile input
+#   prefiles_input #write molpro prefile input
 
    echo "creating molpro input file ${fol}/${molpro_input}${R}.com"
 
-   main_input #write main molpro input
+#   main_input #write main molpro input
 
 #   echo "creating molpro input file ${fol}/${molpro_nac_input}${R}.com"
 
- #  NAC_input #write nac molpro input
+   cp ${output_loc}/${molpro_wfu_file}${R}.wfu ${fol}/
+   
+   NAC_input #write nac molpro input
 
 
 cd ${fol}
 echo "running molpro "
-${molpro_dir} -n4 -m4000M  -d ${fol} -s ${fol}/${molpro_prefile}.com
-${molpro_dir} -n4 -m4000M  -d ${fol} -s ${fol}/${molpro_input}${R}.com
-# ${molpro_dir} -n4 -m4000M  -d ${fol} -s ${fol}/${molpro_nac_input}${R}.com
+#${molpro_dir} -n4 -m4000M  -d ${fol} -s ${fol}/${molpro_prefile}.com
+#${molpro_dir} -n4 -m4000M  -d ${fol} -s ${fol}/${molpro_input}${R}.com
+${molpro_dir} -n4 -m4000M  -d ${fol} -s ${fol}/${molpro_nac_input}${R}.com
 cd ${home}
 
 #CONFIGURE PHOTOIONIZATION COMPUTATION PROGRAM
@@ -156,13 +159,16 @@ cd ${home}
 #cd ${home} 
 
 
-print_coordinate
+#print_coordinate
 
-print_pes_neutral
+#print_pes_neutral
 
-print_pes_cation
+#print_pes_cation
 
-print_dipole_neutral
+#print_dipole_neutral
+
+print_nac_neutral
+
 
 mv ${fol}/* ${output_loc}
 rm -r ${fol}
@@ -192,12 +198,11 @@ do
 
    echo "creating folder ${fol}"
 
-get_phase
+#get_phase
 
 #RUN OVERLAP PHASE PROGRAM AND PRINT THE PHASE VECTOR FOR THE CURRENT GEOMETRY WITH RESPECT TO THE FIRST ONE
 
 #nac_findiff_gen
-
 rm -r ${fol}
 
 let i=$i+1

@@ -20,10 +20,10 @@ double hamilton_matrix::electric_field(double time_index,double* vector)
 }
 double hamilton_matrix::potential_vector(double time_index,double* vector)
 {
-   double strength(0.025);
-   double origin(10/0.02418884);
-   double sigma(2/0.02418884);
-   double energy(0.1);
+   double strength(0.04);
+   double origin(3.4/0.02418884);
+   double sigma(0.677/0.02418884);
+   double energy(0.05695);
    double CEP(0);
 
    double time(this->m_h*time_index);

@@ -32,6 +32,9 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
    int state_index_cont_2(-1);
    double elec_field[3];
    double pot_vector[3];
+   double dk(this->dk());
+//   std::cout<<"kmax = "<<this->k_modulus[this->m_n_k-1]<<" kmin = "<<this->k_modulus[0]<<" nk = "<<this->m_n_k<<" => dk = "<<dk<<std::endl;
+//   exit(EXIT_SUCCESS);
 
    this->show_indexes(i,j,&state_index_1,&grid_index_1,&state_index_cont_1,&state_index_2,&grid_index_2,&state_index_cont_2);
 
@@ -59,14 +62,15 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
          }
          else //NACME
          {
-            if(state_index_1 < state_index_2)//upper triangle of the matrix
+            return 0;
+          /*  if(state_index_1 < state_index_2)//upper triangle of the matrix
             {
                return std::complex<double>(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/this->m_mass,0);//Non adiabatic coupling
             }
             else //lower triangle of the matrix
             {
                return std::complex<double>(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/this->m_mass,0);//Non adiabatic coupling
-            }
+            }*/
          }
       }
    }
@@ -75,11 +79,11 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
    {
       if(state_index_cont_1 ==-1 && grid_index_1==grid_index_2)//N-C
       {
-         return -(this->m_PICE_x[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+(this->translation_vector[state_index_cont_2][int(time_index)])][grid_index_1])*elec_field[0]-(this->m_PICE_y[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+(this->translation_vector[state_index_cont_2][int(time_index)])][grid_index_1])*elec_field[1]-(this->m_PICE_z[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+(this->translation_vector[state_index_cont_2][int(time_index)])][grid_index_1])*elec_field[2];//PICE dipole interaction
+         return (-(this->m_PICE_x[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+(this->translation_vector[state_index_cont_2][int(time_index)])][grid_index_1])*elec_field[0]-(this->m_PICE_y[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+(this->translation_vector[state_index_cont_2][int(time_index)])][grid_index_1])*elec_field[1]-(this->m_PICE_z[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+(this->translation_vector[state_index_cont_2][int(time_index)])][grid_index_1])*elec_field[2])*dk;//PICE dipole interaction
       }
       else if(grid_index_1==grid_index_2) // C-N
       {
-         return -std::conj(this->m_PICE_x[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+this->translation_vector[state_index_cont_1][int(time_index)]][grid_index_1])*elec_field[0]-std::conj(this->m_PICE_y[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+this->translation_vector[state_index_cont_1][int(time_index)]][grid_index_1])*elec_field[1]-std::conj(this->m_PICE_z[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+this->translation_vector[state_index_cont_1][int(time_index)]][grid_index_1])*elec_field[2];//PICE dipole interaction
+         return (-std::conj(this->m_PICE_x[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+this->translation_vector[state_index_cont_1][int(time_index)]][grid_index_1])*elec_field[0]-std::conj(this->m_PICE_y[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+this->translation_vector[state_index_cont_1][int(time_index)]][grid_index_1])*elec_field[1]-std::conj(this->m_PICE_z[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+this->translation_vector[state_index_cont_1][int(time_index)]][grid_index_1])*elec_field[2]);//PICE dipole interaction
       }
       else
          return 0;//non-diagonal in grid index
@@ -92,28 +96,28 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
          {
             if(grid_index_1==grid_index_2)//diagonal in the grid basis
             {
-               return std::complex<double>(0.5*(pow(this->k_modulus[state_index_cont_1%this->m_n_k]*sin(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k])*cos(this->k_orientation[1][state_index_cont_1-state_index_cont_1%this->m_n_k]),2)+pow(k_modulus[state_index_cont_1%this->m_n_k]*sin(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k])*sin(this->k_orientation[1][state_index_cont_1-state_index_cont_1%this->m_n_k]),2)+this->k_modulus[state_index_cont_1%this->m_n_k]*cos(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k]))+this->kinetic_energy[grid_index_1*this->m_gsize_x+grid_index_2]+this->m_pot_cat[state_index_1*this->m_gsize_x+grid_index_1]-this->m_dmx_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[0]-this->m_dmy_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[1]-this->m_dmz_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[2],0); //diagonal term of kinetic energy + potential energy + permanent dipole interaction
+               return (std::complex<double>(0.5*(pow(this->k_modulus[state_index_cont_1%this->m_n_k]*sin(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k])*cos(this->k_orientation[1][state_index_cont_1-state_index_cont_1%this->m_n_k]),2)+pow(k_modulus[state_index_cont_1%this->m_n_k]*sin(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k])*sin(this->k_orientation[1][state_index_cont_1-state_index_cont_1%this->m_n_k]),2)+this->k_modulus[state_index_cont_1%this->m_n_k]*cos(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k]))+this->kinetic_energy[grid_index_1*this->m_gsize_x+grid_index_2]+this->m_pot_cat[state_index_1*this->m_gsize_x+grid_index_1]-this->m_dmx_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[0]-this->m_dmy_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[1]-this->m_dmz_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[2],0))*dk; //diagonal term of kinetic energy + potential energy + permanent dipole interaction
             }
             else // non-diagonal term of kinetic energy
             {
-               return std::complex<double>(this->kinetic_energy[grid_index_1*this->m_gsize_x+grid_index_2],0);
+               return std::complex<double>(this->kinetic_energy[grid_index_1*this->m_gsize_x+grid_index_2],0)*dk;
             }
          }
          else //coupling elements between electronic states of the cation
          {
             if(grid_index_1==grid_index_2)//diagonal in the grid basis
             {
-               return std::complex<double>(-this->m_dmx_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[0]-this->m_dmy_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[1]-this->m_dmz_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[2]); //dipole coupling
+               return std::complex<double>(-this->m_dmx_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[0]-this->m_dmy_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[1]-this->m_dmz_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[2])*dk; //dipole coupling
             }
             else
             {
                if(state_index_1 < state_index_2)//upper triangle of the matrix
                {
-                     return 0;//std::complex<double>(0,-m_NAC[state_index_1*n_states_neut+state_index_2][grid_index_1]*derivative_matrix[grid_index_1*gsize_x+grid_index_2]/m_mass);//Non adiabatic coupling
+                     return std::complex<double>(0,m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/this->m_mass);//Non adiabatic coupling
                }
                else //lower triangle of the matrix
                {
-                  return 0;//std::complex<double>(0,m_NAC[state_index_1*n_states_neut+state_index_2][grid_index_1]*derivative_matrix[grid_index_1*gsize_x+grid_index_2]/m_mass);//Non adiabatic coupling
+                  return std::complex<double>(0,m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/this->m_mass);//Non adiabatic coupling
                }
             }
          }
@@ -132,8 +136,11 @@ double hamilton_matrix::energy(wavefunction* Psi,double time_index)
 {
    using namespace std;
    complex<double> ec(complex<double>(0,0));
+   double rec(0);
+   double imec(0);
    double e(0);
    double cnorm(0);
+   double tempnorm(0);
    std::complex<double> *dipvec=new std::complex<double> [3];
    int index_1(0);
    int index_2(0);
@@ -143,14 +150,183 @@ double hamilton_matrix::energy(wavefunction* Psi,double time_index)
    int state_index2;
    int grid_index2;
    int state_index_cont2;
+   int j(0);
+   std::complex<double> imunit (0,1);
+
+   wavefunction* dPsi=new wavefunction(Psi->gsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
+
+   t_deriv(Psi,this,dPsi,time_index);
+   dPsi->add_wf(&imunit,NULL);
+   ec=dPsi->dot_prod(Psi,this);
+   Psi->norm(this);
+   return real(ec);
 
 
-//#pragma omp parallel for
-      for(int i=0;i!=(Psi->n_states_neut())*(Psi->gsize_x());i++)
+//This block reads the elements of the sparse hamiltonian matrix in the basis of electronic states.
+
+//std::cout<<"N block... "<<(Psi->n_states_neut())*(Psi->gsize_x())<<" elements."<<std::endl;
+/*#pragma omp parallel for reduction(+:rec,imec,tempnorm) private(state_index,grid_index,state_index_cont,state_index2,grid_index2,state_index_cont2,j)
+   for(int i=0;i!=(Psi->n_states_neut())*(Psi->gsize_x());i++)//read every line in the Neutral part of the matrix
+   {
+      j=0;
+
+      this->show_indexes(i,i,&state_index,&grid_index,&state_index_cont,&state_index,&grid_index,&state_index_cont);
+      /////////NORM COMPUTATION
+      tempnorm+=(conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index,state_index))).real();
+      /////////NORM COMPUTATION
+
+      *
+       * N-N block of the hamilton matrix
+       *
+      for(int s=0;s!=Psi->n_states_neut();s++)
+      {
+         if(s==state_index)//Diagonal block in electronic state => pentadiagonal in grid index
+         {
+            j=(i%Psi->gsize_x()-2)*bool(i%Psi->gsize_x()-2 >= 0)+s*Psi->gsize_x();//initial grid index of column in diagonal block
+            while( (j%Psi->gsize_x()) <= i%Psi->gsize_x()+2)
+            {
+               this->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
+
+               rec+=real((this->hamilt_element(time_index,i,j))*conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
+               imec+=imag((this->hamilt_element(time_index,i,j))*conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
+
+               ///////////DIPOLE COMPUTATION
+               if(grid_index == grid_index2)
+               {
+                  dipvec[0]+=conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index,state_index2))*(this->m_dmx_neut[state_index*this->m_n_states_neut+state_index2][grid_index]);
+                  dipvec[1]+=conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index,state_index2))*(this->m_dmy_neut[state_index*this->m_n_states_neut+state_index2][grid_index]);
+                  dipvec[2]+=conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index,state_index2))*(this->m_dmz_neut[state_index*this->m_n_states_neut+state_index2][grid_index]);
+               }
+               ///////////DIPOLE COMPUTATION
+               
+               if(!(grid_index2 == Psi->gsize_x()-1))//if you do not reach the edge of the grid, continue
+                  j++;
+               else //end of the while loop
+               {
+                  j++;
+                  break;
+               }
+            }
+         }
+         else//Non-diagonal block in electronic state => diagonal in grid index
+         {
+            j=grid_index+s*Psi->gsize_x();//grid index of column in diagonal block
+            this->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
+            rec+=real((this->hamilt_element(time_index,i,j))*conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
+            imec+=imag((this->hamilt_element(time_index,i,j))*conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
+
+            ///////////DIPOLE COMPUTATION
+            dipvec[0]+=conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index,state_index2))*(this->m_dmx_neut[state_index*this->m_n_states_neut+state_index2][grid_index]);
+            dipvec[1]+=conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index,state_index2))*(this->m_dmy_neut[state_index*this->m_n_states_neut+state_index2][grid_index]);
+            dipvec[2]+=conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index,state_index2))*(this->m_dmz_neut[state_index*this->m_n_states_neut+state_index2][grid_index]);
+            ///////////DIPOLE COMPUTATION
+         }
+      }
+      *
+       * End of  N-N block of the hamilton matrix
+       *
+      *
+       *  N-C block of the hamilton matrix
+       *
+      for(int s=0;s!=this->m_n_states_cat*this->m_n_states_cont;s++)
+      {
+         j=this->m_n_states_neut*this->m_gsize_x+s*this->m_gsize_x+grid_index;
+         this->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
+         rec+=real((this->hamilt_element(time_index,i,j))*conj(Psi->show_neut_psi(grid_index,state_index))*Psi->show_cat_psi(grid_index,state_index2,state_index_cont2));
+         imec+=imag((this->hamilt_element(time_index,i,j))*conj(Psi->show_neut_psi(grid_index,state_index))*Psi->show_cat_psi(grid_index,state_index2,state_index_cont2));
+      }
+      *
+       *  N-C block of the hamilton matrix
+       *
+   }
+   ec+=std::complex<double>(rec,imec);
+   cnorm+=tempnorm;
+   tempnorm=0;
+   rec=0;
+   imec=0;
+//std::cout<<"C block... "<<(Psi->n_states_cat())*(Psi->n_states_cont())*(Psi->gsize_x())<<" elements."<<std::endl;
+
+#pragma omp parallel for reduction(+:rec,imec,tempnorm) private(state_index,grid_index,state_index_cont,state_index2,grid_index2,state_index_cont2,j)
+   for(int i=(Psi->n_states_neut())*(Psi->gsize_x());i!=(Psi->n_states_neut())*(Psi->gsize_x())+(Psi->n_states_cat())*(Psi->n_states_cont())*(Psi->gsize_x());i++)//read every line in the Cation part of the matrix
+   {
+      j=0;
+
+      this->show_indexes(i,i,&state_index,&grid_index,&state_index_cont,&state_index,&grid_index,&state_index_cont);
+      /////////NORM COMPUTATION
+      tempnorm+=(conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*(Psi->show_cat_psi(grid_index,state_index,state_index_cont))).real();
+      /////////NORM COMPUTATION
+      *
+       * C-N block of the hamilton matrix
+       *
+      for(int s=0;s!=this->m_n_states_neut;s++)
+      {
+         j=s*this->m_gsize_x+grid_index;
+         this->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
+         rec+=real((this->hamilt_element(time_index,i,j))*conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*Psi->show_neut_psi(grid_index,state_index2));
+         imec+=imag((this->hamilt_element(time_index,i,j))*conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*Psi->show_neut_psi(grid_index,state_index2));
+      }
+      *
+       *  End of C-N block of the hamilton matrix
+       *
+      *
+       * C-C block of the hamilton matrix
+       *
+      for(int s=0;s!=(Psi->n_states_cat());s++)
+      {
+            if(s==state_index)//Diagonal block in electronic state => pentadiagonal in grid index
+            {
+               j=(Psi->n_states_neut())*(Psi->gsize_x())+(i%Psi->gsize_x()-2)*bool(i%Psi->gsize_x()-2 >= 0)+s*Psi->n_states_cont()*Psi->gsize_x();//initial grid index of column in diagonal block
+               while( (j%Psi->gsize_x()) <= i%Psi->gsize_x()+2)
+               {
+                  this->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
+
+                  rec+=real((this->hamilt_element(time_index,i,j))*conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));//energy
+                  imec+=imag((this->hamilt_element(time_index,i,j))*conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));//energy
+
+                  ///////////DIPOLE COMPUTATION
+                  if(grid_index == grid_index2)
+                  {
+                     dipvec[0]+=conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*(Psi->show_cat_psi(grid_index,state_index2,state_index_cont2))*(this->m_dmx_cat[state_index*this->m_n_states_cat+state_index2][grid_index]);
+                     dipvec[1]+=conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*(Psi->show_cat_psi(grid_index,state_index2,state_index_cont2))*(this->m_dmy_cat[state_index*this->m_n_states_cat+state_index2][grid_index]);
+                     dipvec[2]+=conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*(Psi->show_cat_psi(grid_index,state_index2,state_index_cont2))*(this->m_dmz_cat[state_index*this->m_n_states_cat+state_index2][grid_index]);
+                  }
+                  ///////////DIPOLE COMPUTATION
+               
+                  if(!(grid_index2 == Psi->gsize_x()-1))//if you do not reach the edge of the grid, continue
+                     j++;
+                  else //end of the loop
+                  {
+                     j++;
+                     break;
+                  }
+               }
+            }
+            else//Non-diagonal block in electronic state => diagonal in grid index
+            {
+               j=(Psi->n_states_neut())*(Psi->gsize_x())+i%Psi->gsize_x()+s*Psi->gsize_x()*Psi->n_states_cont()+state_index_cont*Psi->gsize_x();//grid index of column in diagonal block
+               this->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
+               rec+=real((this->hamilt_element(time_index,i,j))*conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));//energy
+               imec+=imag((this->hamilt_element(time_index,i,j))*conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));//energy
+
+               ///////////DIPOLE COMPUTATION
+               dipvec[0]+=conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*(Psi->show_cat_psi(grid_index,state_index2,state_index_cont2))*(this->m_dmx_cat[state_index*this->m_n_states_cat+state_index2][grid_index]);
+               dipvec[1]+=conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*(Psi->show_cat_psi(grid_index,state_index2,state_index_cont2))*(this->m_dmy_cat[state_index*this->m_n_states_cat+state_index2][grid_index]);
+               dipvec[2]+=conj(Psi->show_cat_psi(grid_index,state_index,state_index_cont))*(Psi->show_cat_psi(grid_index,state_index2,state_index_cont2))*(this->m_dmz_cat[state_index*this->m_n_states_cat+state_index2][grid_index]);
+               ///////////DIPOLE COMPUTATION
+            }
+         }
+      *
+       *  End of C-C block of the hamilton matrix
+       *
+   }
+   ec+=std::complex<double>(rec,imec);
+   cnorm+=tempnorm;
+   tempnorm=0;
+*      for(int i=0;i!=(Psi->n_states_neut())*(Psi->gsize_x());i++)//read every line in the Neutral part of the matrix
       {
          int j(0);
          
-         j=(i%Psi->gsize_x()-2)*bool(i%Psi->gsize_x()-2 >= 0);
+         j=(i%Psi->gsize_x()-2)*bool(i%Psi->gsize_x()-2 >= 0);//grid index of the column 
          this->show_indexes(i,i,&state_index,&grid_index,&state_index_cont,&state_index,&grid_index,&state_index_cont);
 
          cnorm+=(conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_neut_psi(grid_index,state_index))).real();
@@ -184,6 +360,7 @@ double hamilton_matrix::energy(wavefunction* Psi,double time_index)
          {
             this->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
             ec+=(this->hamilt_element(time_index,i,j))*conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2));
+            //std::cout<<"probe "<<i<<","<<s<<std::endl;//DEBUGGING
             j += Psi->gsize_x();
                if(i%Psi->gsize_x() == j%Psi->gsize_x())
                {
@@ -192,9 +369,11 @@ double hamilton_matrix::energy(wavefunction* Psi,double time_index)
                   dipvec[2]+=conj(Psi->show_neut_psi(grid_index,state_index))*(Psi->show_cat_psi(grid_index,state_index2,state_index_cont2))*(this->m_PICE_z[i*this->m_n_states_cat*this->m_n_states_cont+j][grid_index]);
                }
          }
+         //std::cout<<"probe "<<i<<std::endl;//DEBUGGING
 
       }
 
+      //std::cout<<"probe_neutral"<<std::endl;//DEBUGGING
 //#pragma omp parallel for
       for(int i=(Psi->n_states_neut())*(Psi->gsize_x());i!=(Psi->n_states_neut())*(Psi->gsize_x())+(Psi->n_states_cat())*(Psi->n_states_cont())*(Psi->gsize_x());i++)
       {
@@ -241,6 +420,8 @@ double hamilton_matrix::energy(wavefunction* Psi,double time_index)
             j += Psi->gsize_x() - 5 + 2*bool(i%Psi->gsize_x() == 0) + bool (i%Psi->gsize_x() == 1) + 2*bool(i%Psi->gsize_x() == Psi->gsize_x()-1) + bool (i%Psi->gsize_x() ==Psi->gsize_x()-2);
          }
       }
+*/
+
 /*
    for(int g=0;g!=this->m_gsize_x;g++)
    {
@@ -324,20 +505,20 @@ double hamilton_matrix::energy(wavefunction* Psi,double time_index)
       }
    }
 */
-   double* rdipvec = new double [3];
+   //double* rdipvec = new double [3];
 
-   rdipvec[0]=dipvec[0].real();
-   rdipvec[1]=dipvec[1].real();
-   rdipvec[2]=dipvec[2].real();
+   //rdipvec[0]=dipvec[0].real();
+   //rdipvec[1]=dipvec[1].real();
+   //rdipvec[2]=dipvec[2].real();
 
-   delete [] dipvec;
+   //delete [] dipvec;
 
-   e=ec.real();
-   Psi->set_norm(cnorm);
-   Psi->set_dipole(rdipvec);
-   delete [] rdipvec;
+   //e=ec.real();
+   //Psi->set_norm(cnorm);
+   //Psi->set_dipole(rdipvec);
+   //delete [] rdipvec;
 
-   return e;
+   //return e;
 }
 //##########################################################################
 //
@@ -408,6 +589,20 @@ double hamilton_matrix::xmin()
 double hamilton_matrix::xmax()
 {
    return this->m_xmax;
+}
+//##########################################################################
+//
+//##########################################################################
+int hamilton_matrix::n_k()
+{
+   return this->m_n_k;
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::dk()
+{
+   return (this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
 }
 //##########################################################################
 //

@@ -8,6 +8,7 @@ wavefunction::wavefunction(int gsize_x,int n_states_neut,int n_states_cat,int n_
 {
 
    this->m_gsize_x=gsize_x;
+   this->m_tgsize_x=3*gsize_x;
    this->m_n_states_neut=n_states_neut;
    this->m_n_states_cat=n_states_cat;
    this->m_n_states_cont=n_states_cont;
@@ -36,17 +37,17 @@ void wavefunction::set_neut_psi(int state_index,int grid_index,std::complex<doub
    if(this->m_neut_part==NULL)
    {
       std::cout<<"FATAL ERROR: TRYING TO ADDRESS UNINITIALIZED WAVE FUNCTION VECTOR. EXIT"<<std::endl;
-      std::exit;
+      std::exit(EXIT_FAILURE);
    }
    else if(grid_index < 0 || grid_index >= this->m_gsize_x)
    {
       std::cout<<"FATAL ERROR: TRYING TO ADDRESS A GRID INDEX OUT OF RANGE. EXIT"<<std::endl;
-      std::exit;
+      std::exit(EXIT_FAILURE);
    }
    else if(state_index < 0 || state_index >= this->m_n_states_neut)
    {
       std::cout<<"FATAL ERROR: TRYING TO ADDRESS AN ELECTRONIC STATE INDEX OUT OF RANGE. EXIT"<<std::endl;
-      std::exit;
+      std::exit(EXIT_FAILURE);
    }
    else
    this->m_neut_part[state_index*this->m_gsize_x+grid_index]=value;
@@ -61,22 +62,22 @@ void wavefunction::set_cat_psi(int state_cat_index,int state_cont_index,int grid
    if(this->m_cat_part==NULL)
    {
       std::cout<<"FATAL ERROR: TRYING TO ADDRESS UNINITIALIZED WAVE FUNCTION VECTOR. EXIT"<<std::endl;
-      std::exit;
+      std::exit(EXIT_FAILURE);
    }
    else if(grid_index < 0 || grid_index >= this->m_gsize_x)
    {
       std::cout<<"FATAL ERROR: TRYING TO ADDRESS A GRID INDEX OUT OF RANGE. EXIT"<<std::endl;
-      std::exit;
+      std::exit(EXIT_FAILURE);
    }
    else if(state_cat_index < 0 || state_cat_index >= this->m_n_states_cat)
    {
       std::cout<<"FATAL ERROR: TRYING TO ADDRESS AN ELECTRONIC STATE INDEX OUT OF RANGE. EXIT"<<std::endl;
-      std::exit;
+      std::exit(EXIT_FAILURE);
    }
-   else if(state_cont_index < 0 || state_cont_index >= this->m_n_states_cat)
+   else if(state_cont_index < 0 || state_cont_index >= this->m_n_states_cont)
    {
       std::cout<<"FATAL ERROR: TRYING TO ADDRESS AN CONTINUUM STATE INDEX OUT OF RANGE. EXIT"<<std::endl;
-      std::exit;
+      std::exit(EXIT_FAILURE);
    }
    else
    this->m_cat_part[state_cat_index*this->m_n_states_cont*this->m_gsize_x+state_cont_index*this->m_gsize_x+grid_index]=value;
@@ -92,18 +93,18 @@ std::complex<double> wavefunction::show_neut_psi(int grid_index,int state_index)
    if(this->m_neut_part==NULL)
    {
       std::cout<<"FATAL ERROR: TRYING TO SHOW UNINITIALIZED WAVE FUNCTION VECTOR. EXIT"<<std::endl;
-      std::cout<<std::exit<<std::endl;
+      std::exit(EXIT_FAILURE);
    }
    else if(grid_index < 0 || grid_index >= this->m_gsize_x)
    {
       std::cout<<"FATAL ERROR: TRYING TO SHOW A GRID INDEX OUT OF RANGE. EXIT"<<std::endl;
-      std::cout<<std::exit<<std::endl;
+      std::exit(EXIT_FAILURE);
    }
    else if(state_index < 0 || state_index >= this->m_n_states_neut)
    {
       std::cout<<"FATAL ERROR: TRYING TO SHOW AN ELECTRONIC STATE INDEX OUT OF RANGE (NEUTRAL)."<<std::endl<<"STATE "<<state_index<<std::endl<<"EXIT"<<std::endl;
+      std::exit(EXIT_FAILURE);
 
-      std::cout<<std::exit<<std::endl;
    }
    else
    return this->m_neut_part[state_index*this->m_gsize_x+grid_index];
@@ -118,22 +119,22 @@ std::complex<double> wavefunction::show_cat_psi(int grid_index,int state_cat_ind
    if(this->m_cat_part==NULL)
    {
       std::cout<<"FATAL ERROR: TRYING TO SHOW UNINITIALIZED WAVE FUNCTION VECTOR. EXIT"<<std::endl;
-      std::exit;
+      std::exit(EXIT_FAILURE);
    }
    else if(grid_index < 0 || grid_index >= this->m_gsize_x)
    {
       std::cout<<"FATAL ERROR: TRYING TO SHOW A GRID INDEX OUT OF RANGE. EXIT"<<std::endl;
-      std::exit;
+      std::exit(EXIT_FAILURE);
    }
    else if(state_cat_index < 0 || state_cat_index >= this->m_n_states_cat)
    {
       std::cout<<"FATAL ERROR: TRYING TO SHOW AN ELECTRONIC STATE INDEX OUT OF RANGE (CATION). EXIT"<<std::endl;
-      std::exit;
+      std::exit(EXIT_FAILURE);
    }
-   else if(state_cont_index < 0 || state_cont_index >= this->m_n_states_cat)
+   else if(state_cont_index < 0 || state_cont_index >= this->m_n_states_cont)
    {
       std::cout<<"FATAL ERROR: TRYING TO SHOW AN CONTINUUM STATE INDEX OUT OF RANGE. EXIT"<<std::endl;
-      std::exit;
+      std::exit(EXIT_FAILURE);
    }
    else
    return this->m_cat_part[state_cat_index*this->m_n_states_cont*this->m_gsize_x+state_cont_index*this->m_gsize_x+grid_index];
@@ -228,8 +229,9 @@ void wavefunction::initialize(hamilton_matrix* H)
 //##########################################################################
 //
 //##########################################################################
-double wavefunction::norm()
+double wavefunction::norm(hamilton_matrix *H)
 {
+   this->m_norm=real(this->dot_prod(this,H));
    return this->m_norm;
 }
 //##########################################################################
@@ -242,11 +244,40 @@ void wavefunction::set_norm(double value)
 //##########################################################################
 //
 //##########################################################################
-void wavefunction::set_dipole(double* vector)
+void wavefunction::set_dipole(hamilton_matrix *H)
 {
-   this->m_dipole[0]=vector[0];
-   this->m_dipole[1]=vector[1];
-   this->m_dipole[2]=vector[2];
+   return ;
+   double *vector=new double[3];
+   int state_index;
+   int grid_index;
+   int state_index_cont;
+
+   for(int i=0;i!=this->m_gsize_x*this->m_n_states_neut;i++)
+   {
+      H->show_indexes(i,i,&state_index,&grid_index,&state_index_cont,&state_index,&grid_index,&state_index_cont);
+      for(int s=0;s!=this->m_n_states_neut;s++)
+      {
+//         vector[0]+=H->m_dmx_neut[state_index*this->m_n_states_neut+s][grid_index]*;
+      }
+      for(int j=0;j!=this->m_gsize_x*this->m_n_states_cat*this->m_n_states_cont;j++)
+      {
+         continue;
+      }
+   }
+   for(int i=0;i!=this->m_gsize_x*this->m_n_states_cat*this->m_n_states_cont;i++)
+   {
+      for(int j=0;j!=this->m_gsize_x*this->m_n_states_neut;j++)
+      {
+         continue;
+      }
+      for(int j=0;j!=this->m_gsize_x*this->m_n_states_cat*this->m_n_states_cont;j++)
+      {
+         continue;
+      }
+   }
+   //this->m_dipole[0]=vector[0];
+   //this->m_dipole[1]=vector[1];
+   //this->m_dipole[2]=vector[2];
 }
 //##########################################################################
 //
@@ -315,10 +346,11 @@ void wavefunction::set_psi_elwise(int i,std::complex<double> val)
    }
    else
    {
-      state_index_1=int((i-this->n_states_neut()*this->gsize_x())/(this->gsize_x()*this->n_states_cont()));
-      state_index_cont_1=int(((i-this->n_states_neut()*this->gsize_x())-state_index_1*(this->gsize_x()*this->n_states_cont()))/this->gsize_x());
-      grid_index_1=int(((i-this->n_states_neut()*this->gsize_x())-state_index_1*(this->gsize_x()*this->n_states_cont()))%this->gsize_x());
+      grid_index_1=int((i-this->n_states_neut()*this->gsize_x())%this->gsize_x());
+      state_index_cont_1=int(((i-this->n_states_neut()*this->gsize_x()-grid_index_1))/(this->gsize_x()))%this->n_states_cont();
+      state_index_1=int(((i-this->n_states_neut()*this->gsize_x()-grid_index_1-(this->gsize_x())*state_index_cont_1))/(this->gsize_x()*this->n_states_cont()));
    }
+   std::cout<<grid_index_1<<","<<state_index_cont_1<<","<<state_index_1<<std::endl;
 
    if(state_index_cont_1 == -1)
       this->set_neut_psi(state_index_1,grid_index_1,val);
@@ -329,7 +361,7 @@ void wavefunction::set_psi_elwise(int i,std::complex<double> val)
 //##########################################################################
 //
 //##########################################################################
-std::complex<double> wavefunction::dot_prod(wavefunction* Bra)
+std::complex<double> wavefunction::dot_prod(wavefunction* Bra, hamilton_matrix *H)
 {
    std::complex<double>* Bra_neut=new std::complex<double> [this->m_gsize_x*this->m_n_states_neut];
    std::complex<double>* Bra_cat=new std::complex<double> [this->m_gsize_x*this->m_n_states_cat*this->m_n_states_cont];
@@ -342,7 +374,7 @@ std::complex<double> wavefunction::dot_prod(wavefunction* Bra)
 
    delete [] Bra_neut;
    delete [] Bra_cat;
-   return result_neut+result_cat;
+   return result_neut+result_cat*H->dk();
 }
 //##########################################################################
 //
@@ -355,27 +387,36 @@ void wavefunction::wf_vec(std::complex<double>* neut_vec,std::complex<double>* c
 //##########################################################################
 //
 //##########################################################################
-void wavefunction::matrix_prod(wavefunction** mat,wavefunction* ket)
+void wavefunction::matrix_prod(wavefunction** mat,wavefunction* ket,hamilton_matrix *H)
 {
    for(int i=0;i!=this->m_n_states_neut*this->m_gsize_x;i++)
    {
-      this->set_psi_elwise(i,ket->dot_prod(mat[i]));
+      this->set_psi_elwise(i,ket->dot_prod(mat[i],H));
    }
 }
 //##########################################################################
 //
 //##########################################################################
-double wavefunction::state_pop(bool species,int state_index)
+double wavefunction::state_pop(bool species,int state_index,hamilton_matrix* H)
 {
    std::complex<double> value;
 
    if(!species)
+   {
       cblas_zdotc_sub(this->m_gsize_x,&this->m_neut_part[this->m_gsize_x*state_index],1,&this->m_neut_part[this->m_gsize_x*state_index],1,&value);
+      return value.real();
+   }
    else
+   {
+      if(H==NULL)
+      {
+         std::cout<<"ERROR ! Trying to compute cation state pop without giving the dk differential"<<std::endl;
+         exit(EXIT_FAILURE);
+      }
       cblas_zdotc_sub(this->m_gsize_x*this->m_n_states_cont,&this->m_cat_part[this->m_gsize_x*this->m_n_states_cont*state_index],1,&this->m_cat_part[this->m_gsize_x*this->m_n_states_cont*state_index],1,&value);
 
-   return value.real();
-
+      return value.real()*H->dk();
+   }
 }
 //##########################################################################
 //

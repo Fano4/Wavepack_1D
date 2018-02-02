@@ -291,6 +291,7 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
    using namespace std;
    stringstream name_indenter;
    string filename;
+   double temp;
 
    ifstream input_file;
    for(int i=0;i!=this->m_n_states_neut;i++)
@@ -306,7 +307,8 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
                input_file.seekg(0);
                 for (int k=0; k!=this->m_gsize_x; k++)
                 {
-                    input_file>>this->m_dmx_neut[i*this->m_n_states_neut+j][k];
+                    input_file>>temp;
+                    this->m_dmx_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmx_neut[j*this->m_n_states_neut+i][k] = this->m_dmx_neut[i*this->m_n_states_neut+j][k];
                 }
                 input_file.close();
@@ -326,7 +328,8 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
                input_file.seekg(0);
                 for (int k=0; k!=this->m_gsize_x; k++)
                 {
-                    input_file>>this->m_dmy_neut[i*this->m_n_states_neut+j][k];
+                    input_file>>temp;
+                    this->m_dmy_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmy_neut[j*this->m_n_states_neut+i][k]=this->m_dmy_neut[i*this->m_n_states_neut+j][k];
                 }
                 input_file.close();
@@ -346,7 +349,8 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
                input_file.seekg(0);
                 for (int k=0; k!=this->m_gsize_x; k++)
                 {
-                    input_file>>this->m_dmz_neut[i*this->m_n_states_neut+j][k];
+                    input_file>>temp;
+                    this->m_dmz_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmz_neut[j*this->m_n_states_neut+i][k]=this->m_dmz_neut[i*this->m_n_states_neut+j][k];
                 }
                 input_file.close();
@@ -457,35 +461,67 @@ void hamilton_matrix::set_PICE(std::string file_address)
    double *trial_px=new double[this->m_n_states_cont];
    double *trial_py=new double[this->m_n_states_cont];
    double *trial_pz=new double[this->m_n_states_cont];
+   double *position=new double[this->m_gsize_x];
 
    ifstream input_file;
+   input_file.open("/data1/home/stephan/LiH_gridtest/coordinates.input");
+   if(!input_file.is_open())
+   {
+      std::cout<<"POSITION INPUT SCRIPT FILE CANNOT BE FOUND "<<std::endl;
+      exit(EXIT_FAILURE);
+   }
+   for(int i=0;i!=this->m_gsize_x;i++)
+   {
+      input_file>>position[i];
+   }
+   input_file.close();
    
    for(int i=0;i!=this->m_n_states_neut;i++)
    {
       for(int j=0;j!=this->m_n_states_cat;j++)
       {
+         std::cout<<"Getting PICE for states "<<i<<" - "<<j<<std::endl;
          for(int x=0;x!=this->m_gsize_x;x++)
          {
-            pos=this->m_xmin+x*(this->m_xmax-this->m_xmin)/this->m_gsize_x;
+            pos=position[x];
             name_indenter.str("");
-            name_indenter<<file_address<<pos/.529<<"_"<<i+1<<"_"<<j+1<<".input";
+            name_indenter<<file_address<<pos<<"_"<<i<<"_"<<j<<".txt";
             filename=name_indenter.str();
             input_file.open(filename.c_str());
-            if(input_file.is_open())
+            if(!input_file.is_open())
+            {
+               if(x==0)
+               {
+                  cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                  exit(EXIT_FAILURE);
+               }
+               else
+               {
+                  pos=position[x-1];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<pos<<"_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+                  input_file.open(filename.c_str());
+                  if(!input_file.is_open())
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+               }
+            }
             {
                for(int k=0;k!=this->m_n_k;k++)
                {
                   for(int l=0;l!=this->m_n_angles;l++)
                   {
+                     input_file>>this->k_modulus[k];
                      if(k==100)
                      {
-                        input_file>>this->k_modulus[k];
                         input_file>>this->k_orientation[0][l];
                         input_file>>this->k_orientation[1][l];
                      }
                      else
                      {
-                        input_file>>temp;
                         input_file>>temp;
                         input_file>>temp;
                      }
@@ -503,15 +539,17 @@ void hamilton_matrix::set_PICE(std::string file_address)
                }
                input_file.close();
             }
-            else
-            {
-               cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-               exit;
-            }
          }
       }
    }
 
+   std::cout<<"Got all PICE ! "<<std::endl<<"NOT Determining closest pair of plane waves in reciprocal space"<<std::endl;
+   for(int t=0;t!=this->m_n_times;t++)
+   {
+      for(int i=0;i!=this->m_n_states_cont;i++)
+         this->translation_vector[i][t]=i;
+   }
+   /*
       //DETERMINING THE CLOSEST PAIR OF PLANE WAVES IN THE RECIPROCAL SPACE
 
                                for(int m=0;m!=this->m_n_states_cont;m++)
@@ -526,6 +564,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
                                      }   
                                   }   
                                }   
+                               std::cout<<"Got closest pair !"<<std::endl;
    //END OF CLOSEST PAIR DETERMINATION
          for(int i=0;i!=this->m_n_states_cont;i++)
          {
@@ -536,6 +575,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
 //#pragma omp parallel for
    for(int t=0;t!=this->m_n_times;t++)
    {
+         std::cout<<"Translating plane waves for time "<<t<<" / "<<this->m_n_times<<std::endl;
 //#pragma omp parallel for
          for(int i=0;i!=this->m_n_states_cont;i++)
          {
@@ -577,6 +617,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
    delete [] ref_px;
    delete [] ref_py;
    delete [] ref_pz;
+   */
 }
 //##########################################################################
 //
@@ -594,20 +635,21 @@ void hamilton_matrix::set_NAC(std::string file_address)
       for(int j=i;j!=m_n_states_neut;j++)
       {   
             name_indenter.str("");
-            name_indenter<<file_address<<"nac"<<"_"<<i+1<<"_"<<j+1<<".input";
+            name_indenter<<file_address<<j+1<<"_"<<i+1<<".input";
             filename=name_indenter.str();
             input_file.open(filename.c_str());
             if(input_file.is_open())
             {
                 for (int k=0; k!=this->m_gsize_x; k++)
                 {
-                   input_file>>m_NAC[i*this->m_n_states_neut+j][k];
+                   input_file>>m_NAC[j*this->m_n_states_neut+i][k];
+                   m_NAC[i*this->m_n_states_neut+j][k]=-m_NAC[j*this->m_n_states_neut+i][k];
                 }
             }
             else
             {
                cout<<"ERROR NAC FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-               exit;
+               exit(EXIT_FAILURE);
             }
       }
    }
@@ -664,12 +706,12 @@ void hamilton_matrix::set_phase(std::string file_address)
       for(int j=i;j!=this->m_n_states_neut;j++)
       {
          ss_infile1.str("");
-         ss_infile1.str(file_address.c_str());
-         ss_infile1<<i<<".input";
+         ss_infile1<<file_address.c_str();
+         ss_infile1<<i+1<<".input";
          s_infile1=ss_infile1.str();
          ss_infile2.str("");
-         ss_infile2.str(file_address.c_str());
-         ss_infile2<<j<<".input";
+         ss_infile2<<file_address.c_str();
+         ss_infile2<<j+1<<".input";
          s_infile2=ss_infile2.str();
 
          input_file1.open(s_infile1.c_str());
@@ -691,8 +733,43 @@ void hamilton_matrix::set_phase(std::string file_address)
             this->m_dmx_neut[j*this->m_n_states_neut+i][k]*=factor1*factor2;
             this->m_dmy_neut[j*this->m_n_states_neut+i][k]*=factor1*factor2;
             this->m_dmz_neut[j*this->m_n_states_neut+i][k]*=factor1*factor2;
+            this->m_dmx_neut[i*this->m_n_states_neut+j][k]*=factor1*factor2;
+            this->m_dmy_neut[i*this->m_n_states_neut+j][k]*=factor1*factor2;
+            this->m_dmz_neut[i*this->m_n_states_neut+j][k]*=factor1*factor2;
          }
       }
+   }
+}
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::print_dipole_neut()
+{
+   using namespace std;
+   string sdipole_x_out("dipole_neut_x.txt");
+   string sdipole_y_out("dipole_neut_y.txt");
+   string sdipole_z_out("dipole_neut_z.txt");
+   ofstream dipole_x;
+   ofstream dipole_y;
+   ofstream dipole_z;
+   dipole_x.open(sdipole_x_out.c_str());
+   dipole_y.open(sdipole_y_out.c_str());
+   dipole_z.open(sdipole_z_out.c_str());
+
+   for(int k=0;k!=this->m_gsize_x;k++)
+   {
+      for(int i=0;i!=this->m_n_states_neut;i++)
+      {
+         for(int j=i;j!=this->m_n_states_neut;j++)
+         {
+            dipole_x<<setw(12)<<setprecision(8)<<this->m_dmx_neut[i*this->m_n_states_neut+j][k];
+            dipole_y<<setw(12)<<setprecision(8)<<this->m_dmy_neut[i*this->m_n_states_neut+j][k];
+            dipole_z<<setw(12)<<setprecision(8)<<this->m_dmz_neut[i*this->m_n_states_neut+j][k];
+         }
+      }
+      dipole_x<<endl;
+      dipole_y<<endl;
+      dipole_z<<endl;
    }
 }
 //##########################################################################
