@@ -220,7 +220,7 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
 
    cout<<"gathering PES of the neutral"<<endl;
 
-   for(int i=0;i!=m_n_states_neut;i++)
+   for(int i=0;i!=this->m_n_states_neut;i++)
    {
       name_indenter.str("");
       name_indenter<<file_address<<i+1<<".input";
@@ -236,6 +236,8 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
             input_file>>this->m_pot_neut[this->m_gsize_x*i+j];
             //cout<<this->m_pot_neut[this->m_gsize_x*i+j]<<endl;
          }
+         this->m_pot_neut[i*this->m_gsize_x+0]=1;
+         this->m_pot_neut[i*this->m_gsize_x+1]=1;
          input_file.close();
       }
       else
@@ -311,6 +313,10 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
                     this->m_dmx_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmx_neut[j*this->m_n_states_neut+i][k] = this->m_dmx_neut[i*this->m_n_states_neut+j][k];
                 }
+                this->m_dmx_neut[i*this->m_n_states_neut+j][0]=0;
+                this->m_dmx_neut[j*this->m_n_states_neut+i][0]=0;
+                this->m_dmx_neut[i*this->m_n_states_neut+j][1]=0;
+                this->m_dmx_neut[j*this->m_n_states_neut+i][1]=0;
                 input_file.close();
             }
       else
@@ -332,6 +338,10 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
                     this->m_dmy_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmy_neut[j*this->m_n_states_neut+i][k]=this->m_dmy_neut[i*this->m_n_states_neut+j][k];
                 }
+                this->m_dmy_neut[i*this->m_n_states_neut+j][0]=0;
+                this->m_dmy_neut[j*this->m_n_states_neut+i][0]=0;
+                this->m_dmy_neut[i*this->m_n_states_neut+j][1]=0;
+                this->m_dmy_neut[j*this->m_n_states_neut+i][1]=0;
                 input_file.close();
             }
             else
@@ -353,6 +363,10 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
                     this->m_dmz_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmz_neut[j*this->m_n_states_neut+i][k]=this->m_dmz_neut[i*this->m_n_states_neut+j][k];
                 }
+                this->m_dmz_neut[i*this->m_n_states_neut+j][0]=0;
+                this->m_dmz_neut[j*this->m_n_states_neut+i][0]=0;
+                this->m_dmz_neut[i*this->m_n_states_neut+j][1]=0;
+                this->m_dmz_neut[j*this->m_n_states_neut+i][1]=0;
                 input_file.close();
             }
             else
@@ -426,6 +440,7 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
                 {
                     input_file>>this->m_dmz_cat[i*this->m_n_states_cat+j][k];
                 }
+
                 input_file.close();
             }
             else
@@ -542,6 +557,11 @@ void hamilton_matrix::set_PICE(std::string file_address)
          }
       }
    }
+   this->m_dk_vec=new double[this->m_n_states_cont];
+   for(int i=0;i!=this->m_n_states_cont;i++)
+   {
+      this->m_dk_vec[i]=sqrt((2*acos(-1)*this->m_n_k/this->m_n_states_cont)*pow(this->k_modulus[i%this->m_n_k],2)*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k);
+   }
 
    std::cout<<"Got all PICE ! "<<std::endl<<"NOT Determining closest pair of plane waves in reciprocal space"<<std::endl;
    for(int t=0;t!=this->m_n_times;t++)
@@ -657,7 +677,7 @@ void hamilton_matrix::set_NAC(std::string file_address)
 }
 double hamilton_matrix::kinetic_energy_matrix(int i,int j)
 {
-   return kinetic_energy[this->m_gsize_x*i+j];
+   return this->kinetic_energy[this->m_gsize_x*i+j];
 }
 //##########################################################################
 //

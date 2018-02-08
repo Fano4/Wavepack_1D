@@ -13,9 +13,10 @@ int main( int argc, char * argv [])
     string neutral_nac("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_NAC_");
     string ionization_coupling_file("/data1/home/stephan/LiH_512_points_pice/LiH_PICE_");//LiH_PICE_R_i_j.txt
 //    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
-    string out_file="wavepack_output/Output.log";
-    string read_file="wavepack_output/gnu-out.txt";
-    string wf_out_file="wavepack_output/neut_wf_state_";
+    string out_file="wavepack_CEP0/Output.log";
+    string read_file="wavepack_CEP0/gnu-out.txt";
+    string wf_out_file="wavepack_CEP0/neut_wf_state_";
+    string wf1d_out_file="wavepack_CEP0/neut_wf1d_state_";
     stringstream ss_wf;
     string s_wf;
     ofstream output;
@@ -25,22 +26,23 @@ int main( int argc, char * argv [])
     //PARAMETERS OF THE SIMULATION
     int gsize_x(512);
     int n_states_neut(15);
-    int n_states_cat(1);
-    int n_angles(128);
-    int n_k(150);
+    int n_states_cat(0);
+    int n_angles(0);
+    int n_k(0);
     double xmin(0.8/0.529);//!!! THESE VALUES ARE IN ATOMIC UNITS AND NOT IN ANGSTROM
     double xmax(21.6/0.529);
     double mass(1836*(1.007825*6.015122795/(1.007825+6.015122795)));
     double total_time(100/0.02418884);
-    double h(0.001/0.02418884);
+    double h(0.005/0.02418884);
     int n_times(int(total_time/h));
     int time_index(0);
     double dipole[3];
     double efield[3];
-    double efield_thresh(1e-5);
+    double efield_thresh(0);
 
     wavefunction* Psi= new wavefunction(gsize_x, n_states_neut,n_states_cat,n_angles*n_k);
     hamilton_matrix* H=new hamilton_matrix(gsize_x,n_states_neut,n_states_cat,n_k,n_angles,xmin,xmax,mass,n_times,h,efield_thresh);
+
 
     H->set_pot_neut(neutral_pes.c_str());
     H->set_pot_cat(cation_pes.c_str());
@@ -72,13 +74,18 @@ int main( int argc, char * argv [])
           s_wf=ss_wf.str();
           wf_out.open(s_wf.c_str());
           wf_out.close();
+          ss_wf.str("");
+          ss_wf<<wf1d_out_file<<m<<".wvpck";
+          s_wf=ss_wf.str();
+          wf_out.open(s_wf.c_str());
+          wf_out.close();
        }
 
     //wavefunction* dPsi= new wavefunction(gsize_x, n_states_neut,n_states_cat,n_angles*n_k);
 
-    while(time_index*h <= total_time)
+    while(time_index <= n_times)
     {
-       propagate(Psi,H,&time_index,10);
+       propagate(Psi,H,&time_index,2);
        H->electric_field(time_index,efield);
        output.open(out_file.c_str(),ios_base::app);
 
@@ -100,8 +107,18 @@ int main( int argc, char * argv [])
           wf_out.open(s_wf.c_str(),ios_base::app);
           for(int k=0;k!=gsize_x;k++)
           {
-              wf_out<<time_index*h*0.02418884<<"   "<<xmin+k*(xmax-xmin)/gsize_x<<"   "<<real(Psi->show_neut_psi(i,0))<<"   "<<imag(Psi->show_neut_psi(i,0))<<std::endl;
+              wf_out<<time_index*h*0.02418884<<"   "<<xmin+k*(xmax-xmin)/gsize_x<<"   "<<real(Psi->show_neut_psi(k,m))<<"   "<<imag(Psi->show_neut_psi(k,m))<<std::endl;
           }wf_out<<std::endl;
+          wf_out.close();
+
+          ss_wf.str("");
+          ss_wf<<wf1d_out_file<<m<<".wvpck";
+          s_wf=ss_wf.str();
+          wf_out.open(s_wf.c_str(),ios_base::app);
+          for(int k=0;k!=gsize_x;k++)
+          {
+              wf_out<<time_index*h*0.02418884<<"   "<<xmin+k*(xmax-xmin)/gsize_x<<"   "<<H->pot_neut(m,k)<<"   "<<real(Psi->show_neut_psi(k,m))<<"   "<<imag(Psi->show_neut_psi(k,m))<<std::endl;
+          }wf_out<<std::endl<<std::endl;
           wf_out.close();
 
        }

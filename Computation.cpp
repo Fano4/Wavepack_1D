@@ -265,12 +265,17 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     const double a71(15.*(22.+7*sqrt(21.))/180.),a72(120./180.),a73(40.*(7.*sqrt(21.)-5.)/180.),a74(-63.*(3.*sqrt(21.)-2.)/180.),a75(-14.*(49.+9.*sqrt(21))/180.),a76(70.*(7.-sqrt(21.))/180.);
     const double ddc1(9./180.),ddc2(0.),ddc3(64./180.),ddc4(0.),ddc5(49./180.),ddc6(49./180.),ddc7(9./180.);//SIXTH ORDER RK COEFF
 
+    double vector[3];
+    H->electric_field(time_index,vector);
+    double efield_magnitude(sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2]));
+    bool cat=bool(efield_magnitude >= H->efield_thresh());
+
 //    std::cout<<Psi0->show_neut_psi(21,0).real()<<std::endl;
 
     t_deriv(Psi0,H,k1,time_index);
-    temp->set_wf(Psi0);
+    temp->set_wf(Psi0,cat);
     ctemp=std::complex<double>(a21*H->h(),0);
-    temp->add_wf(&ctemp,k1);
+    temp->add_wf(&ctemp,k1,cat);
 //#pragma omp parallel for
 /*
     for(int i=0;i!=(Psi0->n_states_neut()+Psi0->n_states_cat()*Psi0->n_states_cont())*Psi0->gsize_x();i++)
@@ -294,11 +299,11 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
 
     }*/
     t_deriv(temp,H,k2,time_index+1);
-    temp->set_wf(Psi0);
+    temp->set_wf(Psi0,cat);
     ctemp=std::complex<double>(a31*H->h(),0);
-    temp->add_wf(&ctemp,k1);
+    temp->add_wf(&ctemp,k1,cat);
     ctemp=std::complex<double>(a32*H->h(),0);
-    temp->add_wf(&ctemp,k2);
+    temp->add_wf(&ctemp,k2,cat);
 //#pragma omp parallel for
 /*
     for(int i=0;i!=(Psi0->n_states_neut()+Psi0->n_states_cat()*Psi0->n_states_cont())*Psi0->gsize_x();i++)
@@ -321,13 +326,13 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
        }
     }*/
     t_deriv(temp,H,k3,time_index+.5);
-    temp->set_wf(Psi0);
+    temp->set_wf(Psi0,cat);
     ctemp=std::complex<double>(a41*H->h(),0);
-    temp->add_wf(&ctemp,k1);
+    temp->add_wf(&ctemp,k1,cat);
     ctemp=std::complex<double>(a42*H->h(),0);
-    temp->add_wf(&ctemp,k2);
+    temp->add_wf(&ctemp,k2,cat);
     ctemp=std::complex<double>(a43*H->h(),0);
-    temp->add_wf(&ctemp,k3);
+    temp->add_wf(&ctemp,k3,cat);
     /*
 //#pragma omp parallel for
     for(int i=0;i!=(Psi0->n_states_neut()+Psi0->n_states_cat()*Psi0->n_states_cont())*Psi0->gsize_x();i++)
@@ -350,15 +355,15 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
        }
     }*/
     t_deriv(temp,H,k4,time_index+2./3.);
-    temp->set_wf(Psi0);
+    temp->set_wf(Psi0,cat);
     ctemp=std::complex<double>(a51*H->h(),0);
-    temp->add_wf(&ctemp,k1);
+    temp->add_wf(&ctemp,k1,cat);
     ctemp=std::complex<double>(a52*H->h(),0);
-    temp->add_wf(&ctemp,k2);
+    temp->add_wf(&ctemp,k2,cat);
     ctemp=std::complex<double>(a53*H->h(),0);
-    temp->add_wf(&ctemp,k3);
+    temp->add_wf(&ctemp,k3,cat);
     ctemp=std::complex<double>(a54*H->h(),0);
-    temp->add_wf(&ctemp,k4);
+    temp->add_wf(&ctemp,k4,cat);
 //#pragma omp parallel for
 /*
     for(int i=0;i!=(Psi0->n_states_neut()+Psi0->n_states_cat()*Psi0->n_states_cont())*Psi0->gsize_x();i++)
@@ -381,17 +386,17 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
        }
     }*/
     t_deriv(temp,H,k5,time_index+(7.-sqrt(21))/14);
-    temp->set_wf(Psi0);
+    temp->set_wf(Psi0,cat);
     ctemp=std::complex<double>(a61*H->h(),0);
-    temp->add_wf(&ctemp,k1);
+    temp->add_wf(&ctemp,k1,cat);
     ctemp=std::complex<double>(a62*H->h(),0);
-    temp->add_wf(&ctemp,k2);
+    temp->add_wf(&ctemp,k2,cat);
     ctemp=std::complex<double>(a63*H->h(),0);
-    temp->add_wf(&ctemp,k3);
+    temp->add_wf(&ctemp,k3,cat);
     ctemp=std::complex<double>(a64*H->h(),0);
-    temp->add_wf(&ctemp,k4);
+    temp->add_wf(&ctemp,k4,cat);
     ctemp=std::complex<double>(a65*H->h(),0);
-    temp->add_wf(&ctemp,k5);
+    temp->add_wf(&ctemp,k5,cat);
 //#pragma omp parallel for
 /*
     for(int i=0;i!=(Psi0->n_states_neut()+Psi0->n_states_cat()*Psi0->n_states_cont())*Psi0->gsize_x();i++)
@@ -415,19 +420,19 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     }
     */
     t_deriv(temp,H,k6,time_index+(7.+sqrt(21))/14);
-    temp->set_wf(Psi0);
+    temp->set_wf(Psi0,cat);
     ctemp=std::complex<double>(a71*H->h(),0);
-    temp->add_wf(&ctemp,k1);
+    temp->add_wf(&ctemp,k1,cat);
     ctemp=std::complex<double>(a72*H->h(),0);
-    temp->add_wf(&ctemp,k2);
+    temp->add_wf(&ctemp,k2,cat);
     ctemp=std::complex<double>(a73*H->h(),0);
-    temp->add_wf(&ctemp,k3);
+    temp->add_wf(&ctemp,k3,cat);
     ctemp=std::complex<double>(a74*H->h(),0);
-    temp->add_wf(&ctemp,k4);
+    temp->add_wf(&ctemp,k4,cat);
     ctemp=std::complex<double>(a75*H->h(),0);
-    temp->add_wf(&ctemp,k5);
+    temp->add_wf(&ctemp,k5,cat);
     ctemp=std::complex<double>(a76*H->h(),0);
-    temp->add_wf(&ctemp,k6);
+    temp->add_wf(&ctemp,k6,cat);
 //#pragma omp parallel for
 /*
     for(int i=0;i!=(Psi0->n_states_neut()+Psi0->n_states_cat()*Psi0->n_states_cont())*Psi0->gsize_x();i++)
@@ -451,22 +456,22 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     }
     */
     t_deriv(temp,H,k7,time_index+1);
-    temp->set_wf(Psi0);
+    temp->set_wf(Psi0,cat);
     ctemp=std::complex<double>(ddc1*H->h(),0);
-    temp->add_wf(&ctemp,k1);
+    temp->add_wf(&ctemp,k1,cat);
     ctemp=std::complex<double>(ddc2*H->h(),0);
-    temp->add_wf(&ctemp,k2);
+    temp->add_wf(&ctemp,k2,cat);
     ctemp=std::complex<double>(ddc3*H->h(),0);
-    temp->add_wf(&ctemp,k3);
+    temp->add_wf(&ctemp,k3,cat);
     ctemp=std::complex<double>(ddc4*H->h(),0);
-    temp->add_wf(&ctemp,k4);
+    temp->add_wf(&ctemp,k4,cat);
     ctemp=std::complex<double>(ddc5*H->h(),0);
-    temp->add_wf(&ctemp,k5);
+    temp->add_wf(&ctemp,k5,cat);
     ctemp=std::complex<double>(ddc6*H->h(),0);
-    temp->add_wf(&ctemp,k6);
+    temp->add_wf(&ctemp,k6,cat);
     ctemp=std::complex<double>(ddc7*H->h(),0);
-    temp->add_wf(&ctemp,k7);
-    Psi0->set_wf(temp);
+    temp->add_wf(&ctemp,k7,cat);
+    Psi0->set_wf(temp,cat);
 
 //    std::cout<<"Then "<<Psi0->show_neut_psi(21,0).real()<<std::endl;
 //#pragma omp parallel for
@@ -549,46 +554,42 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
    int j(0);
 
 //std::cout<<"N block... "<<(Psi->n_states_neut())*(Psi->gsize_x())<<" elements."<<std::endl;
-#pragma omp parallel for reduction(+:rsum,imsum) private(state_index,grid_index,state_index_cont,state_index2,grid_index2,state_index_cont2,j)
+//#pragma omp parallel for reduction(+:rsum,imsum) private(state_index,grid_index,state_index_cont,state_index2,grid_index2,state_index_cont2,j)
    for(int i=0;i<(Psi->n_states_neut())*(Psi->gsize_x());i++)//read every line in the Neutral part of the matrix
    {
+      std::complex<double> ctemp;
       j=0;
       rsum=0;
       imsum=0;
-
       H->show_indexes(i,i,&state_index,&grid_index,&state_index_cont,&state_index,&grid_index,&state_index_cont);
-
       /*
        * N-N block of the hamilton matrix
        */
       for(int s=0;s<Psi->n_states_neut();s++)
       {
-         if(s==state_index)//Diagonal block in electronic state => pentadiagonal in grid index
+         //if(s==state_index)//Diagonal block in electronic state => pentadiagonal in grid index
          {
-            j=(i%Psi->gsize_x()-2)*bool(i%Psi->gsize_x()-2 >= 0)+s*Psi->gsize_x();//initial grid index of column in diagonal block
-            while( (j%Psi->gsize_x()) <= i%Psi->gsize_x()+2)
+            j=(grid_index-2)*bool(grid_index-2 >= 0)+s*Psi->gsize_x();//initial grid index of column in diagonal block
+            while( (j%Psi->gsize_x()) <= grid_index+2 && (j%Psi->gsize_x()) < Psi->gsize_x()-1)
             {
                H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
 
-               rsum+=real((H->hamilt_element(time_index,i,j))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
-               imsum+=imag((H->hamilt_element(time_index,i,j))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
-
-               if(!(grid_index2 == Psi->gsize_x()-1))//if you do not reach the edge of the grid, continue
-                  j++;
-               else //end of the loop
-               {
-                  j++;
-                  break;
-               }
+               ctemp=(H->hamilt_element(time_index,i,j))*(Psi->show_neut_psi(grid_index2,state_index2));
+               rsum+=real(ctemp);//energy
+               imsum+=imag(ctemp);//energy
+               j++;
             }
          }
-         else//Non-diagonal block in electronic state => diagonal in grid index
+         /*else//Non-diagonal block in electronic state => diagonal in grid index
          {
             j=grid_index+s*Psi->gsize_x();//grid index of column in diagonal block
             H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
-            rsum+=real((H->hamilt_element(time_index,i,j))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
-            imsum+=imag((H->hamilt_element(time_index,i,j))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
-         }
+               ctemp=(H->hamilt_element(time_index,i,j))*(Psi->show_neut_psi(grid_index2,state_index2));
+               rsum+=real(ctemp);//energy
+               imsum+=imag(ctemp);//energy
+            //rsum+=real((H->hamilt_element(time_index,i,j))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
+            //imsum+=imag((H->hamilt_element(time_index,i,j))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
+         }*/
       }
       /*
        * End of  N-N block of the hamilton matrix

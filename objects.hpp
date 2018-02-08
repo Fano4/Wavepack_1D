@@ -22,8 +22,8 @@ class wavefunction {
       double norm(hamilton_matrix *H);
       void set_dipole(hamilton_matrix *H);
       void show_dipole(double *vector);
-      void add_wf(std::complex<double>* a,wavefunction* y=NULL);
-      void set_wf(wavefunction* x);
+      void add_wf(std::complex<double>* a,wavefunction* y=NULL,bool cat=1);
+      void set_wf(wavefunction* x,bool cat=1);
       void set_psi_elwise(int i,std::complex<double> val);
       void wf_vec(std::complex<double>* neut_vec,std::complex<double>* cat_vec);
       std::complex<double> dot_prod(wavefunction* Bra, hamilton_matrix *H);
@@ -80,6 +80,7 @@ class hamilton_matrix {
       double *kinetic_energy;
       double *derivative_matrix;
       double *position_array_script;
+      double *m_dk_vec;
 
    public:
       hamilton_matrix(int gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh);
@@ -103,8 +104,9 @@ class hamilton_matrix {
       double xmin();
       double xmax();
       int n_k();
-      double dk();
+      double dk(int i);
       void set_phase(std::string file_address);
       void print_dipole_neut();
+      void dk_vec(double *array);
 };
 

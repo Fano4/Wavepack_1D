@@ -222,6 +222,13 @@ void wavefunction::initialize(hamilton_matrix* H)
    {
       this->set_neut_psi(0,i,cmatrix[i*(this->m_gsize_x)]);
    }
+   /*for(int m=1;m!=this->m_n_states_neut;m++)
+   {
+      for(int i=0;i!=this->m_gsize_x;i++)
+      {
+         this->set_neut_psi(m,i,0);
+      }
+   }*/
    H->rescale_pot(min_pot);
 
    delete [] H_mat_gs;
@@ -291,37 +298,47 @@ void wavefunction::show_dipole(double* vector)
 //##########################################################################
 //
 //##########################################################################
-void wavefunction::set_wf(wavefunction* x)
+void wavefunction::set_wf(wavefunction* x,bool cat)
 {
    std::complex<double>* x_neut = new std::complex<double>[this->m_n_states_neut*this->m_gsize_x];
-   std::complex<double>* x_cat = new std::complex<double>[this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x];
-   x->wf_vec(x_neut,x_cat);
-
-      cblas_zcopy(this->m_n_states_neut*this->m_gsize_x,x_neut,1,this->m_neut_part,1);
+   if(cat)
+   {
+      std::complex<double>* x_cat = new std::complex<double>[this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x];
+      x->wf_vec(x_neut,x_cat);
       cblas_zcopy(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,x_cat,1,this->m_cat_part,1);
-
-      delete [] x_neut;
       delete [] x_cat;
+   }
+   else
+      x->wf_vec(x_neut,NULL);
+   cblas_zcopy(this->m_n_states_neut*this->m_gsize_x,x_neut,1,this->m_neut_part,1);
+
+   delete [] x_neut;
 }
 //##########################################################################
 //
 //##########################################################################
-void wavefunction::add_wf(std::complex<double>* a,wavefunction* y)
+void wavefunction::add_wf(std::complex<double>* a,wavefunction* y,bool cat)
 {
    if( y != NULL)
    {
       std::complex<double>* x_neut = new std::complex<double>[this->m_n_states_neut*this->m_gsize_x];
-      std::complex<double>* x_cat = new std::complex<double>[this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x];
-      y->wf_vec(x_neut,x_cat);
+      if(cat)
+      {
+         std::complex<double>* x_cat = new std::complex<double>[this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x];
+         y->wf_vec(x_neut,x_cat);
+         cblas_zaxpy(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,a,x_cat,1,this->m_cat_part,1);
+         delete [] x_cat;
+      }
+      else
+         y->wf_vec(x_neut,NULL);
       cblas_zaxpy(this->m_n_states_neut*this->m_gsize_x,a,x_neut,1,this->m_neut_part,1);
-      cblas_zaxpy(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,a,x_cat,1,this->m_cat_part,1);
       delete [] x_neut;
-      delete [] x_cat;
    }
    else
    {
       cblas_zscal(this->m_n_states_neut*this->m_gsize_x,a,this->m_neut_part,1);
-      cblas_zscal(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,a,this->m_cat_part,1);
+      if(cat)
+         cblas_zscal(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,a,this->m_cat_part,1);
    }
 }
 //##########################################################################
@@ -364,17 +381,32 @@ void wavefunction::set_psi_elwise(int i,std::complex<double> val)
 std::complex<double> wavefunction::dot_prod(wavefunction* Bra, hamilton_matrix *H)
 {
    std::complex<double>* Bra_neut=new std::complex<double> [this->m_gsize_x*this->m_n_states_neut];
-   std::complex<double>* Bra_cat=new std::complex<double> [this->m_gsize_x*this->m_n_states_cat*this->m_n_states_cont];
    std::complex<double> result_neut(0);
-   std::complex<double> result_cat(0);
+ std::complex<double> result_cat(0);
+   if(this->m_n_states_cat != 0)
+   {
+      std::complex<double>* Bra_cat=new std::complex<double> [this->m_gsize_x*this->m_n_states_cat*this->m_n_states_cont];
+      Bra->wf_vec(Bra_neut,Bra_cat);
+      for(int i=0;i!=this->m_n_states_cat;i++)
+      {
+         for(int j=0;j!=this->m_n_states_cont;j++)
+         {
+            for(int k=0;k!=this->m_gsize_x;k++)
+            {
+               Bra_cat[i*this->m_n_states_cont*this->m_gsize_x+j*this->m_gsize_x+k] *= H->dk(j);
+            }
+         }
+      }
+      cblas_zdotc_sub(this->m_gsize_x*this->m_n_states_cat*this->m_n_states_cont,Bra_cat,1,this->m_cat_part,1,&result_cat);
+      delete [] Bra_cat;
+   }
+   else
+      Bra->wf_vec(Bra_neut,NULL);
 
-   Bra->wf_vec(Bra_neut,Bra_cat);
    cblas_zdotc_sub(this->m_gsize_x*this->m_n_states_neut,Bra_neut,1,this->m_neut_part,1,&result_neut);
-   cblas_zdotc_sub(this->m_gsize_x*this->m_n_states_cat*this->m_n_states_cont,Bra_cat,1,this->m_cat_part,1,&result_cat);
 
    delete [] Bra_neut;
-   delete [] Bra_cat;
-   return result_neut+result_cat*H->dk();
+   return result_neut+result_cat;
 }
 //##########################################################################
 //
@@ -382,7 +414,8 @@ std::complex<double> wavefunction::dot_prod(wavefunction* Bra, hamilton_matrix *
 void wavefunction::wf_vec(std::complex<double>* neut_vec,std::complex<double>* cat_vec)
 {
    cblas_zcopy(this->m_n_states_neut*this->m_gsize_x,this->m_neut_part,1,neut_vec,1);
-   cblas_zcopy(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,this->m_cat_part,1,cat_vec,1);
+   if(cat_vec != NULL)
+      cblas_zcopy(this->m_n_states_cat*this->m_n_states_cont*this->m_gsize_x,this->m_cat_part,1,cat_vec,1);
 }
 //##########################################################################
 //
@@ -413,9 +446,18 @@ double wavefunction::state_pop(bool species,int state_index,hamilton_matrix* H)
          std::cout<<"ERROR ! Trying to compute cation state pop without giving the dk differential"<<std::endl;
          exit(EXIT_FAILURE);
       }
-      cblas_zdotc_sub(this->m_gsize_x*this->m_n_states_cont,&this->m_cat_part[this->m_gsize_x*this->m_n_states_cont*state_index],1,&this->m_cat_part[this->m_gsize_x*this->m_n_states_cont*state_index],1,&value);
+      std::complex<double> *vector=new std::complex<double>[this->m_n_states_cont*this->m_gsize_x];
+      for(int i=0;i!=this->m_n_states_cont;i++)
+      {
+         for(int k=0;k!=this->m_gsize_x;k++)
+         {
+            vector[i*this->m_gsize_x+k]=H->dk(i)*this->m_cat_part[this->m_gsize_x*this->m_n_states_cont*state_index+this->m_gsize_x*i+k];
+         }
+      }
+      cblas_zdotc_sub(this->m_gsize_x*this->m_n_states_cont,&this->m_cat_part[this->m_gsize_x*this->m_n_states_cont*state_index],1,vector,1,&value);
+      delete [] vector;
 
-      return value.real()*H->dk();
+      return value.real();
    }
 }
 //##########################################################################
