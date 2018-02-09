@@ -25,6 +25,7 @@ int main( int argc, char * argv [])
     //string elec_wavepack_file="LiH_elec_wvpck.txt";
     //PARAMETERS OF THE SIMULATION
     int gsize_x(512);
+    int tgsize_x(552);
     int n_states_neut(15);
     int n_states_cat(0);
     int n_angles(0);
@@ -40,8 +41,8 @@ int main( int argc, char * argv [])
     double efield[3];
     double efield_thresh(0);
 
-    wavefunction* Psi= new wavefunction(gsize_x, n_states_neut,n_states_cat,n_angles*n_k);
-    hamilton_matrix* H=new hamilton_matrix(gsize_x,n_states_neut,n_states_cat,n_k,n_angles,xmin,xmax,mass,n_times,h,efield_thresh);
+    wavefunction* Psi= new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);
+    hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,n_states_neut,n_states_cat,n_k,n_angles,xmin,xmax,mass,n_times,h,efield_thresh);
 
 
     H->set_pot_neut(neutral_pes.c_str());

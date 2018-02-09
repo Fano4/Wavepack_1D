@@ -7,7 +7,7 @@ class hamilton_matrix;
 class wavefunction {
    public:
       //constructor
-      wavefunction(int gsize_x,int n_states_neut,int n_states_cat,int n_states_cont);
+      wavefunction(int gsize_x,int tgsize_x,int n_states_neut,int n_states_cat,int n_states_cont);
       ~wavefunction();
       void set_neut_psi(int state_index,int grid_index,std::complex<double> value);
       void set_cat_psi(int state_cat_index,int states_cont_index,int grid_index,std::complex<double> value);

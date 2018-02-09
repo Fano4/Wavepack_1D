@@ -48,11 +48,11 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
       {
          if(grid_index_1==grid_index_2)//diagonal in the grid basis
          {
-            return std::complex<double>(this->kinetic_energy[this->m_gsize_x*grid_index_1+grid_index_2]+this->m_pot_neut[state_index_1*(this->m_gsize_x)+grid_index_1]-this->m_dmx_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[0]-this->m_dmy_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[1]-this->m_dmz_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[2],0); //diagonal term of kinetic energy + potential energy + permanent dipole interaction
+            return std::complex<double>(this->kinetic_energy[this->m_tgsize_x*grid_index_1+grid_index_2]+this->m_pot_neut[state_index_1*(this->m_tgsize_x)+grid_index_1]-this->m_dmx_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[0]-this->m_dmy_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[1]-this->m_dmz_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[2],0); //diagonal term of kinetic energy + potential energy + permanent dipole interaction
          }
          else // non-diagonal term of kinetic energy
          {
-            return std::complex<double>(this->kinetic_energy[this->m_gsize_x*grid_index_1+grid_index_2],0);
+            return std::complex<double>(this->kinetic_energy[this->m_tgsize_x*grid_index_1+grid_index_2],0);
          }
       }
       else //coupling elements between electronic states of the neutral
@@ -64,16 +64,16 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
          }
          else //NACME
          {
-            if(fabs(this->m_pot_neut[state_index_1*this->m_gsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_gsize_x+grid_index_2]) <= 10e-14)
+            if(fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_2]) <= 10e-14)
                return 0;
 
             if(state_index_1 < state_index_2)//upper triangle of the matrix
             {
-               return std::complex<double>(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/(this->m_mass*fabs(this->m_pot_neut[state_index_1*this->m_gsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_gsize_x+grid_index_2])),0);//Non adiabatic coupling
+               return std::complex<double>(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2]/(this->m_mass*fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_2])),0);//Non adiabatic coupling
             }
             else if(state_index_2 < state_index_1) //lower triangle of the matrix
             {
-               return std::complex<double>(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/(this->m_mass*fabs(this->m_pot_neut[state_index_1*this->m_gsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_gsize_x+grid_index_2])),0);//Non adiabatic coupling
+               return std::complex<double>(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2]/(this->m_mass*fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_2])),0);//Non adiabatic coupling
             }
          }
       }
@@ -101,11 +101,11 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
          {
             if(grid_index_1==grid_index_2)//diagonal in the grid basis
             {
-               return (std::complex<double>(0.5*(pow(this->k_modulus[state_index_cont_1%this->m_n_k]*sin(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k])*cos(this->k_orientation[1][state_index_cont_1-state_index_cont_1%this->m_n_k]),2)+pow(k_modulus[state_index_cont_1%this->m_n_k]*sin(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k])*sin(this->k_orientation[1][state_index_cont_1-state_index_cont_1%this->m_n_k]),2)+this->k_modulus[state_index_cont_1%this->m_n_k]*cos(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k]))+this->kinetic_energy[grid_index_1*this->m_gsize_x+grid_index_2]+this->m_pot_cat[state_index_1*this->m_gsize_x+grid_index_1]-this->m_dmx_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[0]-this->m_dmy_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[1]-this->m_dmz_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[2],0))*this->dk(state_index_cont_2)*this->dk(state_index_cont_2); //diagonal term of kinetic energy + potential energy + permanent dipole interaction
+               return (std::complex<double>(0.5*(pow(this->k_modulus[state_index_cont_1%this->m_n_k]*sin(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k])*cos(this->k_orientation[1][state_index_cont_1-state_index_cont_1%this->m_n_k]),2)+pow(k_modulus[state_index_cont_1%this->m_n_k]*sin(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k])*sin(this->k_orientation[1][state_index_cont_1-state_index_cont_1%this->m_n_k]),2)+this->k_modulus[state_index_cont_1%this->m_n_k]*cos(this->k_orientation[0][state_index_cont_1-state_index_cont_1%this->m_n_k]))+this->kinetic_energy[grid_index_1*this->m_tgsize_x+grid_index_2]+this->m_pot_cat[state_index_1*this->m_tgsize_x+grid_index_1]-this->m_dmx_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[0]-this->m_dmy_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[1]-this->m_dmz_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[2],0))*this->dk(state_index_cont_2)*this->dk(state_index_cont_2); //diagonal term of kinetic energy + potential energy + permanent dipole interaction
             }
             else // non-diagonal term of kinetic energy
             {
-               return std::complex<double>(this->kinetic_energy[grid_index_1*this->m_gsize_x+grid_index_2],0)*this->dk(state_index_cont_2);
+               return std::complex<double>(this->kinetic_energy[grid_index_1*this->m_tgsize_x+grid_index_2],0)*this->dk(state_index_cont_2);
             }
          }
          else //coupling elements between electronic states of the cation
@@ -118,11 +118,11 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
             {
                if(state_index_1 < state_index_2)//upper triangle of the matrix
                {
-                     return std::complex<double>(0,m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/(this->m_mass*fabs(this->m_pot_neut[state_index_1*this->m_gsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_gsize_x+grid_index_2]))*this->dk(state_index_cont_2)*this->dk(state_index_cont_2));//Non adiabatic coupling
+                     return std::complex<double>(0,m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2]/(this->m_mass*fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_2]))*this->dk(state_index_cont_2)*this->dk(state_index_cont_2));//Non adiabatic coupling
                }
                else //lower triangle of the matrix
                {
-                  return std::complex<double>(0,m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*derivative_matrix[grid_index_1*this->m_gsize_x+grid_index_2]/(this->m_mass*fabs(this->m_pot_neut[state_index_1*this->m_gsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_gsize_x+grid_index_2]))*this->dk(state_index_cont_2))*this->dk(state_index_cont_2);//Non adiabatic coupling
+                  return std::complex<double>(0,m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2]/(this->m_mass*fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_2]))*this->dk(state_index_cont_2))*this->dk(state_index_cont_2);//Non adiabatic coupling
                }
             }
          }
@@ -561,17 +561,17 @@ void hamilton_matrix::show_indexes(int index1,int index2,int *state_index_1,int 
       *grid_index_1 = 0;
       *state_index_cont_1 = -1;
    }
-   else if(index1 < (this->m_n_states_neut)*(this->m_gsize_x))
+   else if(index1 < (this->m_n_states_neut)*(this->m_tgsize_x))
    {
-      *grid_index_1 = int(index1%this->m_gsize_x);
-      *state_index_1 = int((index1-*grid_index_1)/this->m_gsize_x);
+      *grid_index_1 = int(index1%this->m_tgsize_x);
+      *state_index_1 = int((index1-*grid_index_1)/this->m_tgsize_x);
       *state_index_cont_1 = -1;
    }
    else
    {
-      *state_index_1=int((index1-this->m_n_states_neut*this->m_gsize_x)/(this->m_gsize_x*this->m_n_states_cont));
-      *state_index_cont_1=int(((index1-this->m_n_states_neut*this->m_gsize_x)-*state_index_1*(this->m_gsize_x*this->m_n_states_cont))/this->m_gsize_x);
-      *grid_index_1=int(((index1-this->m_n_states_neut*this->m_gsize_x)-*state_index_1*(this->m_gsize_x*this->m_n_states_cont))%this->m_gsize_x);
+      *state_index_1=int((index1-this->m_n_states_neut*this->m_tgsize_x)/(this->m_tgsize_x*this->m_n_states_cont));
+      *state_index_cont_1=int(((index1-this->m_n_states_neut*this->m_tgsize_x)-*state_index_1*(this->m_tgsize_x*this->m_n_states_cont))/this->m_tgsize_x);
+      *grid_index_1=int(((index1-this->m_n_states_neut*this->m_tgsize_x)-*state_index_1*(this->m_tgsize_x*this->m_n_states_cont))%this->m_tgsize_x);
    }
    if(index2 == 0)
    {
@@ -579,17 +579,17 @@ void hamilton_matrix::show_indexes(int index1,int index2,int *state_index_1,int 
       *grid_index_2=0;
       *state_index_cont_2=-1;
    }
-   else if(index2 < (this->m_n_states_neut)*(this->m_gsize_x))
+   else if(index2 < (this->m_n_states_neut)*(this->m_tgsize_x))
    {
-      *grid_index_2 = int(index2%this->m_gsize_x);
-      *state_index_2 = int((index2-*grid_index_2)/this->m_gsize_x);
+      *grid_index_2 = int(index2%this->m_tgsize_x);
+      *state_index_2 = int((index2-*grid_index_2)/this->m_tgsize_x);
       *state_index_cont_2=-1;
    }
    else
    {
-      *state_index_2=int((index2-this->m_n_states_neut*this->m_gsize_x)/(this->m_gsize_x*this->m_n_states_cont));
-      *state_index_cont_2=int(((index2-this->m_n_states_neut*this->m_gsize_x)-*state_index_2*(this->m_gsize_x*this->m_n_states_cont))/this->m_gsize_x);
-      *grid_index_2=int(((index2-this->m_n_states_neut*this->m_gsize_x)-*state_index_2*(this->m_gsize_x*this->m_n_states_cont))%this->m_gsize_x);
+      *state_index_2=int((index2-this->m_n_states_neut*this->m_tgsize_x)/(this->m_tgsize_x*this->m_n_states_cont));
+      *state_index_cont_2=int(((index2-this->m_n_states_neut*this->m_tgsize_x)-*state_index_2*(this->m_tgsize_x*this->m_n_states_cont))/this->m_tgsize_x);
+      *grid_index_2=int(((index2-this->m_n_states_neut*this->m_tgsize_x)-*state_index_2*(this->m_tgsize_x*this->m_n_states_cont))%this->m_tgsize_x);
    }
 }
 //##########################################################################
