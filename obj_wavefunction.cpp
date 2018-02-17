@@ -9,7 +9,6 @@ wavefunction::wavefunction(int gsize_x,int tgsize_x,int n_states_neut,int n_stat
 
    this->m_gsize_x=gsize_x;
    this->m_tgsize_x=tgsize_x;
-   this->m_tgsize_x=3*gsize_x;
    this->m_n_states_neut=n_states_neut;
    this->m_n_states_cat=n_states_cat;
    this->m_n_states_cont=n_states_cont;
@@ -83,8 +82,8 @@ void wavefunction::set_cat_psi(int state_cat_index,int state_cont_index,int grid
    else
    this->m_cat_part[state_cat_index*this->m_n_states_cont*this->m_tgsize_x+state_cont_index*this->m_tgsize_x+grid_index]=value;
    //The direct dimension of the cation part is the grid size.
-   //The second dimension is the electronic state index.
-   //The third dimension is the continuum state index
+   //The second dimension is the continuum state index
+   //The third dimension is the electronic state index.
 }
 //##########################################################################
 //
@@ -195,27 +194,29 @@ void wavefunction::initialize(hamilton_matrix* H)
          min_pot=H->pot_neut(0,i);
    }
    std::cout<<"GS PES minimum is at "<<min_pot<<std::endl;
+   H->rescale_pot(min_pot);
 
    for(int i=0;i!=this->m_tgsize_x;i++)
    {
       for(int j=0;j!=this->m_tgsize_x;j++)
       {
          if(i==j)
-         H_mat_gs[i*(this->m_tgsize_x)+i]=H->pot_neut(0,i)-min_pot;
+         H_mat_gs[i*(this->m_tgsize_x)+i]=H->pot_neut(0,i);
          H_mat_gs[i*(this->m_tgsize_x)+j]+=H->kinetic_energy_matrix(i,j);
          cmatrix[i*(this->m_tgsize_x)+j]=std::complex<double>(H_mat_gs[i*(this->m_tgsize_x)+j],0);
          //std::cout<<H_mat_gs[i*(this->m_tgsize_x)+j]<<"   ";
       }
       //std::cout<<std::endl;
    }
-
-   /*std::cout<<"PES OF THE GS "<<std::endl;
-   for(int i=0;i!=this->m_gsize_x;i++)
+/*
+   std::cout<<"PES OF THE GS "<<std::endl;
+   for(int i=0;i!=this->m_tgsize_x;i++)
    {
-      std::cout<<H->pot_neut(0,i)-min_pot<<std::endl;
+      std::cout<<H->pot_neut(0,i)<<std::endl;
    }
+   */
    std::cout<<"#############################"<<std::endl;
-*/
+
    std::cout<<"LAPACKE zhetrd returns "<<LAPACKE_zhetrd(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x),cmatrix,(this->m_tgsize_x),d,e,tau)<<std::endl;
    std::cout<<"LAPACKE zungtr returns "<<LAPACKE_zungtr(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x),cmatrix,(this->m_tgsize_x),tau)<<std::endl;
    std::cout<<"LAPACKE zstedc returns "<<LAPACKE_zstedc(LAPACK_ROW_MAJOR,'V',(this->m_tgsize_x),d,e,cmatrix,(this->m_tgsize_x))<<std::endl<<std::endl;
@@ -237,18 +238,17 @@ void wavefunction::initialize(hamilton_matrix* H)
          this->set_neut_psi(m,i,0);
       }
    }*/
-   H->rescale_pot(min_pot);
 
    delete [] H_mat_gs;
 }
 //##########################################################################
 //
 //##########################################################################
-double wavefunction::norm(hamilton_matrix *H)
+/*double wavefunction::norm(hamilton_matrix *H)
 {
    this->m_norm=real(this->dot_prod(this,H));
    return this->m_norm;
-}
+}*/
 //##########################################################################
 //
 //##########################################################################
@@ -395,6 +395,7 @@ std::complex<double> wavefunction::dot_prod(wavefunction* Bra, hamilton_matrix *
    {
       std::complex<double>* Bra_cat=new std::complex<double> [this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont];
       Bra->wf_vec(Bra_neut,Bra_cat);
+      /*
       for(int i=0;i!=this->m_n_states_cat;i++)
       {
          for(int j=0;j!=this->m_n_states_cont;j++)
@@ -404,7 +405,7 @@ std::complex<double> wavefunction::dot_prod(wavefunction* Bra, hamilton_matrix *
                Bra_cat[i*this->m_n_states_cont*this->m_tgsize_x+j*this->m_tgsize_x+k] *= H->dk(j);
             }
          }
-      }
+      }*/
       cblas_zdotc_sub(this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont,Bra_cat,1,this->m_cat_part,1,&result_cat);
       delete [] Bra_cat;
    }
@@ -454,16 +455,20 @@ double wavefunction::state_pop(bool species,int state_index,hamilton_matrix* H)
          std::cout<<"ERROR ! Trying to compute cation state pop without giving the dk differential"<<std::endl;
          exit(EXIT_FAILURE);
       }
-      std::complex<double> *vector=new std::complex<double>[this->m_n_states_cont*this->m_tgsize_x];
-      for(int i=0;i!=this->m_n_states_cont;i++)
+ //     std::complex<double> *vector=new std::complex<double>[this->m_n_states_cont*this->m_tgsize_x];
+
+//#pragma omp parallel for private(state_index)
+/*      for(int i=0;i<this->m_n_states_cont;i++)
       {
-         for(int k=0;k!=this->m_tgsize_x;k++)
+         for(int k=0;k<this->m_tgsize_x;k++)
          {
             vector[i*this->m_tgsize_x+k]=H->dk(i)*this->m_cat_part[this->m_tgsize_x*this->m_n_states_cont*state_index+this->m_tgsize_x*i+k];
          }
       }
       cblas_zdotc_sub(this->m_tgsize_x*this->m_n_states_cont,&this->m_cat_part[this->m_tgsize_x*this->m_n_states_cont*state_index],1,vector,1,&value);
-      delete [] vector;
+      */
+      cblas_zdotc_sub(this->m_tgsize_x*this->m_n_states_cont,&this->m_cat_part[this->m_tgsize_x*this->m_n_states_cont*state_index],1,&this->m_cat_part[this->m_tgsize_x*this->m_n_states_cont*state_index],1,&value);
+//      delete [] vector;
 
       return value.real();
    }

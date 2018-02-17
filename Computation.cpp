@@ -3,7 +3,7 @@
 //##########################################################################
 //
 //##########################################################################
-bool Runge_kutta_notdH(wavefunction *Psi0,hamilton_matrix *H, int time_index)
+/*bool Runge_kutta_notdH(wavefunction *Psi0,hamilton_matrix *H, int time_index)
 {
     wavefunction* k1=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
     wavefunction* k2=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
@@ -212,6 +212,7 @@ bool t_deriv_matrix(hamilton_matrix *H,wavefunction **dPsi_mat,double time_index
          delete temp;
       }
 }
+*/
 //##########################################################################
 //
 //##########################################################################
@@ -240,16 +241,16 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     k7[1]=new std::complex<double>[Psi0->n_states_cat()*Psi0->n_states_cont()*Psi0->gsize_x()];
 */
 
-    wavefunction* k1=new wavefunction(Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k2=new wavefunction(Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k3=new wavefunction(Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k4=new wavefunction(Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k5=new wavefunction(Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k6=new wavefunction(Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k7=new wavefunction(Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
+    wavefunction* k1=new wavefunction(Psi0->gsize_x(),Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
+    wavefunction* k2=new wavefunction(Psi0->gsize_x(),Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
+    wavefunction* k3=new wavefunction(Psi0->gsize_x(),Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
+    wavefunction* k4=new wavefunction(Psi0->gsize_x(),Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
+    wavefunction* k5=new wavefunction(Psi0->gsize_x(),Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
+    wavefunction* k6=new wavefunction(Psi0->gsize_x(),Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
+    wavefunction* k7=new wavefunction(Psi0->gsize_x(),Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
 
-    wavefunction* temp=new wavefunction(Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* temp2=new wavefunction(Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
+    wavefunction* temp=new wavefunction(Psi0->gsize_x(),Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
+    wavefunction* temp2=new wavefunction(Psi0->gsize_x(),Psi0->tgsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
 
     int state_index;
     int grid_index;
@@ -554,8 +555,8 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
    int j(0);
 
 //std::cout<<"N block... "<<(Psi->n_states_neut())*(Psi->gsize_x())<<" elements."<<std::endl;
-//#pragma omp parallel for reduction(+:rsum,imsum) private(state_index,grid_index,state_index_cont,state_index2,grid_index2,state_index_cont2,j)
-   for(int i=0;i<(Psi->n_states_neut())*(Psi->gsize_x());i++)//read every line in the Neutral part of the matrix
+#pragma omp parallel for reduction(+:rsum,imsum) private(state_index,grid_index,state_index_cont,state_index2,grid_index2,state_index_cont2,j)
+   for(int i=0;i<(Psi->n_states_neut())*(Psi->tgsize_x());i++)//read every line in the Neutral part of the matrix
    {
       std::complex<double> ctemp;
       j=0;
@@ -645,32 +646,33 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
          {
             if(s==state_index)//Diagonal block in electronic state => pentadiagonal in grid index
             {
-               j=(Psi->n_states_neut())*(Psi->tgsize_x())+(i%Psi->tgsize_x()-2)*bool(i%Psi->tgsize_x()-2 >= 0)+s*Psi->n_states_cont()*Psi->tgsize_x();//initial grid index of column in diagonal block
-               while( (j%Psi->tgsize_x()) <= i%Psi->tgsize_x()+2)
-               {
-                  H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
+               j=(Psi->n_states_neut())*(Psi->tgsize_x())+(i%Psi->tgsize_x()-2)*bool(i%Psi->tgsize_x()-2 >= 0)+s*Psi->n_states_cont()*Psi->tgsize_x()+state_index_cont*Psi->tgsize_x();//initial grid index of column in diagonal block
 
+                  while( (j%Psi->tgsize_x()) <= i%Psi->tgsize_x()+2)
+                  {
+                     H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
+
+                     rsum+=real((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
+                     imsum+=imag((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
+
+                     if(!(grid_index2 == Psi->tgsize_x()-1))//if you do not reach the edge of the grid, continue
+                        j++;
+                     else //end of the loop
+                     {
+                        j++;
+                        break;
+                     }
+                  }
+               }
+               else//Non-diagonal block in electronic state => diagonal in grid index
+               {
+                  j=(Psi->n_states_neut())*(Psi->tgsize_x())+i%Psi->tgsize_x()+s*Psi->tgsize_x()*Psi->n_states_cont()+state_index_cont*Psi->tgsize_x();//grid index of column in diagonal block
+                  H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
                   rsum+=real((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
                   imsum+=imag((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
 
-                  if(!(grid_index2 == Psi->tgsize_x()-1))//if you do not reach the edge of the grid, continue
-                     j++;
-                  else //end of the loop
-                  {
-                     j++;
-                     break;
-                  }
                }
             }
-            else//Non-diagonal block in electronic state => diagonal in grid index
-            {
-               j=(Psi->n_states_neut())*(Psi->tgsize_x())+i%Psi->tgsize_x()+s*Psi->tgsize_x()*Psi->n_states_cont()+state_index_cont*Psi->tgsize_x();//grid index of column in diagonal block
-               H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
-               rsum+=real((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
-               imsum+=imag((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
-
-            }
-         }
       /*
        *  End of C-C block of the hamilton matrix
        */

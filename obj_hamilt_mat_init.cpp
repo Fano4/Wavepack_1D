@@ -216,7 +216,7 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
    stringstream name_indenter;
    string filename;
    double var(0);
-   int dgsize (this->tgsize_x-this->gsize_x);
+   int dgsize (this->m_tgsize_x-this->m_gsize_x);
 
    ifstream input_file;
 
@@ -236,12 +236,12 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
          for(int j=dgsize;j!=this->m_tgsize_x;j++)
          {
             input_file>>this->m_pot_neut[this->m_tgsize_x*i+j];
-            //cout<<this->m_pot_neut[this->m_gsize_x*i+j]<<endl;
+           // cout<<this->m_pot_neut[this->m_gsize_x*i+j]<<endl;
          }
          input_file.close();
          for(int j=1;j<=dgsize;j++)
          {
-            this->m_pot_neut[this->m_tgsize_x*i+(dgsize-j)]=this->m_pot_neut[this->m_tgsize_x*i+dgsize]+j*(this->m_pot_neut[this->m_tgsize_x*i+dgsize]-this->m_pot_neut[this->m_tgsize_x*i+dgsize+1])+j*j;
+            this->m_pot_neut[this->m_tgsize_x*i+(dgsize-j)]=this->m_pot_neut[this->m_tgsize_x*i+dgsize]+j*(this->m_pot_neut[this->m_tgsize_x*i+dgsize]-this->m_pot_neut[this->m_tgsize_x*i+dgsize+1])+5e-3*j*j;
          }
       }
       else
@@ -259,7 +259,7 @@ void hamilton_matrix::set_pot_cat(std::string file_address)
    using namespace std;
    stringstream name_indenter;
    string filename;
-   int dgsize (this->tgsize_x-this->gsize_x);
+   int dgsize (this->m_tgsize_x-this->m_gsize_x);
 
    ifstream input_file;
 
@@ -284,7 +284,7 @@ void hamilton_matrix::set_pot_cat(std::string file_address)
          input_file.close();
          for(int j=1;j<=dgsize;j++)
          {
-            this->m_pot_cat[this->m_tgsize_x*i+(dgsize-j)]=this->m_pot_cat[this->m_tgsize_x*i+dgsize]+j*(this->m_pot_cat[this->m_tgsize_x*i+dgsize]-this->m_pot_cat[this->m_tgsize_x*i+dgsize+1])+j*j;
+            this->m_pot_cat[this->m_tgsize_x*i+(dgsize-j)]=this->m_pot_cat[this->m_tgsize_x*i+dgsize]+j*(this->m_pot_cat[this->m_tgsize_x*i+dgsize]-this->m_pot_cat[this->m_tgsize_x*i+dgsize+1])+5e-3*j*j;
          }
       }
       else
@@ -303,7 +303,7 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
    stringstream name_indenter;
    string filename;
    double temp;
-   int dgsize (this->tgsize_x-this->gsize_x);
+   int dgsize(this->m_tgsize_x-this->m_gsize_x);
 
    ifstream input_file;
    for(int i=0;i!=this->m_n_states_neut;i++)
@@ -395,6 +395,7 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
    using namespace std;
    stringstream name_indenter;
    string filename;
+   int dgsize(this->m_tgsize_x-this->m_gsize_x);
 
    ifstream input_file;
    for(int i=0;i!=this->m_n_states_cat;i++)
@@ -415,7 +416,7 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
                 input_file.close();
                 for(int k=1;k<=dgsize;k++)
                 {
-                    this->m_dmx_cat[i*this->m_n_states_neut+j][dgsize-k]=this->m_dmzx_cat[i*this->m_n_states_neut+j][dgsize];
+                    this->m_dmx_cat[i*this->m_n_states_neut+j][dgsize-k]=this->m_dmx_cat[i*this->m_n_states_neut+j][dgsize];
                 }
             }
             else
@@ -483,6 +484,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
    string filename;
    double pot_vec[3];
    double elec_field[3];
+   int dgsize(this->m_tgsize_x-this->m_gsize_x);
 
    double temp;
    double Re_value;
@@ -552,7 +554,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
                   for(int l=0;l!=this->m_n_angles;l++)
                   {
                      input_file>>this->k_modulus[k];
-                     if(k==100)
+                     if(k==50)
                      {
                         input_file>>this->k_orientation[0][l];
                         input_file>>this->k_orientation[1][l];
@@ -580,9 +582,10 @@ void hamilton_matrix::set_PICE(std::string file_address)
       }
    }
    this->m_dk_vec=new double[this->m_n_states_cont];
+   double deltak=(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
    for(int i=0;i!=this->m_n_states_cont;i++)
    {
-      this->m_dk_vec[i]=sqrt((2*acos(-1)*this->m_n_k/this->m_n_states_cont)*pow(this->k_modulus[i%this->m_n_k],2)*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k);
+      this->m_dk_vec[i]=deltak*this->k_modulus[i*this->m_n_k/this->m_n_states_cont]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
    }
 
    std::cout<<"Got all PICE ! "<<std::endl<<"NOT Determining closest pair of plane waves in reciprocal space"<<std::endl;
@@ -591,11 +594,12 @@ void hamilton_matrix::set_PICE(std::string file_address)
       for(int i=0;i!=this->m_n_states_cont;i++)
          this->translation_vector[i][t]=i;
    }
-   /*
+/*   
       //DETERMINING THE CLOSEST PAIR OF PLANE WAVES IN THE RECIPROCAL SPACE
 
                                for(int m=0;m!=this->m_n_states_cont;m++)
                                {   
+                                  std::cout<<"element "<<m<<"/"<<this->m_n_states_cont<<"checked"<<std::endl;
                                   for(int v=m+1;v!=this->m_n_states_cont;v++)
                                   {   
                                      if(m==0 && v==1)
@@ -617,18 +621,14 @@ void hamilton_matrix::set_PICE(std::string file_address)
 //#pragma omp parallel for
    for(int t=0;t!=this->m_n_times;t++)
    {
+         potential_vector(t,pot_vec);
          std::cout<<"Translating plane waves for time "<<t<<" / "<<this->m_n_times<<std::endl;
 //#pragma omp parallel for
-         for(int i=0;i!=this->m_n_states_cont;i++)
-         {
-            this->translation_vector[i][t]=i;
-         }
-      if(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2))>=min_distance)
+      if(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2))>=min_distance && if (sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2)) >= 1e-5))
       {
 //#pragma omp parallel for
          for(int i=0;i!=this->m_n_states_cont;i++)
          {
-            potential_vector(t,pot_vec);
             new_px[i]=ref_px[i]-pot_vec[0];
             new_py[i]=ref_py[i]-pot_vec[1];
             new_pz[i]=ref_pz[i]-pot_vec[2];
@@ -642,6 +642,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
                if(pow(new_px[i]-ref_px[i],2)+pow(new_py[i]-ref_py[i],2)+pow(new_pz[i]-ref_pz[i],2) < pow(new_px[i]-trial_px[i],2)+pow(new_py[i]-trial_py[i],2)+pow(new_pz[i]-trial_pz[i],2) && i!=j)
                {
                   this->translation_vector[i][t]=j;
+                  std::cout<<t<<"   "<<i<<"   "<<this->translation_vector[i][t]<<std::endl;
                   trial_px[i]=ref_px[j];
                   trial_py[i]=ref_py[j];
                   trial_pz[i]=ref_pz[j];
@@ -650,6 +651,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
          }
       }
    }
+   */
    delete [] trial_px;
    delete [] trial_py;
    delete [] trial_pz;
@@ -659,7 +661,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
    delete [] ref_px;
    delete [] ref_py;
    delete [] ref_pz;
-   */
+   
 }
 //##########################################################################
 //
@@ -669,6 +671,7 @@ void hamilton_matrix::set_NAC(std::string file_address)
    using namespace std;
    stringstream name_indenter;
    string filename;
+   int dgsize(this->m_tgsize_x-this->m_gsize_x);
 
    ifstream input_file;
 
