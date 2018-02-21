@@ -585,7 +585,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
    double deltak=(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
    for(int i=0;i!=this->m_n_states_cont;i++)
    {
-      this->m_dk_vec[i]=deltak*this->k_modulus[i*this->m_n_k/this->m_n_states_cont]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
+      this->m_dk_vec[i]=deltak*(55*55*55)*this->k_modulus[int(i*this->m_n_k/this->m_n_states_cont)]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
    }
 
    std::cout<<"Got all PICE ! "<<std::endl<<"NOT Determining closest pair of plane waves in reciprocal space"<<std::endl;

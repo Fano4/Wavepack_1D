@@ -14,10 +14,10 @@ int main( int argc, char * argv [])
     string neutral_nac("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_NAC_");
     string ionization_coupling_file("/data1/home/stephan/LiH_512_points_pice/LiH_PICE_");//LiH_PICE_R_i_j.txt
 //    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
-    string out_file="wavepack_two_cycles/Output.log";
-    string read_file="wavepack_two_cycles/PI_spectrum.txt";
-    string wf_out_file="wavepack_two_cycles/neut_wf_state_";
-    string wf1d_out_file="wavepack_two_cycles/neut_wf1d_state_";
+    string out_file="wavepack_nodk_in_php_CEP0/Output.log";
+    string read_file="wavepack_nodk_in_php_CEP0/PI_spectrum.txt";
+    string wf_out_file="wavepack_nodk_in_php_CEP0/neut_wf_state_";
+    string wf1d_out_file="wavepack_nodk_in_php_CEP0/neut_wf1d_state_";
     stringstream ss_wf;
     string s_wf;
     ofstream output;
@@ -36,7 +36,7 @@ int main( int argc, char * argv [])
     double xmax(21.6/0.529);
     double mass(1836*(1.007825*6.015122795/(1.007825+6.015122795)));
     double total_time(100/0.02418884);
-    double h(0.015/0.02418884);
+    double h(0.01/0.02418884);
     int n_times(int(total_time/h));
     int time_index(0);
     double dipole[3];
@@ -107,7 +107,7 @@ int main( int argc, char * argv [])
 
     while(time_index <= n_times)
     {
-       propagate(Psi,H,&time_index,2);
+       propagate(Psi,H,&time_index,3);
        H->electric_field(time_index,efield);
        output.open(out_file.c_str(),ios_base::app);
 

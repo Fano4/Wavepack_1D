@@ -604,8 +604,9 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
          {
             j=Psi->n_states_neut()*Psi->tgsize_x()+s*Psi->tgsize_x()+grid_index;
             H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
-            rsum+=real((H->hamilt_element(time_index,i,j))*Psi->show_cat_psi(grid_index,state_index2,state_index_cont2));
-            imsum+=imag((H->hamilt_element(time_index,i,j))*Psi->show_cat_psi(grid_index,state_index2,state_index_cont2));
+            ctemp=(H->hamilt_element(time_index,i,j))*Psi->show_cat_psi(grid_index,state_index2,state_index_cont2);
+            rsum+=real(ctemp);
+            imsum+=imag(ctemp);
          }
          /*
           *  N-C block of the hamilton matrix
@@ -624,6 +625,7 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
          rsum=0;
          imsum=0;
          j=0;
+         std::complex<double> ctemp;
 
          H->show_indexes(i,i,&state_index,&grid_index,&state_index_cont,&state_index,&grid_index,&state_index_cont);
          /*
@@ -632,9 +634,10 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
          for(int s=0;s<Psi->n_states_neut();s++)
          {
             j=s*Psi->tgsize_x()+grid_index;
-            H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
-            rsum+=real((H->hamilt_element(time_index,i,j))*Psi->show_neut_psi(grid_index,state_index2));
-            imsum+=imag((H->hamilt_element(time_index,i,j))*Psi->show_neut_psi(grid_index,state_index2));
+//            H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
+            ctemp=(H->hamilt_element(time_index,i,j))*Psi->show_neut_psi(grid_index,s);
+            rsum+=real(ctemp);//state_index2));
+            imsum+=imag(ctemp);//state_index2));
          }
          /*
           *  End of C-N block of the hamilton matrix
@@ -644,34 +647,36 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
           */
          for(int s=0;s<(Psi->n_states_cat());s++)
          {
-            if(s==state_index)//Diagonal block in electronic state => pentadiagonal in grid index
+            //if(s==state_index)//Diagonal block in electronic state => pentadiagonal in grid index
             {
                j=(Psi->n_states_neut())*(Psi->tgsize_x())+(i%Psi->tgsize_x()-2)*bool(i%Psi->tgsize_x()-2 >= 0)+s*Psi->n_states_cont()*Psi->tgsize_x()+state_index_cont*Psi->tgsize_x();//initial grid index of column in diagonal block
 
-                  while( (j%Psi->tgsize_x()) <= i%Psi->tgsize_x()+2)
+                  while( (j%Psi->tgsize_x()) <= grid_index+2 && (j%Psi->tgsize_x()) < Psi->tgsize_x()-1)
                   {
                      H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
 
-                     rsum+=real((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
-                     imsum+=imag((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
+                     ctemp=(H->hamilt_element(time_index,i,j))*Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2);
+                     rsum+=real(ctemp);//energy
+                     imsum+=imag(ctemp);//energy
+                     j++;
 
-                     if(!(grid_index2 == Psi->tgsize_x()-1))//if you do not reach the edge of the grid, continue
+                  /*   if(!(grid_index2 == Psi->tgsize_x()-1))//if you do not reach the edge of the grid, continue
                         j++;
                      else //end of the loop
                      {
                         j++;
                         break;
-                     }
+                     }*/
                   }
                }
-               else//Non-diagonal block in electronic state => diagonal in grid index
+/*               else//Non-diagonal block in electronic state => diagonal in grid index
                {
                   j=(Psi->n_states_neut())*(Psi->tgsize_x())+i%Psi->tgsize_x()+s*Psi->tgsize_x()*Psi->n_states_cont()+state_index_cont*Psi->tgsize_x();//grid index of column in diagonal block
                   H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
                   rsum+=real((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
                   imsum+=imag((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
 
-               }
+               }*/
             }
       /*
        *  End of C-C block of the hamilton matrix

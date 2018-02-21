@@ -455,10 +455,10 @@ double wavefunction::state_pop(bool species,int state_index,hamilton_matrix* H)
          std::cout<<"ERROR ! Trying to compute cation state pop without giving the dk differential"<<std::endl;
          exit(EXIT_FAILURE);
       }
- //     std::complex<double> *vector=new std::complex<double>[this->m_n_states_cont*this->m_tgsize_x];
+/*      std::complex<double> *vector=new std::complex<double>[this->m_n_states_cont*this->m_tgsize_x];
 
 //#pragma omp parallel for private(state_index)
-/*      for(int i=0;i<this->m_n_states_cont;i++)
+      for(int i=0;i<this->m_n_states_cont;i++)
       {
          for(int k=0;k<this->m_tgsize_x;k++)
          {
@@ -466,7 +466,7 @@ double wavefunction::state_pop(bool species,int state_index,hamilton_matrix* H)
          }
       }
       cblas_zdotc_sub(this->m_tgsize_x*this->m_n_states_cont,&this->m_cat_part[this->m_tgsize_x*this->m_n_states_cont*state_index],1,vector,1,&value);
-      */
+  */    
       cblas_zdotc_sub(this->m_tgsize_x*this->m_n_states_cont,&this->m_cat_part[this->m_tgsize_x*this->m_n_states_cont*state_index],1,&this->m_cat_part[this->m_tgsize_x*this->m_n_states_cont*state_index],1,&value);
 //      delete [] vector;
 
