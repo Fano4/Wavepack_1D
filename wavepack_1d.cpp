@@ -14,10 +14,10 @@ int main( int argc, char * argv [])
     string neutral_nac("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_NAC_");
     string ionization_coupling_file("/data1/home/stephan/LiH_512_points_pice/LiH_PICE_");//LiH_PICE_R_i_j.txt
 //    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
-    string out_file="wavepack_nodk_in_php_CEP0/Output.log";
-    string read_file="wavepack_nodk_in_php_CEP0/PI_spectrum.txt";
-    string wf_out_file="wavepack_nodk_in_php_CEP0/neut_wf_state_";
-    string wf1d_out_file="wavepack_nodk_in_php_CEP0/neut_wf1d_state_";
+    string out_file="wavepack_results/Output.log";
+    string read_file="wavepack_results/PI_spectrum.txt";
+    string wf_out_file="wavepack_results/neut_wf_state_";
+    string wf1d_out_file="wavepack_results/neut_wf1d_state_";
     stringstream ss_wf;
     string s_wf;
     ofstream output;
@@ -29,14 +29,14 @@ int main( int argc, char * argv [])
     int tgsize_x(gsize_x+10);
     int dgsize(tgsize_x-gsize_x);
     int n_states_neut(15);
-    int n_states_cat(1);
-    int n_angles(128);
-    int n_k(100);
+    int n_states_cat(0);//1);
+    int n_angles(0);//128);
+    int n_k(0);//100);
     double xmin(0.8/0.529);//!!! THESE VALUES ARE IN ATOMIC UNITS AND NOT IN ANGSTROM
     double xmax(21.6/0.529);
     double mass(1836*(1.007825*6.015122795/(1.007825+6.015122795)));
     double total_time(100/0.02418884);
-    double h(0.01/0.02418884);
+    double h(0.002/0.02418884);
     int n_times(int(total_time/h));
     int time_index(0);
     double dipole[3];
@@ -56,6 +56,25 @@ int main( int argc, char * argv [])
     H->set_NAC(neutral_nac);
     H->set_PICE(ionization_coupling_file.c_str());
 
+/*    int i(10);
+    int j(tgsize_x*1+12);
+    int state_index_1;
+    int state_index_2;
+    int state_index_cont_1;
+    int state_index_cont_2;
+    int grid_index_1;
+    int grid_index_2;
+    H->show_indexes(i,j,&state_index_1,&grid_index_1,&state_index_cont_1,&state_index_2,&grid_index_2,&state_index_cont_2);
+    std::cout<<"NAC "<<state_index_1<<"-"<<state_index_2<<" at "<<grid_index_1<<","<<grid_index_2<<"="<<H->show_nac(state_index_1,state_index_2,grid_index_1,grid_index_2)<<std::endl;
+ 
+    H->show_indexes(i,j,&state_index_1,&grid_index_1,&state_index_cont_1,&state_index_2,&grid_index_2,&state_index_cont_2);
+    std::cout<<state_index_1<<"-"<<state_index_2<<" at "<<grid_index_1<<","<<grid_index_2<<std::endl;
+    
+    std::cout<<"H element "<<i<<","<<j<<"="<<H->hamilt_element(0,i,j)<<std::endl;
+    std::cout<<"H element "<<j<<","<<i<<"="<<H->hamilt_element(0,j,i)<<std::endl;
+    return 0;
+   */ 
+    
 //    for(int i=0;i!=H->n_k();i++)
 //       H->dk(i);
 
@@ -107,7 +126,7 @@ int main( int argc, char * argv [])
 
     while(time_index <= n_times)
     {
-       propagate(Psi,H,&time_index,3);
+       propagate(Psi,H,&time_index,10);
        H->electric_field(time_index,efield);
        output.open(out_file.c_str(),ios_base::app);
 

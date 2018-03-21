@@ -585,7 +585,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
    double deltak=(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
    for(int i=0;i!=this->m_n_states_cont;i++)
    {
-      this->m_dk_vec[i]=deltak*(55*55*55)*this->k_modulus[int(i*this->m_n_k/this->m_n_states_cont)]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
+      this->m_dk_vec[i]=deltak*(55*55*55)*this->k_modulus[(i-i%this->m_n_angles)/this->m_n_angles]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
    }
 
    std::cout<<"Got all PICE ! "<<std::endl<<"NOT Determining closest pair of plane waves in reciprocal space"<<std::endl;
@@ -674,10 +674,20 @@ void hamilton_matrix::set_NAC(std::string file_address)
    int dgsize(this->m_tgsize_x-this->m_gsize_x);
 
    ifstream input_file;
+   for(int i=0;i!=m_n_states_neut;i++)
+   {
+      for(int j=0;j!=m_n_states_neut;j++)
+      {
+         for(int k=0;k!=this->m_tgsize_x;k++)
+         {
+            this->m_NAC[j*this->m_n_states_neut+i][k]=0;
+         }
+      }
+   }
 
    for(int i=0;i!=m_n_states_neut;i++)
    {
-      for(int j=i;j!=m_n_states_neut;j++)
+      for(int j=i+1;j!=m_n_states_neut;j++)
       {   
             name_indenter.str("");
             name_indenter<<file_address<<j+1<<"_"<<i+1<<".input";
@@ -687,14 +697,21 @@ void hamilton_matrix::set_NAC(std::string file_address)
             {
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
-                   input_file>>m_NAC[j*this->m_n_states_neut+i][k];
-                   m_NAC[i*this->m_n_states_neut+j][k]=-m_NAC[j*this->m_n_states_neut+i][k];
+                   input_file>>this->m_NAC[j*this->m_n_states_neut+i][k];
+//                   std::cout<<"NACME "<<i<<"-"<<j<<" at "<<k<<"="<<this->m_NAC[i*this->m_n_states_neut+j][k]<<std::endl;
+                   this->m_NAC[i*this->m_n_states_neut+j][k]=-this->m_NAC[j*this->m_n_states_neut+i][k];
+                }
+                input_file.close();
+                for (int k=0;k!=dgsize;k++)
+                {
+                   this->m_NAC[j*this->m_n_states_neut+i][k]=this->m_NAC[j*this->m_n_states_neut+i][dgsize];
+                   this->m_NAC[i*this->m_n_states_neut+j][k]=-this->m_NAC[j*this->m_n_states_neut+i][k];
                 }
             }
             else
             {
-               cout<<"ERROR NAC FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-               exit(EXIT_FAILURE);
+               cout<<"ERROR NAC FILE NOT FOUND:"<<filename.c_str()<<endl<<"SETTING ALL NAC TO ZERO"<<endl;
+               //exit(EXIT_FAILURE);
             }
       }
    }

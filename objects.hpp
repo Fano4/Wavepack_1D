@@ -110,5 +110,6 @@ class hamilton_matrix {
       void set_phase(std::string file_address);
       void print_dipole_neut();
       void dk_vec(double *array);
+      double show_nac(int state_index_1,int state_index_2,int grid_index_1,int grid_index_2);
 };
 
