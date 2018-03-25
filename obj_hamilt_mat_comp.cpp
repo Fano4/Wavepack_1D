@@ -66,19 +66,19 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
          if(grid_index_1==grid_index_2)//diagonal in the grid basis
          {
             //return 0;
-            if(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]!=0)
+            if(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]!=0 && state_index_1 < state_index_2)
                   return std::complex<double>(
                      -this->m_dmx_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[0]
                      -this->m_dmy_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[1]
                      -this->m_dmz_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*elec_field[2]
 
-                     -0.5*(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]
-      //               -(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][(grid_index_1-2)*bool(grid_index_1-2>=0)]
-      //               -8*this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][(grid_index_1-1)*bool(grid_index_1-1>=0)]
-      //               +8*this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][(grid_index_1+1)*bool(grid_index_1+1<this->m_tgsize_x)+this->m_tgsize_x*bool(!(grid_index_1+1<this->m_tgsize_x))]
-      //               -this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][(grid_index_1+2)*bool(grid_index_1+2<this->m_tgsize_x)+this->m_tgsize_x*bool(!(grid_index_1+2<this->m_tgsize_x))]
-      //               )/(12*(this->m_xmax-this->m_xmin)/this->m_gsize_x)
-                     )/((this->m_mass))//*(fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_1])))
+            //         -0.5*(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]
+            //         -(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][(grid_index_1-2)*bool(grid_index_1-2>=0)]
+            //         -8*this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][(grid_index_1-1)*bool(grid_index_1-1>=0)]
+            //         +8*this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][(grid_index_1+1)*bool(grid_index_1+1<this->m_tgsize_x)+this->m_tgsize_x*bool(!(grid_index_1+1<this->m_tgsize_x))]
+            //         -this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][(grid_index_1+2)*bool(grid_index_1+2<this->m_tgsize_x)+this->m_tgsize_x*bool(!(grid_index_1+2<this->m_tgsize_x))]
+            //         )/(12*(this->m_xmax-this->m_xmin)/this->m_gsize_x)
+            //         )/((this->m_mass)*(fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_1])))
                     ,0); //dipole coupling
             else
                return std::complex<double>(
@@ -98,27 +98,28 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
             }*/
 
 //               std::cout<<"NACME : "<<this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]<<std::endl;
-            if(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]!=0)
+            if(state_index_1<state_index_2)
             {
-               if(state_index_1<state_index_2)
+               if(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]!=0)
                   return std::complex<double>(
                      -(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]
                      *this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2]
-                     +this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_2]
-                     *this->derivative_matrix[grid_index_2*this->m_tgsize_x+grid_index_1]
                      )/((this->m_mass))//*(fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_1])))
                      ,0);//Non adiabatic coupling
                else
-                  return std::complex<double>(
-                     -(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_2]
-                     *this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2]
-                     +this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]
-                     *this->derivative_matrix[grid_index_2*this->m_tgsize_x+grid_index_1]
-                     )/((this->m_mass))//*(fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_2]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_2])))
-                     ,0);//Non adiabatic coupling
+                  return std::complex<double>(0,0);
             }
             else
-               return std::complex<double>(0,0);
+            {
+               if(this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_2]!=0)
+                  return std::complex<double>(
+                     (this->m_NAC[state_index_2*this->m_n_states_neut+state_index_1][grid_index_2]
+                     *this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2]
+                     )/((this->m_mass))//*(fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_2]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_2])))
+                     ,0);//Non adiabatic coupling
+               else
+                  return std::complex<double>(0,0);
+            }
          }
       }
    }

@@ -36,7 +36,7 @@ int main( int argc, char * argv [])
     double xmax(21.6/0.529);
     double mass(1836*(1.007825*6.015122795/(1.007825+6.015122795)));
     double total_time(100/0.02418884);
-    double h(0.002/0.02418884);
+    double h(0.0025/0.02418884);
     int n_times(int(total_time/h));
     int time_index(0);
     double dipole[3];
@@ -126,7 +126,7 @@ int main( int argc, char * argv [])
 
     while(time_index <= n_times)
     {
-       propagate(Psi,H,&time_index,10);
+       propagate(Psi,H,&time_index,16);
        H->electric_field(time_index,efield);
        output.open(out_file.c_str(),ios_base::app);
 

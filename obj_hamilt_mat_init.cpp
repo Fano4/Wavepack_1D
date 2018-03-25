@@ -503,7 +503,7 @@ void hamilton_matrix::set_PICE(std::string file_address)
    double *position=new double[this->m_gsize_x];
 
    ifstream input_file;
-   input_file.open("/data1/home/stephan/LiH_gridtest/coordinates.input");
+   input_file.open("/data1/home/stephan/LiH_512_points/coordinates.input");
    if(!input_file.is_open())
    {
       std::cout<<"POSITION INPUT SCRIPT FILE CANNOT BE FOUND "<<std::endl;
@@ -687,7 +687,7 @@ void hamilton_matrix::set_NAC(std::string file_address)
 
    for(int i=0;i!=m_n_states_neut;i++)
    {
-      for(int j=i+1;j!=m_n_states_neut;j++)
+      for(int j=i;j!=m_n_states_neut;j++)
       {   
             name_indenter.str("");
             name_indenter<<file_address<<j+1<<"_"<<i+1<<".input";
@@ -697,15 +697,15 @@ void hamilton_matrix::set_NAC(std::string file_address)
             {
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
-                   input_file>>this->m_NAC[j*this->m_n_states_neut+i][k];
+                   input_file>>this->m_NAC[i*this->m_n_states_neut+j][k];
 //                   std::cout<<"NACME "<<i<<"-"<<j<<" at "<<k<<"="<<this->m_NAC[i*this->m_n_states_neut+j][k]<<std::endl;
-                   this->m_NAC[i*this->m_n_states_neut+j][k]=-this->m_NAC[j*this->m_n_states_neut+i][k];
+                   this->m_NAC[j*this->m_n_states_neut+i][k]=-this->m_NAC[i*this->m_n_states_neut+j][k];
                 }
                 input_file.close();
                 for (int k=0;k!=dgsize;k++)
                 {
-                   this->m_NAC[j*this->m_n_states_neut+i][k]=this->m_NAC[j*this->m_n_states_neut+i][dgsize];
-                   this->m_NAC[i*this->m_n_states_neut+j][k]=-this->m_NAC[j*this->m_n_states_neut+i][k];
+                   this->m_NAC[i*this->m_n_states_neut+j][k]=this->m_NAC[i*this->m_n_states_neut+j][dgsize];
+                   this->m_NAC[j*this->m_n_states_neut+i][k]=-this->m_NAC[i*this->m_n_states_neut+j][k];
                 }
             }
             else
