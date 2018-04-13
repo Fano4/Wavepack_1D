@@ -129,18 +129,19 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
    {
       if(state_index_cont_1 ==-1 && grid_index_1==grid_index_2)//N-C
       {
+      //   std::cout<<"In hamiltonian, asking for element "<<state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2<<std::endl;
          return std::complex<double>((
-                  -std::conj(this->m_PICE_x[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+(this->translation_vector[state_index_cont_2][int(time_index)])][grid_index_1])*elec_field[0]
-                  -std::conj(this->m_PICE_y[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+(this->translation_vector[state_index_cont_2][int(time_index)])][grid_index_1])*elec_field[1]
-                  -std::conj(this->m_PICE_z[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+(this->translation_vector[state_index_cont_2][int(time_index)])][grid_index_1])*elec_field[2])
+                  -std::conj(this->m_PICE_x[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1])*elec_field[0]
+                  -std::conj(this->m_PICE_y[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1])*elec_field[1]
+                  -std::conj(this->m_PICE_z[state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1])*elec_field[2])
                *sqrt(this->dk(state_index_cont_2)));//PICE dipole interaction
       }
       else if(grid_index_1==grid_index_2) // C-N
       {
          return std::complex<double>((
-                  -(this->m_PICE_x[state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+this->translation_vector[state_index_cont_1][int(time_index)]][grid_index_1])*elec_field[0]
-                  -(this->m_PICE_y[state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+this->translation_vector[state_index_cont_1][int(time_index)]][grid_index_1])*elec_field[1]
-                  -(this->m_PICE_z[state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+this->translation_vector[state_index_cont_1][int(time_index)]][grid_index_1])*elec_field[2])
+                  -(this->m_PICE_x[state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+state_index_cont_1][grid_index_1])*elec_field[0]
+                  -(this->m_PICE_y[state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+state_index_cont_1][grid_index_1])*elec_field[1]
+                  -(this->m_PICE_z[state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+state_index_cont_1][grid_index_1])*elec_field[2])
                *sqrt(this->dk(state_index_cont_1)));//PICE dipole interaction
       }
       else
@@ -718,6 +719,13 @@ double hamilton_matrix::show_nac(int state_index_1,int state_index_2,int grid_in
       return this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2];
    else
       return this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_2]*this->derivative_matrix[grid_index_2*this->m_tgsize_x+grid_index_1];
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::grid_k_cube_spacing() 
+{
+   return (this->m_kxmax-this->m_kxmin)/this->m_n_kx;
 }
 //##########################################################################
 //

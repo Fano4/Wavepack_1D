@@ -107,7 +107,10 @@ std::complex<double> wavefunction::show_neut_psi(int grid_index,int state_index)
 
    }
    else
-   return this->m_neut_part[state_index*this->m_tgsize_x+grid_index];
+   {
+      //std::cout<<"probe show neut psi index"<<state_index*this->m_tgsize_x+grid_index<<std::endl;//DEBOGAGE
+      return this->m_neut_part[state_index*this->m_tgsize_x+grid_index];
+   }
    //The direct dimension of the neutral part is the grid size. The second dimension is the state index.
 }
 //##########################################################################
@@ -239,7 +242,9 @@ void wavefunction::initialize(hamilton_matrix* H)
       }
    }*/
 
+
    delete [] H_mat_gs;
+   std::cout<<"Wavefunction Initialized ! "<<std::endl;
 }
 //##########################################################################
 //

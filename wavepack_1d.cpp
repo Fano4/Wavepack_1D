@@ -4,15 +4,15 @@ int main( int argc, char * argv [])
 {
     using namespace std;
 
-    omp_set_num_threads(32);
+    omp_set_num_threads(16);
 
     //PATH LINKING OTHER FILES
     string neutral_pes("/data1/home/stephan/Wavepack_1D/wavepack_int_input/Int_pes_");
-    string cation_pes("/data1/home/stephan/LiH_gridtest/LiH_cat_");
+    string cation_pes("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_cat_");
     string neutral_dipole("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_neut_");
     string cation_dipole("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_cat_");
     string neutral_nac("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_NAC_");
-    string ionization_coupling_file("/data1/home/stephan/LiH_512_points_pice/LiH_PICE_");//LiH_PICE_R_i_j.txt
+    string ionization_coupling_file("/data1/home/stephan/LiH_512_points_pice/LiH_");//LiH_PICE_R_i_j.txt
 //    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
     string out_file="wavepack_results/Output.log";
     string read_file="wavepack_results/PI_spectrum.txt";
@@ -28,10 +28,10 @@ int main( int argc, char * argv [])
     int gsize_x(512);
     int tgsize_x(gsize_x+10);
     int dgsize(tgsize_x-gsize_x);
-    int n_states_neut(15);
-    int n_states_cat(0);//1);
-    int n_angles(0);//128);
-    int n_k(0);//100);
+    int n_states_neut(1);
+    int n_states_cat(1);//1);
+    int n_angles(64);//128);
+    int n_k(30);//100);
     double xmin(0.8/0.529);//!!! THESE VALUES ARE IN ATOMIC UNITS AND NOT IN ANGSTROM
     double xmax(21.6/0.529);
     double mass(1836*(1.007825*6.015122795/(1.007825+6.015122795)));
@@ -41,7 +41,7 @@ int main( int argc, char * argv [])
     int time_index(0);
     double dipole[3];
     double efield[3];
-    double efield_thresh(1e-5);
+    double efield_thresh(0);//1e-5);
     double norm;
     double temp;
 
@@ -97,8 +97,10 @@ int main( int argc, char * argv [])
     Psi->initialize(H);
 
     read.open(read_file.c_str());
+//    std::cout<<"Initial state:"<<std::endl;
     for(int i=0;i!=tgsize_x;i++)
     {
+//        std::cout<<"probe "<<i<<std::endl;
        read<<H->pot_neut(0,i)<<","<<Psi->show_neut_psi(i,0).real()<<","<<Psi->show_neut_psi(i,0).imag()<<std::endl;
     }
     read.close();

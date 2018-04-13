@@ -56,6 +56,16 @@ class hamilton_matrix {
       double m_xmin;
       double m_xmax;
       double m_mass;
+      double m_kxmin;
+      double m_kxmax;
+      double m_kymin;
+      double m_kymax;
+      double m_kzmin;
+      double m_kzmax;
+      int m_n_kx;
+      int m_n_ky;
+      int m_n_kz;
+      std::string m_PICE_address;
       //ELECTRIC FIELD THRESHOLD
       double m_efield_thresh;
       //TIME VARIABLE SETTINGS
@@ -78,7 +88,6 @@ class hamilton_matrix {
       double **m_NAC;
       //OTHER HAMILTONIAN MATRIX ARRAYS
       int **translation_vector;
-      double min_distance;
       double *kinetic_energy;
       double *derivative_matrix;
       double *position_array_script;
@@ -91,7 +100,7 @@ class hamilton_matrix {
       void set_pot_cat(std::string file_address);
       void set_dm_neut(std::string file_address);
       void set_dm_cat(std::string file_address);
-      void set_PICE(std::string file_address);
+      void set_PICE(std::string file_address,double *pot_vec=NULL);
       void set_NAC(std::string file_address);
       std::complex<double> hamilt_element(double time_index,int i,int j);
       double h();
@@ -111,5 +120,9 @@ class hamilton_matrix {
       void print_dipole_neut();
       void dk_vec(double *array);
       double show_nac(int state_index_1,int state_index_2,int grid_index_1,int grid_index_2);
+      void spherical_extract_from_cube(int neut_state,int cat_state,int r_index,int component,double *Recube,double *Imcube,double *pot_vec);
+      void sphere_dist_gen(bool randiso=1,int n_phi=0);
+      bool cube_reader(std::string MO_cube_loc,double *cube_array,bool extract_dimensions=0);
+      double grid_k_cube_spacing(); 
 };
 
