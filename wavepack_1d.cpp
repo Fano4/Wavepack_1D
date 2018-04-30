@@ -7,17 +7,17 @@ int main( int argc, char * argv [])
     omp_set_num_threads(16);
 
     //PATH LINKING OTHER FILES
-    string neutral_pes("/data1/home/stephan/Wavepack_1D/wavepack_int_input/Int_pes_");
-    string cation_pes("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_cat_");
-    string neutral_dipole("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_neut_");
-    string cation_dipole("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_cat_");
-    string neutral_nac("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_NAC_");
-    string ionization_coupling_file("/data1/home/stephan/LiH_512_points_pice/LiH_");//LiH_PICE_R_i_j.txt
+    string neutral_pes("/data1/home/stephan/LiH_gridtest_++2df2p/Int_pes_");
+    string cation_pes("/data1/home/stephan/LiH_gridtest_++2df2p/Int_pes_cat_");
+    string neutral_dipole("/data1/home/stephan/LiH_gridtest_++2df2p/LiH_neut_");
+    string cation_dipole("/data1/home/stephan/LiH_gridtest_++2df2p/LiH_cat_");
+    string neutral_nac("/data1/home/stephan/LiH_gridtest_++2df2p/LiH_NAC_");
+    string ionization_coupling_file("/data1/home/stephan/LiH_PICE_++2df2p/LiH_");//LiH_PICE_R_i_j.txt
 //    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
-    string out_file="wavepack_results/Output.log";
-    string read_file="wavepack_results/PI_spectrum.txt";
-    string wf_out_file="wavepack_results/neut_wf_state_";
-    string wf1d_out_file="wavepack_results/neut_wf1d_state_";
+    string out_file="wvpck_res_2df_noion_astridpulse_CEP0/Output.log";
+    string read_file="wvpck_res_2df_noion_astridpulse_CEP0/PI_spectrum.txt";
+    string wf_out_file="wvpck_res_2df_noion_astridpulse_CEP0/neut_wf_state_";
+    string wf1d_out_file="wvpck_res_2df_noion_astridpulse_CEP0/neut_wf1d_state_";
     stringstream ss_wf;
     string s_wf;
     ofstream output;
@@ -28,10 +28,10 @@ int main( int argc, char * argv [])
     int gsize_x(512);
     int tgsize_x(gsize_x+10);
     int dgsize(tgsize_x-gsize_x);
-    int n_states_neut(1);
-    int n_states_cat(1);//1);
-    int n_angles(64);//128);
-    int n_k(30);//100);
+    int n_states_neut(8);//15);
+    int n_states_cat(0);//1);
+    int n_angles(0);//128);
+    int n_k(0);//100);
     double xmin(0.8/0.529);//!!! THESE VALUES ARE IN ATOMIC UNITS AND NOT IN ANGSTROM
     double xmax(21.6/0.529);
     double mass(1836*(1.007825*6.015122795/(1.007825+6.015122795)));
@@ -41,7 +41,7 @@ int main( int argc, char * argv [])
     int time_index(0);
     double dipole[3];
     double efield[3];
-    double efield_thresh(0);//1e-5);
+    double efield_thresh(1e-5);
     double norm;
     double temp;
 
@@ -107,7 +107,7 @@ int main( int argc, char * argv [])
     std::cout<<"##################"<<std::endl;
 
     output.open(out_file.c_str());
-    output<<"initial energy of the system "<<setprecision(15)<<H->energy(Psi,0)<<std::endl<<"initial norm of the system = 1";
+    output<<"initial energy of the system "<<setprecision(15)<<H->energy(Psi,0)<<std::endl<<"initial norm of the system = 1"<<std::endl;;
 //    output<<setprecision(15)<<Psi->norm(H)<<std::endl;
     output.close();
        for(int m=0;m!=n_states_neut;m++)

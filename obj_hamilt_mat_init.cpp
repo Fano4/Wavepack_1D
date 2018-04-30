@@ -487,6 +487,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
    using namespace std;
    stringstream name_indenter;
    double *position=new double[this->m_gsize_x];
+   bool test(0);
+   int index_pos=0;
    string filename;
    int dgsize(this->m_tgsize_x-this->m_gsize_x);
    double temp;
@@ -494,7 +496,10 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
    double Im_value;
    double pos;
       ifstream input_file;
-      input_file.open("/data1/home/stephan/LiH_512_points/coordinates.input");
+      name_indenter.str("");
+      name_indenter<<file_address<<coordinates.input;
+      filename=name_indenter.str();
+      input_file.open(filename.c_str());
       if(!input_file.is_open())
       {
          std::cout<<"POSITION INPUT SCRIPT FILE CANNOT BE FOUND "<<std::endl;
@@ -535,6 +540,37 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
             for(int x=dgsize;x!=this->m_tgsize_x;x++)
             {
 
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                std::cout<<x<<"/"<<this->m_tgsize_x<<"..."<<std::endl;
                pos=position[x-dgsize];
                name_indenter.str("");
@@ -561,6 +597,38 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }
+               */
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                name_indenter.str("");
                name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
                filename=name_indenter.str();
@@ -584,9 +652,40 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                         exit(EXIT_FAILURE);
                      }
                   }
-               }
+               }*/
                this->spherical_extract_from_cube(i,j,x,0,Retemp_cube,Imtemp_cube,NULL);
 
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                name_indenter.str("");
                name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                filename=name_indenter.str();
@@ -611,6 +710,38 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }
+               */
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                name_indenter.str("");
                name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                filename=name_indenter.str();
@@ -635,8 +766,40 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }
+               */
                this->spherical_extract_from_cube(i,j,x,1,Retemp_cube,Imtemp_cube,NULL);
 
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                name_indenter.str("");
                name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                filename=name_indenter.str();
@@ -661,6 +824,38 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }
+               */
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                name_indenter.str("");
                name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                filename=name_indenter.str();
@@ -685,6 +880,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }
+               */
                this->spherical_extract_from_cube(i,j,x,2,Retemp_cube,Imtemp_cube,NULL);
 
             }
@@ -704,6 +900,37 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
             {
                std::cout<<x-dgsize<<"...";
                pos=position[x-dgsize];
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                name_indenter.str("");
                name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
                filename=name_indenter.str();
@@ -728,6 +955,38 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }
+               */
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                name_indenter.str("");
                name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
                filename=name_indenter.str();
@@ -752,8 +1011,40 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }
+               */
                this->spherical_extract_from_cube(i,j,x,0,Retemp_cube,Imtemp_cube,pot_vec);
 
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                name_indenter.str("");
                name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                filename=name_indenter.str();
@@ -778,6 +1069,38 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }
+               */
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                name_indenter.str("");
                name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                filename=name_indenter.str();
@@ -802,8 +1125,40 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }
+               */
                this->spherical_extract_from_cube(i,j,x,1,Retemp_cube,Imtemp_cube,pot_vec);
 
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                name_indenter.str("");
                name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                filename=name_indenter.str();
@@ -828,6 +1183,38 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }
+               */
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
+                        index_pos++;
+                        pos=position[x-index_pos-dgsize];
+                        name_indenter.str("");
+                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                        filename=name_indenter.str();
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               /*
                name_indenter.str("");
                name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                filename=name_indenter.str();
@@ -852,6 +1239,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }
+               */
                this->spherical_extract_from_cube(i,j,x,2,Retemp_cube,Imtemp_cube,pot_vec);
             }
          }
