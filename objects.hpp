@@ -48,6 +48,7 @@ class hamilton_matrix {
       //GRID AND STATES PARAMETERS
       int m_gsize_x;
       int m_tgsize_x;
+      int m_small_gsize_x;
       int m_n_states_neut;
       int m_n_states_cat;
       int m_n_states_cont;
@@ -94,7 +95,7 @@ class hamilton_matrix {
       double *m_dk_vec;
 
    public:
-      hamilton_matrix(int gsize_x,int tgsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh);
+      hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh);
       ~hamilton_matrix();
       void set_pot_neut(std::string file_address);
       void set_pot_cat(std::string file_address);

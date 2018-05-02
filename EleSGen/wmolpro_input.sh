@@ -22,10 +22,10 @@ closed, 0 , 0 , 0 , 0
 occ, ${n_occ_sym[0]} , ${n_occ_sym[1]} , ${n_occ_sym[2]} , ${n_occ_sym[3]}
 !pspace,5
 config
-wf,4,1,0;state, ${n_states_neut_sym[0]};weight, ${weight_neut_states_sym[0]};
-wf,4,2,0;state, ${n_states_neut_sym[1]};weight, ${weight_neut_states_sym[1]};
-wf,4,3,0;state, ${n_states_neut_sym[2]};weight, ${weight_neut_states_sym[2]};
-wf,4,4,0;state, ${n_states_neut_sym[3]};weight, ${weight_neut_states_sym[3]};
+wf,4,1,0;state, ${n_states_neut_sym[0]};!weight, ${weight_neut_states_sym[0]};
+wf,4,2,0;state, ${n_states_neut_sym[1]};!weight, ${weight_neut_states_sym[1]};
+wf,4,3,0;state, ${n_states_neut_sym[2]};!weight, ${weight_neut_states_sym[2]};
+wf,4,4,0;state, ${n_states_neut_sym[3]};!weight, ${weight_neut_states_sym[3]};
 }
 
 file,2,${molpro_wfu_prefile}${R}.wfu,new
@@ -37,8 +37,8 @@ occ, ${n_occ_sym[0]} , ${n_occ_sym[1]} , ${n_occ_sym[2]} , ${n_occ_sym[3]}
 !pspace,5
 config
 wf,3,1,1,1;state, ${n_states_cat_sym[0]} ;
-wf,3,2,1,1;state, ${n_states_cat_sym[1]} ;
-wf,3,3,1,1;state, ${n_states_cat_sym[2]} ;
+!wf,3,2,1,1;state, ${n_states_cat_sym[1]} ;
+!wf,3,3,1,1;state, ${n_states_cat_sym[2]} ;
 !wf,3,4,1,1;state, ${n_states_cat} ;
 }
 
@@ -73,10 +73,10 @@ closed, 0 , 0 , 0 , 0
 occ, ${n_occ_sym[0]} , ${n_occ_sym[1]} , ${n_occ_sym[2]} , ${n_occ_sym[3]}
 !pspace,5
 config
-wf,4,1,0;state, ${n_states_neut_sym[0]};weight, ${weight_neut_states_sym[0]};
-wf,4,2,0;state, ${n_states_neut_sym[1]};weight, ${weight_neut_states_sym[1]};
-wf,4,3,0;state, ${n_states_neut_sym[2]};weight, ${weight_neut_states_sym[2]};
-wf,4,4,0;state, ${n_states_neut_sym[3]};weight, ${weight_neut_states_sym[3]};
+wf,4,1,0;state, ${n_states_neut_sym[0]};!weight, ${weight_neut_states_sym[0]};
+wf,4,2,0;state, ${n_states_neut_sym[1]};!weight, ${weight_neut_states_sym[1]};
+wf,4,3,0;state, ${n_states_neut_sym[2]};!weight, ${weight_neut_states_sym[2]};
+wf,4,4,0;state, ${n_states_neut_sym[3]};!weight, ${weight_neut_states_sym[3]};
 }
 
 !{cube,${orbital_name},-1,125,125,125;
@@ -93,8 +93,8 @@ occ, ${n_occ_sym[0]} , ${n_occ_sym[1]} , ${n_occ_sym[2]} , ${n_occ_sym[3]}
 !pspace,5
 config
 wf,3,1,1,1;state, ${n_states_cat_sym[0]} ;
-wf,3,2,1,1;state, ${n_states_cat_sym[1]} ;
-wf,3,3,1,1;state, ${n_states_cat_sym[2]} ;
+!wf,3,2,1,1;state, ${n_states_cat_sym[1]} ;
+!wf,3,3,1,1;state, ${n_states_cat_sym[2]} ;
 !wf,3,4,1,1;state, ${n_states_cat} ;
 }
 
@@ -148,10 +148,10 @@ closed, 0 , 0 , 0 , 0
 occ, ${n_occ_sym[0]} , ${n_occ_sym[1]} , ${n_occ_sym[2]} , ${n_occ_sym[3]}
 !pspace,5
 config
-wf,4,1,0;state, ${n_states_neut_sym[0]};weight, ${weight_neut_states_sym[0]};
-wf,4,2,0;state, ${n_states_neut_sym[1]};weight, ${weight_neut_states_sym[1]};
-wf,4,3,0;state, ${n_states_neut_sym[2]};weight, ${weight_neut_states_sym[2]};
-wf,4,4,0;state, ${n_states_neut_sym[3]};weight, ${weight_neut_states_sym[3]};
+wf,4,1,0;state, ${n_states_neut_sym[0]};!weight, ${weight_neut_states_sym[0]};
+wf,4,2,0;state, ${n_states_neut_sym[1]};!weight, ${weight_neut_states_sym[1]};
+wf,4,3,0;state, ${n_states_neut_sym[2]};!weight, ${weight_neut_states_sym[2]};
+wf,4,4,0;state, ${n_states_neut_sym[3]};!weight, ${weight_neut_states_sym[3]};
 orbital,2140.2
 }
 
@@ -176,10 +176,10 @@ closed, 0 , 0 , 0 , 0
 occ, ${n_occ_sym[0]} , ${n_occ_sym[1]} , ${n_occ_sym[2]} , ${n_occ_sym[3]}
 !pspace,5
 config
-wf,4,1,0;state, ${n_states_neut_sym[0]};weight, ${weight_neut_states_sym[0]};
-wf,4,2,0;state, ${n_states_neut_sym[1]};weight, ${weight_neut_states_sym[1]};
-wf,4,3,0;state, ${n_states_neut_sym[2]};weight, ${weight_neut_states_sym[2]};
-wf,4,4,0;state, ${n_states_neut_sym[3]};weight, ${weight_neut_states_sym[3]};
+wf,4,1,0;state, ${n_states_neut_sym[0]};!weight, ${weight_neut_states_sym[0]};
+wf,4,2,0;state, ${n_states_neut_sym[1]};!weight, ${weight_neut_states_sym[1]};
+wf,4,3,0;state, ${n_states_neut_sym[2]};!weight, ${weight_neut_states_sym[2]};
+wf,4,4,0;state, ${n_states_neut_sym[3]};!weight, ${weight_neut_states_sym[3]};
 orbital,2141.2
 diab,2140.2
 }
@@ -205,10 +205,10 @@ closed, 0 , 0 , 0 , 0
 occ, ${n_occ_sym[0]} , ${n_occ_sym[1]} , ${n_occ_sym[2]} , ${n_occ_sym[3]}
 !pspace,5
 config
-wf,4,1,0;state, ${n_states_neut_sym[0]};weight, ${weight_neut_states_sym[0]};
-wf,4,2,0;state, ${n_states_neut_sym[1]};weight, ${weight_neut_states_sym[1]};
-wf,4,3,0;state, ${n_states_neut_sym[2]};weight, ${weight_neut_states_sym[2]};
-wf,4,4,0;state, ${n_states_neut_sym[3]};weight, ${weight_neut_states_sym[3]};
+wf,4,1,0;state, ${n_states_neut_sym[0]};!weight, ${weight_neut_states_sym[0]};
+wf,4,2,0;state, ${n_states_neut_sym[1]};!weight, ${weight_neut_states_sym[1]};
+wf,4,3,0;state, ${n_states_neut_sym[2]};!weight, ${weight_neut_states_sym[2]};
+wf,4,4,0;state, ${n_states_neut_sym[3]};!weight, ${weight_neut_states_sym[3]};
 orbital,2142.2
 diab,2140.2
 }

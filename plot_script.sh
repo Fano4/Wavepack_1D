@@ -15,6 +15,7 @@ for i in 1
 do
 grep "Population on cation state $i = " $file | sed "s/Population on cation state $i = //" > gp_pop_cat_$i.txt
 done
+grep "Time " $file | sed "s/Time //" > time.txt
 
 gnf=gnufile.gp
 lw1=2
@@ -33,7 +34,7 @@ color4=green
 color5=purple
 color6=gold
 color7=magenta
-color8=purple
+color8=dark-green
 color9=black
 lt1=0
 lt2=1
@@ -60,19 +61,19 @@ set style line 8 lt $lt8 lc rgb "${color8}" lw $lw8
 set style line 9 lt $lt9 lc rgb "${color9}" lw $lw9
 
 set key left top
-plot "gp_efield.txt" t 'Pulse' w l ls 1 \\
+plot "<paste time.txt gp_efield.txt" u 1:2 t 'Pulse' w l ls 1 \\
 MAFG
 
 for i in 2 3 4 5 6 7
 do
    let j=$i+1
 cat >> $gnf << MAFG
-,"gp_pop_$i.txt" t 'State $i' w l ls $j \\
+,"<paste time.txt gp_pop_$i.txt" u 1:2 t 'State $i' w l ls $j \\
 MAFG
 done
 
 cat >> $gnf << MAFG
-,"gp_pop_cat_1.txt" t 'Cation' w l ls 9 
+,"<paste time.txt gp_pop_cat_1.txt" u 1:2 t 'Cation' w l ls 9 
 MAFG
 
 gnuplot -p "$gnf"

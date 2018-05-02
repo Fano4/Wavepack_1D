@@ -20,11 +20,12 @@
 //##########################################################################
 //
 //##########################################################################
-hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh)
+hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh)
 {
    //initialize grid parameters and time settings
    this->m_gsize_x=gsize_x;
    this->m_tgsize_x=tgsize_x;
+   this->m_small_gsize_x=small_gsize_x;
    this->m_n_states_neut=n_states_neut;
    this->m_n_states_cat=n_states_cat;
    this->m_n_k=n_k;
@@ -427,7 +428,7 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
             else
             {
                cout<<"ERROR DIPOLE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-               exit;
+               exit(EXIT_FAILURE);
             }
             
             name_indenter.str("");
@@ -450,7 +451,7 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
             else
             {
                cout<<"ERROR DIPOLE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-               exit;
+               exit(EXIT_FAILURE);
             }
             
             name_indenter.str("");
@@ -474,7 +475,7 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
             else
             {
                cout<<"ERROR DIPOLE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-               exit;
+               exit(EXIT_FAILURE);
             }
       }
    }
@@ -486,7 +487,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
 {
    using namespace std;
    stringstream name_indenter;
-   double *position=new double[this->m_gsize_x];
+   double *position=new double[this->m_small_gsize_x];
    bool test(0);
    int index_pos=0;
    string filename;
@@ -495,9 +496,12 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
    double Re_value;
    double Im_value;
    double pos;
+   double r_val(0);
+   int x(0);
+
       ifstream input_file;
       name_indenter.str("");
-      name_indenter<<file_address<<coordinates.input;
+      name_indenter<<file_address<<"coordinates.input";
       filename=name_indenter.str();
       input_file.open(filename.c_str());
       if(!input_file.is_open())
@@ -505,7 +509,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
          std::cout<<"POSITION INPUT SCRIPT FILE CANNOT BE FOUND "<<std::endl;
          exit(EXIT_FAILURE);
       }
-      for(int i=0;i!=this->m_gsize_x;i++)
+      for(int i=0;i!=this->m_small_gsize_x;i++)
       {
          input_file>>position[i];
       }
@@ -537,14 +541,35 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
          for(int j=0;j!=this->m_n_states_cat;j++)
          {
             std::cout<<"Getting PICE for states "<<i<<" - "<<j<<std::endl;
-            for(int x=dgsize;x!=this->m_tgsize_x;x++)
+            for(int k=dgsize;k!=this->m_tgsize_x;k++)
             {
+
+               r_val=0.529*(this->m_xmin+(k-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x);
+
+               std::cout<<"Loop "<<k<<", position "<<r_val<<std::endl;
+
+               for(int l=0;l!=this->m_small_gsize_x;l++)
+               {
+                  if(l==m_small_gsize_x-1)
+                  {
+                     std::cout<<" Warning! out of bound for intarpolated data! "<<std::endl;
+                     x=l;
+                     break;
+                  }
+                  if( r_val < position[l+1] && r_val >= position[l] )
+                  {
+                     x=l;
+                     break;
+                  }
+                  else
+                     continue;
+               }
 
                test=0;
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -558,12 +583,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }
@@ -602,7 +623,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -616,12 +637,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }
@@ -659,7 +676,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -673,12 +690,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }
@@ -715,7 +728,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -729,12 +742,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }
@@ -773,7 +782,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -787,12 +796,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }
@@ -829,7 +834,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -843,12 +848,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }
@@ -896,15 +897,37 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
          {
             std::cout<<"Getting PICE for states "<<i<<" - "<<j<<std::endl;
             std::cout<<"point...";
-            for(int x=dgsize;x!=this->m_tgsize_x;x++)
+            for(int k=dgsize;k!=this->m_tgsize_x;k++)
             {
                std::cout<<x-dgsize<<"...";
-               pos=position[x-dgsize];
+
+               r_val=0.529*(this->m_xmin+(k-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x);
+
+               std::cout<<"Loop "<<k<<", position "<<r_val<<std::endl;
+
+               for(int l=0;l!=this->m_small_gsize_x;l++)
+               {
+                  if(l==m_small_gsize_x-1)
+                  {
+                     std::cout<<" Warning! out of bound for intarpolated data! "<<std::endl;
+                     x=l;
+                     break;
+                  }
+                  if( r_val < position[l+1] && r_val >= position[l] )
+                  {
+                     x=l;
+                     break;
+                  }
+                  else
+                     continue;
+               }
+
+
                test=0;
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -918,12 +941,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }
@@ -960,7 +979,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -974,12 +993,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }
@@ -1018,7 +1033,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -1032,12 +1047,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }
@@ -1074,7 +1085,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -1088,12 +1099,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }
@@ -1132,7 +1139,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -1146,12 +1153,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }
@@ -1188,7 +1191,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                index_pos=0;
                do
                {
-                  pos=position[x-dgsize];
+                  pos=position[x-index_pos];
                   name_indenter.str("");
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
@@ -1202,12 +1205,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                      else
                      {
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos-dgsize]<<endl;
                         index_pos++;
-                        pos=position[x-index_pos-dgsize];
-                        name_indenter.str("");
-                        name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                        filename=name_indenter.str();
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
                         continue;
                      }
                   }

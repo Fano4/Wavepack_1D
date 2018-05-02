@@ -1,5 +1,6 @@
 #!/bin/bash
-
+########!!!!!!!!!!!DELETE LINE 122 !!!!!!!!!!!########
+########!!!!!!!!!!! UNCOMMENT LINES 123, 176-177 !!!!!!!!!!!########
 #INCLUDING FUNCTIONS FILES
 script_loc=/data1/home/stephan/Wavepack_1D/EleSGen
 . ${script_loc}/wmolpro_input.sh
@@ -8,7 +9,7 @@ script_loc=/data1/home/stephan/Wavepack_1D/EleSGen
 
 #DEFINING FILES LOCATION
 tmp_loc=/data2/stephan/tmp_
-output_loc=/data1/home/stephan/LiH_gridtest
+output_loc=/data1/home/stephan/LiH_gridtest_++2df2p
 #photoion_comp_loc=/data1/home/stephan/photoionization_coupling_comp/version_1.0
 #photoion_comp_template_1=photoion_comp_template.cpp
 #photoion_comp_template_2=global_vars_ref.hpp
@@ -29,9 +30,9 @@ overlap_code_dir=/data1/home/stephan/Wavepack_1D/EleSGen/Overlap
 
 #DEFINING PES VARIABLES
 
-Rmin=0.8 #!!!! THESE VALUES ARE IN ANGSTROM AND NOT IN ATOMIC UNITS!!!
+Rmin=5 #!!!! THESE VALUES ARE IN ANGSTROM AND NOT IN ATOMIC UNITS!!!
 Rmax=21.6
-grid_size=512
+grid_size=24 #512
 mH=1.007825
 mLi=6.015122795
 mu=$(awk "BEGIN {print 1836 * ${mH} * ${mLi} / ( ${mH} + ${mLi} ) }")
@@ -40,52 +41,52 @@ mu=$(awk "BEGIN {print 1836 * ${mH} * ${mLi} / ( ${mH} + ${mLi} ) }")
 n_sym=4
 n_elec=4
 declare n_states_neut_sym=(8 3 3 1)
-declare n_states_cat_sym=(2 1 1 0)
+declare n_states_cat_sym=(1 0 0 0)
 n_states_dicat_sym1=0
-weight_neut_states_sym=("26,1,1,1,1,1,1,1" "1,1,1" "1,1,1" "1")
-basis_set="{
-!
-! HYDROGEN       (6s,3p,1d) -> [4s,3p,1d]
-! HYDROGEN       (5s)->[3s]
-! HYDROGEN       (3p,1d)
-! HYDROGEN       (1s)
-s, H , 33.86500, 5.094790, 1.158790, 0.325840, 0.102741, 0.036000,0.01095,0.0027375
-c, 1.3, 0.0254938, 0.190373, 0.852161
-c, 4.4, 1
-c, 5.5, 1
-c, 6.6, 1
-c, 7.7, 1
-c, 8.8, 1
-p, H , 3.0000, 0.7500, 0.1875
-c, 1.1, 1
-c, 2.2, 1
-c, 3.3, 1
-d, H , 1.0000
-c, 1.1, 1
-! LITHIUM       (12s,6p,3d,1f) -> [5s,4p,3d,1f]
-! LITHIUM       (11s,5p)->[4s,3p]
-! LITHIUM       (3d,1f)
-! LITHIUM       (1s,1p)
-s, LI , 900.4600, 134.4330, 30.43650, 8.626390, 2.483320, 0.303179, 4.868900, 0.856924, 0.243227, 0.0635070, 0.0243683, 0.007400
-c, 1.6, 0.00228704, 0.0176350, 0.0873434, 0.2809770, 0.6587410, 0.118712
-c, 7.9, 0.0933293, 0.9430450, -0.00279827
-c, 10.10, 1.000000
-c, 11.11, 1.000000
-c, 12.12, 1.000000
-p, LI , 4.868900, 0.856924, 0.243227, 0.0635070, 0.0243683, 0.007400
-c, 1.3, 0.0327661, 0.1597920, 0.8856670
-c, 4.4, 1.000000
-c, 5.5, 1.000000
-c, 6.6, 1.000000
-d, LI , 0.800, 0.200, 0.050
-c, 1.1, 1
-c, 2.2, 1
-c, 3.3, 1
-f, LI , 0.150
-c, 1.1, 1
-}"
+weight_neut_states_sym=("1,1,1,1,1,1,1,1" "1,1,1" "1,1,1" "1")
+basis_set="6-311++g(2df,2p)" #"{
+#!
+#! HYDROGEN       (6s,3p,1d) -> [4s,3p,1d]
+#! HYDROGEN       (5s)->[3s]
+#! HYDROGEN       (3p,1d)
+#! HYDROGEN       (1s)
+#s, H , 33.86500, 5.094790, 1.158790, 0.325840, 0.102741, 0.036000,0.01095,0.0027375
+#c, 1.3, 0.0254938, 0.190373, 0.852161
+#c, 4.4, 1
+#c, 5.5, 1
+#c, 6.6, 1
+#c, 7.7, 1
+#c, 8.8, 1
+#p, H , 3.0000, 0.7500, 0.1875
+#c, 1.1, 1
+#c, 2.2, 1
+#c, 3.3, 1
+#d, H , 1.0000
+#c, 1.1, 1
+#! LITHIUM       (12s,6p,3d,1f) -> [5s,4p,3d,1f]
+#! LITHIUM       (11s,5p)->[4s,3p]
+#! LITHIUM       (3d,1f)
+#! LITHIUM       (1s,1p)
+#s, LI , 900.4600, 134.4330, 30.43650, 8.626390, 2.483320, 0.303179, 4.868900, 0.856924, 0.243227, 0.0635070, 0.0243683, 0.007400
+#c, 1.6, 0.00228704, 0.0176350, 0.0873434, 0.2809770, 0.6587410, 0.118712
+#c, 7.9, 0.0933293, 0.9430450, -0.00279827
+#c, 10.10, 1.000000
+#c, 11.11, 1.000000
+#c, 12.12, 1.000000
+#p, LI , 4.868900, 0.856924, 0.243227, 0.0635070, 0.0243683, 0.007400
+#c, 1.3, 0.0327661, 0.1597920, 0.8856670
+#c, 4.4, 1.000000
+#c, 5.5, 1.000000
+#c, 6.6, 1.000000
+#d, LI , 0.800, 0.200, 0.050
+#c, 1.1, 1
+#c, 2.2, 1
+#c, 3.3, 1
+#f, LI , 0.150
+#c, 1.1, 1
+#}"
 #6-311G++\(2df,2p\)
-declare n_occ_sym=(11 4 4 1)
+declare n_occ_sym=(13 7 7 2)
 
 ###############################
 if [[ 0 -eq 0 ]] 
@@ -118,7 +119,8 @@ do
       fol=${tmp_loc}${j}
    done
 
-   mkdir ${fol}
+   fol=${output_loc} ######!!!!!!!!!!!!!!!!TEMPORAIRE!!!!!!!!!!!!!!!!!!!
+  # mkdir ${fol}
 
    echo "creating folder ${fol}"
 
@@ -133,16 +135,16 @@ do
 
 #   echo "creating molpro input file ${fol}/${molpro_nac_input}${R}.com"
 
-   cp ${output_loc}/${molpro_wfu_file}${R}.wfu ${fol}/
+#   cp ${output_loc}/${molpro_wfu_file}${R}.wfu ${fol}/
    
-   NAC_input #write nac molpro input
+#   NAC_input #write nac molpro input
 
 
 cd ${fol}
 echo "running molpro "
 #${molpro_dir} -n4 -m4000M  -d ${fol} -s ${fol}/${molpro_prefile}.com
 #${molpro_dir} -n4 -m4000M  -d ${fol} -s ${fol}/${molpro_input}${R}.com
-${molpro_dir} -n4 -m4000M  -d ${fol} -s ${fol}/${molpro_nac_input}${R}.com
+#${molpro_dir} -n4 -m4000M  -d ${fol} -s ${fol}/${molpro_nac_input}${R}.com
 cd ${home}
 
 #CONFIGURE PHOTOIONIZATION COMPUTATION PROGRAM
@@ -167,16 +169,19 @@ cd ${home}
 
 #print_dipole_neutral
 
-print_nac_neutral
+print_dipole_cation
+
+#print_nac_neutral
 
 
-mv ${fol}/* ${output_loc}
-rm -r ${fol}
+#mv ${fol}/* ${output_loc}
+#rm -r ${fol}
 
 let i=$i+1
 done
 ############
 fi
+exit
 ############
 #RUN OVERLAP PROGRAM AND COMPUTE THE UNSCALED NON-ADIABATIC COUPLING USING FINITE DIFFERENCE METHOD.
 
