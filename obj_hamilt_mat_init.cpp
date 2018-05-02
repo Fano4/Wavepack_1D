@@ -489,6 +489,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
    stringstream name_indenter;
    double *position=new double[this->m_small_gsize_x];
    bool test(0);
+   bool test2(0);
+   double temp2(0);
    int index_pos=0;
    string filename;
    int dgsize(this->m_tgsize_x-this->m_gsize_x);
@@ -526,8 +528,12 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
       }
 
       std::cout<<"momentum cube parameters read !"<<std::endl;
-   double *Retemp_cube=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
-   double *Imtemp_cube=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+   double *Retemp_cube_x=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+   double *Imtemp_cube_x=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+   double *Retemp_cube_y=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+   double *Imtemp_cube_y=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+   double *Retemp_cube_z=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+   double *Imtemp_cube_z=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
 
 
    if(file_address != "")//If we give the files address, it means that it is the first time the routine is called => We generate PICE for zero external field and we generate a random angular distribution.
@@ -543,6 +549,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
             std::cout<<"Getting PICE for states "<<i<<" - "<<j<<std::endl;
             for(int k=dgsize;k!=this->m_tgsize_x;k++)
             {
+               test2=0;
 
                r_val=0.529*(this->m_xmin+(k-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x);
 
@@ -550,20 +557,34 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
 
                for(int l=0;l!=this->m_small_gsize_x;l++)
                {
-                  if(l==m_small_gsize_x-1)
-                  {
-                     std::cout<<" Warning! out of bound for intarpolated data! "<<std::endl;
-                     x=l;
-                     break;
-                  }
+//                  std::cout<<" now comparing : "<<position[l]<<" <= "<<r_val<<" < "<<position[l+1]<<"..."<<std::endl;
                   if( r_val < position[l+1] && r_val >= position[l] )
                   {
+//                     std::cout<<"TRUE !"<<std::endl;
                      x=l;
+                     if(l==m_small_gsize_x-1 || l==0)
+                     {
+//                        std::cout<<" Warning! out of bound for interpolated data! "<<std::endl;
+                     }
+                     else if(temp2 == position[l] && l!=0)
+                     {
+//                        std::cout<<"Checking test2 ! "<<temp2<<" ; "<<position[l]<<std::endl;
+                        test2=1;
+                     }
                      break;
                   }
-                  else
-                     continue;
                }
+               if(test2)
+               {
+//                  std::cout<<"test 2 checked "<<r_val<<std::endl;
+                  this->spherical_extract_from_cube(i,j,x,0,Retemp_cube_x,Imtemp_cube_x,NULL);
+                  this->spherical_extract_from_cube(i,j,x,1,Retemp_cube_y,Imtemp_cube_y,NULL);
+                  this->spherical_extract_from_cube(i,j,x,2,Retemp_cube_z,Imtemp_cube_z,NULL);
+                  continue;
+               }
+
+               temp2=position[x];
+//               std::cout<<"Loading new PICE file for R = "<<position[x]<<". New ref value = "<<temp2<<std::endl;
 
                test=0;
                index_pos=0;
@@ -574,7 +595,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Retemp_cube_x))
                   {
                      if(x==0)
                      {
@@ -628,7 +649,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Imtemp_cube_x))
                   {
                      if(x==0)
                      {
@@ -670,7 +691,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }*/
-               this->spherical_extract_from_cube(i,j,x,0,Retemp_cube,Imtemp_cube,NULL);
+               this->spherical_extract_from_cube(i,j,x,0,Retemp_cube_x,Imtemp_cube_x,NULL);
 
                test=0;
                index_pos=0;
@@ -681,7 +702,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Retemp_cube_y))
                   {
                      if(x==0)
                      {
@@ -733,7 +754,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Imtemp_cube_y))
                   {
                      if(x==0)
                      {
@@ -776,7 +797,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   }
                }
                */
-               this->spherical_extract_from_cube(i,j,x,1,Retemp_cube,Imtemp_cube,NULL);
+               this->spherical_extract_from_cube(i,j,x,1,Retemp_cube_y,Imtemp_cube_y,NULL);
 
                test=0;
                index_pos=0;
@@ -787,7 +808,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Retemp_cube_z))
                   {
                      if(x==0)
                      {
@@ -839,7 +860,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Imtemp_cube_z))
                   {
                      if(x==0)
                      {
@@ -882,7 +903,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   }
                }
                */
-               this->spherical_extract_from_cube(i,j,x,2,Retemp_cube,Imtemp_cube,NULL);
+               this->spherical_extract_from_cube(i,j,x,2,Retemp_cube_z,Imtemp_cube_z,NULL);
 
             }
          }
@@ -901,27 +922,41 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
             {
                std::cout<<x-dgsize<<"...";
 
+               test2=0;
+
                r_val=0.529*(this->m_xmin+(k-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x);
 
                std::cout<<"Loop "<<k<<", position "<<r_val<<std::endl;
 
                for(int l=0;l!=this->m_small_gsize_x;l++)
                {
-                  if(l==m_small_gsize_x-1)
-                  {
-                     std::cout<<" Warning! out of bound for intarpolated data! "<<std::endl;
-                     x=l;
-                     break;
-                  }
+//                  std::cout<<" now comparing : "<<position[l]<<" <= "<<r_val<<" < "<<position[l+1]<<"..."<<std::endl;
                   if( r_val < position[l+1] && r_val >= position[l] )
                   {
+//                     std::cout<<"TRUE !"<<std::endl;
                      x=l;
+                     if(l==m_small_gsize_x-1 || l==0)
+                     {
+//                        std::cout<<" Warning! out of bound for interpolated data! "<<std::endl;
+                     }
+                     else if(temp2 == position[l] && l!=0)
+                     {
+//                        std::cout<<"Checking test2 ! "<<temp2<<" ; "<<position[l]<<std::endl;
+                        test2=1;
+                     }
                      break;
                   }
-                  else
-                     continue;
+               }
+               if(test2)
+               {
+//                  std::cout<<"test 2 checked "<<r_val<<std::endl;
+                  this->spherical_extract_from_cube(i,j,x,0,Retemp_cube_x,Imtemp_cube_x,pot_vec);
+                  this->spherical_extract_from_cube(i,j,x,1,Retemp_cube_y,Imtemp_cube_y,pot_vec);
+                  this->spherical_extract_from_cube(i,j,x,2,Retemp_cube_z,Imtemp_cube_z,pot_vec);
+                  continue;
                }
 
+               temp2=position[x];
 
                test=0;
                index_pos=0;
@@ -932,7 +967,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Retemp_cube_x))
                   {
                      if(x==0)
                      {
@@ -984,7 +1019,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Imtemp_cube_x))
                   {
                      if(x==0)
                      {
@@ -1027,7 +1062,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   }
                }
                */
-               this->spherical_extract_from_cube(i,j,x,0,Retemp_cube,Imtemp_cube,pot_vec);
+               this->spherical_extract_from_cube(i,j,x,0,Retemp_cube_x,Imtemp_cube_x,pot_vec);
 
                test=0;
                index_pos=0;
@@ -1038,7 +1073,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Retemp_cube_y))
                   {
                      if(x==0)
                      {
@@ -1090,7 +1125,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Imtemp_cube_y))
                   {
                      if(x==0)
                      {
@@ -1133,7 +1168,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   }
                }
                */
-               this->spherical_extract_from_cube(i,j,x,1,Retemp_cube,Imtemp_cube,pot_vec);
+               this->spherical_extract_from_cube(i,j,x,1,Retemp_cube_y,Imtemp_cube_y,pot_vec);
 
                test=0;
                index_pos=0;
@@ -1144,7 +1179,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Retemp_cube_z))
                   {
                      if(x==0)
                      {
@@ -1196,7 +1231,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
                   filename=name_indenter.str();
 
-                  if(!this->cube_reader(filename,Retemp_cube))
+                  if(!this->cube_reader(filename,Imtemp_cube_z))
                   {
                      if(x==0)
                      {
@@ -1239,7 +1274,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   }
                }
                */
-               this->spherical_extract_from_cube(i,j,x,2,Retemp_cube,Imtemp_cube,pot_vec);
+               this->spherical_extract_from_cube(i,j,x,2,Retemp_cube_z,Imtemp_cube_z,pot_vec);
             }
          }
       }
@@ -1383,6 +1418,13 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
    }
    */
    
+   delete [] Retemp_cube_x;
+   delete [] Imtemp_cube_x;
+   delete [] Retemp_cube_y;
+   delete [] Imtemp_cube_y;
+   delete [] Retemp_cube_z;
+   delete [] Imtemp_cube_z;
+
 }
 //##########################################################################
 //
