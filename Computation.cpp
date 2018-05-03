@@ -826,20 +826,18 @@ std::cout<<"C block"<<std::endl;
 void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_loop)
 {
    double *pot_vec=new double [3];
-   double pot_vec_mod(0);
-   double pot_vec_tm_mod(0);
    for(int i=0;i!=num_of_loop;i++)
    {
 //      std::cout<<"loop "<<i<<std::endl;
       H->potential_vector(*time_index,pot_vec);
-      pot_vec_mod=sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2));
-      if((i == 0 || fabs(pot_vec_mod - pot_vec_tm_mod) >= H->grid_k_cube_spacing()) && pot_vec_mod >= H->grid_k_cube_spacing())
+      H->set_pot_vec_mod(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2)));
+
+      if((i == 0 || fabs(H->pot_vec_mod() - H->pot_vec_tm_mod()) >= H->grid_k_cube_spacing()) && H->pot_vec_mod() >= H->grid_k_cube_spacing())
       {
           H->set_PICE("",pot_vec);
-          pot_vec_tm_mod=pot_vec_mod;
+          H->set_pot_vec_tm_mod(H->pot_vec_mod());
       }
       Runge_kutta(Psi,H,*time_index);
-      //Runge_kutta_notdH(Psi,H,*time_index);
       *time_index=*time_index+1;
    }
    delete [] pot_vec;

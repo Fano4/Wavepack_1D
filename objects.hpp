@@ -69,6 +69,8 @@ class hamilton_matrix {
       std::string m_PICE_address;
       //ELECTRIC FIELD THRESHOLD
       double m_efield_thresh;
+      double m_pot_vec_mod;
+      double m_pot_vec_tm_mod;
       //TIME VARIABLE SETTINGS
       int m_n_times;
       double m_h;
@@ -125,5 +127,9 @@ class hamilton_matrix {
       void sphere_dist_gen(bool randiso=1,int n_phi=0);
       bool cube_reader(std::string MO_cube_loc,double *cube_array,bool extract_dimensions=0);
       double grid_k_cube_spacing(); 
+      void set_pot_vec_mod(double value);
+      void set_pot_vec_tm_mod(double value);
+      double pot_vec_mod();
+      double pot_vec_tm_mod();
 };
 
