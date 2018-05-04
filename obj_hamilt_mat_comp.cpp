@@ -730,28 +730,28 @@ double hamilton_matrix::grid_k_cube_spacing()
 //##########################################################################
 //
 //##########################################################################
-void set_pot_vec_mod(double value)
+void hamilton_matrix::set_pot_vec_mod(double value)
 {
    this->m_pot_vec_mod=value;
 }
 //##########################################################################
 //
 //##########################################################################
-void set_pot_vec_tm_mod(double value)
+void hamilton_matrix::set_pot_vec_tm_mod(double value)
 {
-   this->m_pot_vec_tm_mod=value
+   this->m_pot_vec_tm_mod=value;
 }
 //##########################################################################
 //
 //##########################################################################
-double pot_vec_mod();
+double hamilton_matrix::pot_vec_mod()
 {
    return this->m_pot_vec_mod;
 }
 //##########################################################################
 //
 //##########################################################################
-double pot_vec_tm_mod();
+double hamilton_matrix::pot_vec_tm_mod()
 {
    return this->m_pot_vec_tm_mod;
 }

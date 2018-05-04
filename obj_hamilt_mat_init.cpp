@@ -296,7 +296,7 @@ void hamilton_matrix::set_pot_cat(std::string file_address)
       else
       {
          cout<<"ERROR POTENTIAL FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-         exit;
+         exit(EXIT_FAILURE);
       }
    }
 }
@@ -577,9 +577,9 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                if(test2)
                {
 //                  std::cout<<"test 2 checked "<<r_val<<std::endl;
-                  this->spherical_extract_from_cube(i,j,x,0,Retemp_cube_x,Imtemp_cube_x,NULL);
-                  this->spherical_extract_from_cube(i,j,x,1,Retemp_cube_y,Imtemp_cube_y,NULL);
-                  this->spherical_extract_from_cube(i,j,x,2,Retemp_cube_z,Imtemp_cube_z,NULL);
+                  this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,NULL);
+                  this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,NULL);
+                  this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,NULL);
                   continue;
                }
 
@@ -691,7 +691,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                      }
                   }
                }*/
-               this->spherical_extract_from_cube(i,j,x,0,Retemp_cube_x,Imtemp_cube_x,NULL);
+               this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,NULL);
 
                test=0;
                index_pos=0;
@@ -797,7 +797,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   }
                }
                */
-               this->spherical_extract_from_cube(i,j,x,1,Retemp_cube_y,Imtemp_cube_y,NULL);
+               this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,NULL);
 
                test=0;
                index_pos=0;
@@ -903,7 +903,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   }
                }
                */
-               this->spherical_extract_from_cube(i,j,x,2,Retemp_cube_z,Imtemp_cube_z,NULL);
+               this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,NULL);
 
             }
          }
@@ -950,9 +950,9 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                if(test2)
                {
 //                  std::cout<<"test 2 checked "<<r_val<<std::endl;
-                  this->spherical_extract_from_cube(i,j,x,0,Retemp_cube_x,Imtemp_cube_x,pot_vec);
-                  this->spherical_extract_from_cube(i,j,x,1,Retemp_cube_y,Imtemp_cube_y,pot_vec);
-                  this->spherical_extract_from_cube(i,j,x,2,Retemp_cube_z,Imtemp_cube_z,pot_vec);
+                  this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,pot_vec);
+                  this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,pot_vec);
+                  this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,pot_vec);
                   continue;
                }
 
@@ -1062,7 +1062,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   }
                }
                */
-               this->spherical_extract_from_cube(i,j,x,0,Retemp_cube_x,Imtemp_cube_x,pot_vec);
+               this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,pot_vec);
 
                test=0;
                index_pos=0;
@@ -1168,7 +1168,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   }
                }
                */
-               this->spherical_extract_from_cube(i,j,x,1,Retemp_cube_y,Imtemp_cube_y,pot_vec);
+               this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,pot_vec);
 
                test=0;
                index_pos=0;
@@ -1274,7 +1274,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   }
                }
                */
-               this->spherical_extract_from_cube(i,j,x,2,Retemp_cube_z,Imtemp_cube_z,pot_vec);
+               this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,pot_vec);
             }
          }
       }
@@ -1612,6 +1612,9 @@ void hamilton_matrix::spherical_extract_from_cube(int neut_state,int cat_state,i
    double k(0);
    double deltak(0);
    int n_points_sphere(this->m_n_states_cont/this->m_n_k);
+   int box_length_x(2*acos(-1)/((this->m_kxmax-m_kxmin)/this->m_n_kx));
+   int box_length_y(2*acos(-1)/((this->m_kymax-m_kymin)/this->m_n_ky));
+   int box_length_z(2*acos(-1)/((this->m_kzmax-m_kzmin)/this->m_n_kz));
 
   // std::cout<<"Extracting spherical distribution PICE from cube file...";
 
@@ -1648,7 +1651,7 @@ void hamilton_matrix::spherical_extract_from_cube(int neut_state,int cat_state,i
       deltak=(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
       for(int i=0;i!=this->m_n_states_cont;i++)
       {
-         this->m_dk_vec[i]=deltak*(55*55*55)*this->k_modulus[(i-i%this->m_n_angles)/this->m_n_angles]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
+         this->m_dk_vec[i]=deltak*(box_length_x*box_length_y*box_length_z)*this->k_modulus[(i-i%this->m_n_angles)/this->m_n_angles]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
       }
    }
       else
@@ -1682,7 +1685,7 @@ void hamilton_matrix::spherical_extract_from_cube(int neut_state,int cat_state,i
       deltak=(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
       for(int i=0;i!=this->m_n_states_cont;i++)
       {
-         this->m_dk_vec[i]=deltak*(55*55*55)*this->k_modulus[(i-i%this->m_n_angles)/this->m_n_angles]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
+         this->m_dk_vec[i]=deltak*(box_length_x*box_length_y*box_length_z)*this->k_modulus[(i-i%this->m_n_angles)/this->m_n_angles]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
       }
 
     //  std::cout<<"Done!"<<std::endl;

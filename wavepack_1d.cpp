@@ -29,7 +29,7 @@ int main( int argc, char * argv [])
     int tgsize_x(gsize_x+10);
     int small_gsize_x(64);
     int dgsize(tgsize_x-gsize_x);
-    int n_states_neut(14);//15);
+    int n_states_neut(4);//15);
     int n_states_cat(1);//1);
     int n_angles(64);//128);
     int n_k(75);//100);
