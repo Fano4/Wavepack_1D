@@ -486,6 +486,7 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
 void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
 {
    using namespace std;
+   stringstream name_indenter2;
    stringstream name_indenter;
    double *position=new double[this->m_small_gsize_x];
    bool test(0);
@@ -495,16 +496,16 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
    string filename;
    int dgsize(this->m_tgsize_x-this->m_gsize_x);
    double temp;
-   double Re_value;
-   double Im_value;
    double pos;
    double r_val(0);
    int x(0);
 
+
+
       ifstream input_file;
-      name_indenter.str("");
-      name_indenter<<file_address<<"coordinates.input";
-      filename=name_indenter.str();
+      name_indenter2.str("");
+      name_indenter2<<file_address<<"coordinates.input";
+      filename=name_indenter2.str();
       input_file.open(filename.c_str());
       if(!input_file.is_open())
       {
@@ -518,9 +519,9 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
       input_file.close();
 
       pos=position[0];
-      name_indenter.str("");
-      name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<0<<"_"<<0<<".txt";
-      filename=name_indenter.str();
+      name_indenter2.str("");
+      name_indenter2<<file_address<<"RePICE_"<<pos<<"_X_"<<0<<"_"<<0<<".txt";
+      filename=name_indenter2.str();
       if(!this->cube_reader(filename,NULL,1))
       {
          cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
@@ -528,6 +529,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
       }
 
       std::cout<<"momentum cube parameters read !"<<std::endl;
+
    double *Retemp_cube_x=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
    double *Imtemp_cube_x=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
    double *Retemp_cube_y=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
@@ -547,13 +549,14 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
          for(int j=0;j!=this->m_n_states_cat;j++)
          {
             std::cout<<"Getting PICE for states "<<i<<" - "<<j<<std::endl;
+
             for(int k=dgsize;k!=this->m_tgsize_x;k++)
             {
                test2=0;
 
                r_val=0.529*(this->m_xmin+(k-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x);
 
-               std::cout<<"Loop "<<k<<", position "<<r_val<<std::endl;
+               std::cout<<"Loop "<<k-dgsize<<", position "<<r_val<<std::endl;
 
                for(int l=0;l!=this->m_small_gsize_x;l++)
                {
@@ -584,7 +587,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                }
 
                temp2=position[x];
-//               std::cout<<"Loading new PICE file for R = "<<position[x]<<". New ref value = "<<temp2<<std::endl;
+              // std::cout<<"Loading new PICE file for R = "<<position[x]<<". New ref value = "<<temp2<<std::endl;
 
                test=0;
                index_pos=0;
@@ -920,7 +923,6 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
             std::cout<<"point...";
             for(int k=dgsize;k!=this->m_tgsize_x;k++)
             {
-               std::cout<<x-dgsize<<"...";
 
                test2=0;
 
@@ -1279,6 +1281,12 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
          }
       }
    }
+   delete [] Retemp_cube_x;
+   delete [] Imtemp_cube_x;
+   delete [] Retemp_cube_y;
+   delete [] Imtemp_cube_y;
+   delete [] Retemp_cube_z;
+   delete [] Imtemp_cube_z;
 /*   
    for(int i=0;i!=this->m_n_states_neut;i++)
    {
@@ -1418,12 +1426,6 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
    }
    */
    
-   delete [] Retemp_cube_x;
-   delete [] Imtemp_cube_x;
-   delete [] Retemp_cube_y;
-   delete [] Imtemp_cube_y;
-   delete [] Retemp_cube_z;
-   delete [] Imtemp_cube_z;
 
 }
 //##########################################################################

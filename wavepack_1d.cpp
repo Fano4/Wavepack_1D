@@ -14,10 +14,10 @@ int main( int argc, char * argv [])
     string neutral_nac("/data1/home/stephan/LiH_gridtest_++2df2p/LiH_NAC_");
     string ionization_coupling_file("/data1/home/stephan/LiH_PICE_++2df2p/LiH_");//LiH_PICE_R_i_j.txt
 //    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
-    string out_file="wvpck_res_2df_astridpulse_CEPPI/Output.log";
-    string read_file="wvpck_res_2df_astridpulse_CEPPI/PI_spectrum.txt";
-    string wf_out_file="wvpck_res_2df_astridpulse_CEPPI/neut_wf_state_";
-    string wf1d_out_file="wvpck_res_2df_astridpulse_CEPPI/neut_wf1d_state_";
+    string out_file="wvpck_test/Output.log";
+    string read_file="wvpck_test/PI_spectrum.txt";
+    string wf_out_file="wvpck_test/neut_wf_state_";
+    string wf1d_out_file="wvpck_test/neut_wf1d_state_";
     stringstream ss_wf;
     string s_wf;
     ofstream output;
@@ -29,7 +29,7 @@ int main( int argc, char * argv [])
     int tgsize_x(gsize_x+10);
     int small_gsize_x(64);
     int dgsize(tgsize_x-gsize_x);
-    int n_states_neut(4);//15);
+    int n_states_neut(8);//15);
     int n_states_cat(1);//1);
     int n_angles(64);//128);
     int n_k(75);//100);

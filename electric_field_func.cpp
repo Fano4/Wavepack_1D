@@ -3,9 +3,9 @@
 
 double hamilton_matrix::electric_field(double time_index,double* vector)
 {
-   double strength(0.04);//0.022);
-   double origin(3.4/0.02418884);//(4/0.02418884);//3.4/0.02418884);
-   double sigma(0.677/0.02418884);//0.887/0.02418884);//0.677/0.02418884);
+   double strength(0.018);//0.022);
+   double origin(6/0.02418884);//(4/0.02418884);//3.4/0.02418884);
+   double sigma(125);//0.887/0.02418884);//0.677/0.02418884);
    double energy(0.05695);//0.08563);//0.05695);
    double CEP(acos(-1));
 
@@ -20,9 +20,9 @@ double hamilton_matrix::electric_field(double time_index,double* vector)
 }
 double hamilton_matrix::potential_vector(double time_index,double* vector)
 {
-   double strength(0.04);//0.022);
-   double origin(3.4/0.02418884);//4/0.02418884);//3.4/0.02418884);
-   double sigma(0.677/0.02418884);//0.887/0.02418884);//0.677/0.02418884);
+   double strength(0.018);//0.022);
+   double origin(6/0.02418884);//4/0.02418884);//3.4/0.02418884);
+   double sigma(125);//0.887/0.02418884);//0.677/0.02418884);
    double energy(0.05695);//0.08563);//0.05695);
    double CEP(acos(-1));
 
