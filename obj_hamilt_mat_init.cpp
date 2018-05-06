@@ -574,7 +574,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
 //                        std::cout<<"Checking test2 ! "<<temp2<<" ; "<<position[l]<<std::endl;
                         test2=1;
                      }
-                     break;
+//                     break;
                   }
                }
                if(test2)
@@ -946,7 +946,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
 //                        std::cout<<"Checking test2 ! "<<temp2<<" ; "<<position[l]<<std::endl;
                         test2=1;
                      }
-                     break;
+//                     break;
                   }
                }
                if(test2)
