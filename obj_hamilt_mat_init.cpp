@@ -1,4 +1,8 @@
 
+
+// !!! THERE IS A MANUAL SIGN CORRECTION ON THE PICE !! IT NEEDS AUTOMATION TO BE USED WITH ANOTHER BASIS SET !!!
+
+
 //THIS FILE CONTAINS THE ROUTINES ASSOCIATED TO THE INITIALIZATION AND SETTINGS OF THE HAMILTON MATRIX OBJECT.
 //
 //TABLE OF CONTENT:
@@ -13,7 +17,6 @@
 //set_PICE(std::string file_address)
 //set_NAC(std::string file_address)
 //set_phase(std::string file_address)
-//HAMILTON MATRIX OBJECT COMPUTATION
 
 
 //HAMILTON MATRIX OBJECT INITIALIZATION AND SETTINGS
@@ -22,6 +25,7 @@
 //##########################################################################
 hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh)
 {
+   using namespace std;
    //initialize grid parameters and time settings
    this->m_gsize_x=gsize_x;
    this->m_tgsize_x=tgsize_x;
@@ -40,7 +44,42 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    double delta_x((xmax-xmin)/gsize_x);
    std::cout<<"Size of the pixel is "<<delta_x<<std::endl;
 
-   //initialize potenital energy surfaces arrays
+   //TEMPORARY PICE SIGN CORRECTION 
+   //
+   this->sign_corr=new double *[this->m_n_states_neut];
+   for(int i=0;i!=this->m_n_states_neut;i++)
+   {
+      this->sign_corr[i]=new double[this->m_small_gsize_x];
+      for(int j=0;j!=this->m_small_gsize_x;j++)
+      {
+         this->sign_corr[i][j]=1;
+      }
+   }
+/*   //MANUAL PICE SIGMN CORRECTION PARAMETRING
+   ifstream sign_corr_str;
+   stringstream sign_corr_ss;
+   string sign_corr_s;
+   for(int i=0;i!=this->m_n_states_neut;i++)
+   {
+      sign_corr_ss.str("");
+      sign_corr_ss<<"/data1/home/stephan/LiH_512_points_pice_16_05_18/sign_pice_corr_"<<i<<"_0.txt";
+      sign_corr_s=sign_corr_ss.str();
+      sign_corr_str.open(sign_corr_s.c_str());
+      if(!sign_corr_str.is_open())
+      {
+         std::cout<<"SIGN CORRECTION FILE NOT FOUND. IGNORING"<<std::endl;
+      }
+      else
+      {
+         for(int j=0;j!=this->m_small_gsize_x;j++)
+         {
+            sign_corr_str>>this->sign_corr[i][j];
+         }
+      }
+   }
+   //END OF MANUAL PICE SIGMN CORRECTION PARAMETRING
+*/
+   //initialize potential energy surfaces arrays
    std::cout<<"initializing PES arrays...";
    this->m_pot_neut=new double [tgsize_x*n_states_neut];
    std::cout<<" ...";
@@ -109,10 +148,7 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    this->k_orientation[1]=new double[n_angles];//[1] is phi
    std::cout<<" ...";
    this->k_modulus=new double[n_k];
-   for(int i=0;i!=n_k;i++)
-   {
-      k_modulus[i]=(acos(-1)/2-0.1)*(i+1)/n_k;
-   }
+   this->sphere_dist_gen(1);
    std::cout<<" ...";
 //   this->translation_vector=new int*[this->m_n_states_cont];
 //   std::cout<<" ...";
@@ -499,6 +535,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
    double pos;
    double r_val(0);
    int x(0);
+   
+   
 
 
 
@@ -541,8 +579,6 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
    if(file_address != "")//If we give the files address, it means that it is the first time the routine is called => We generate PICE for zero external field and we generate a random angular distribution.
    {
       this->m_PICE_address=file_address;
-      std::cout<<"Generating new random distribution"<<std::endl;//DEBOGAGE
-      this->sphere_dist_gen(1);
 
       for(int i=0;i!=this->m_n_states_neut;i++)
       {
@@ -557,7 +593,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                r_val=0.529*(this->m_xmin+(k-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x);
 
                std::cout<<"Loop "<<k-dgsize<<", position "<<r_val<<std::endl;
-
+/*
                for(int l=0;l!=this->m_small_gsize_x;l++)
                {
 //                  std::cout<<" now comparing : "<<position[l]<<" <= "<<r_val<<" < "<<position[l+1]<<"..."<<std::endl;
@@ -585,7 +621,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,NULL);
                   continue;
                }
-
+*/
+               x=k-dgsize;
                temp2=position[x];
               // std::cout<<"Loading new PICE file for R = "<<position[x]<<". New ref value = "<<temp2<<std::endl;
 
@@ -906,6 +943,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   }
                }
                */
+
+               //std::cout<<"pice "<<i<<"   "<<j<<"   "<<k<<"   "<<Retemp_cube_z[49*this->m_n_ky*this->m_n_kz+51*this->m_n_kz+49]<<"   "<<Imtemp_cube_z[49*this->m_n_ky*this->m_n_kz+51*this->m_n_kz+49]<<std::endl;
                this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,NULL);
 
             }
@@ -924,7 +963,7 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
             for(int k=dgsize;k!=this->m_tgsize_x;k++)
             {
 
-               test2=0;
+/*               test2=0;
 
                r_val=0.529*(this->m_xmin+(k-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x);
 
@@ -957,7 +996,8 @@ void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
                   this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,pot_vec);
                   continue;
                }
-
+*/
+               x=k-dgsize;
                temp2=position[x];
 
                test=0;
@@ -1613,10 +1653,13 @@ void hamilton_matrix::spherical_extract_from_cube(int neut_state,int cat_state,i
    int z_index(0);
    double k(0);
    double deltak(0);
-   int n_points_sphere(this->m_n_states_cont/this->m_n_k);
+   int n_points_sphere(this->m_n_angles);
    int box_length_x(2*acos(-1)/((this->m_kxmax-m_kxmin)/this->m_n_kx));
    int box_length_y(2*acos(-1)/((this->m_kymax-m_kymin)/this->m_n_ky));
    int box_length_z(2*acos(-1)/((this->m_kzmax-m_kzmin)/this->m_n_kz));
+   int dgsize=this->m_tgsize_x-this->m_gsize_x;
+
+//   std::cout<<"box lengths parameters: "<<box_length_x<<"  "<<box_length_y<<"   "<<box_length_z<<std::endl;
 
   // std::cout<<"Extracting spherical distribution PICE from cube file...";
 
@@ -1636,13 +1679,18 @@ void hamilton_matrix::spherical_extract_from_cube(int neut_state,int cat_state,i
             y_index=int(round((ysphere-this->m_kymin)*this->m_n_ky/(this->m_kymax-this->m_kymin)));
             z_index=int(round((zsphere-this->m_kzmin)*this->m_n_kz/(this->m_kzmax-this->m_kzmin)));
  //           std::cout<<"probe cube"<<x_index<<"   "<<y_index<<"   "<<z_index<<"   "<<std::endl;
+ 
+            /*if(j==19)
+            {
+               std::cout<<x_index<<","<<y_index<<","<<z_index<<std::endl;
+            }*/
 
             if(component==0)
-                this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index]);
+                this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
             else if(component==1)
-                this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index]);
+                this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
             else if(component=2)
-                this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index]);
+                this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
             else
             {
                std::cout<<"ERROR ASKED FOR AN OUT OF RANGE COMPONENT OF A 3D VECTOR"<<std::endl; 
@@ -1672,11 +1720,11 @@ void hamilton_matrix::spherical_extract_from_cube(int neut_state,int cat_state,i
             z_index=int(round((zsphere-this->m_kzmin)*this->m_n_kz/(this->m_kzmax-this->m_kzmin)));
 
             if(component==0)
-                this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index]);
+                this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
             else if(component==1)
-                this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index]);
+                this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
             else if(component=2)
-                this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index]);
+                this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
             else
             {
                std::cout<<"ERROR ASKED FOR AN OUT OF RANGE COMPONENT OF A 3D VECTOR"<<std::endl; 
@@ -1733,6 +1781,9 @@ void hamilton_matrix::sphere_dist_gen(bool randiso,int n_phi)
 
          else if(random>0 && random2 <0)
          this->k_orientation[1][i]=2*Pi+atan(random2/random);
+
+         //DEBOGAGE
+//         std::cout<<this->k_orientation[0][i]<<"   "<<this->k_orientation[1][i]<<std::endl;
       }
    }
    else
@@ -1786,6 +1837,7 @@ bool hamilton_matrix::cube_reader(std::string MO_cube_loc,double *cube_array,boo
          MO_cube_out>>this->m_kzmin;
          MO_cube_out>>this->m_n_kx;
          MO_cube_out>>dtemp;
+         std::cout<<dtemp<<std::endl;
          this->m_kxmax=this->m_kxmin+dtemp*this->m_n_kx;
          MO_cube_out>>dtemp;
          MO_cube_out>>dtemp;
@@ -1799,8 +1851,12 @@ bool hamilton_matrix::cube_reader(std::string MO_cube_loc,double *cube_array,boo
          MO_cube_out>>dtemp;
          MO_cube_out>>dtemp;
          this->m_kzmax=this->m_kzmin+dtemp*this->m_n_kz;
+         for(int i=0;i!=this->m_n_k;i++)
+         {
+             this->k_modulus[i]=(this->m_kzmax-0.1)*(i+1)/this->m_n_k;
+         }
 
-         /*
+         
          std::cout<<"kxmin = "<<this->m_kxmin<<std::endl;
          std::cout<<"kymin = "<<this->m_kymin<<std::endl;
          std::cout<<"kzmin = "<<this->m_kzmin<<std::endl;
@@ -1810,7 +1866,7 @@ bool hamilton_matrix::cube_reader(std::string MO_cube_loc,double *cube_array,boo
          std::cout<<"nkx = "<<this->m_n_kx<<std::endl;
          std::cout<<"nky = "<<this->m_n_ky<<std::endl;
          std::cout<<"nkz = "<<this->m_n_kz<<std::endl;
-         */
+         
          //std::cout<<"read number of atoms: "<<num_of_nucl<<std::endl;
 
      //   std::cout<<"Done!"<<std::endl;

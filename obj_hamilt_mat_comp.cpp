@@ -178,8 +178,8 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
                return std::complex<double>(
                      -this->m_dmx_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[0]
                      -this->m_dmy_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[1]
-                     -this->m_dmz_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[2])
-                  *this->dk(state_index_cont_2); //dipole coupling
+                     -this->m_dmz_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[2]);
+//                  *this->dk(state_index_cont_2); //dipole coupling
             }
             else
             {
@@ -754,6 +754,39 @@ double hamilton_matrix::pot_vec_mod()
 double hamilton_matrix::pot_vec_tm_mod()
 {
    return this->m_pot_vec_tm_mod;
+}
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::plot_integrated_cross_section(std::string file_address,int neut_state,int cat_state)
+{
+
+   using namespace std;
+   std::complex<double> cs(0);
+   int dgsize(this->m_tgsize_x-this->m_gsize_x);
+
+   ofstream cs_out;
+
+   cs_out.open(file_address.c_str());
+   if(!cs_out.is_open())
+   {
+      std::cout<<"ERROR, IMPOSSIBLE TO OPEN "<<file_address.c_str()<<std::endl;
+   }
+
+   for(int x=0;x!=this->m_tgsize_x;x++)
+   {
+      for(int k=0;k!=this->m_n_k;k++)
+      {
+         cs=0;
+         for(int i=0;i!=this->m_n_angles;i++)
+         {
+            cs+=pow(abs(this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2);
+          //  cs=this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+1][x];
+         }
+         cs_out<<this->m_xmin + (x-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x<<"   "<<this->k_modulus[0]+k*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k<<"   "<<real(cs)<<"   "<<imag(cs)<<std::endl;
+      }cs_out<<std::endl;
+   }
+   cs_out.close();
 }
 //##########################################################################
 //

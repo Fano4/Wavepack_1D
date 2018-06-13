@@ -45,6 +45,10 @@ class wavefunction {
 
 class hamilton_matrix {
    private:
+      //TEMPORARY SIGN CORRECTION ARRAY!!!
+
+      double** sign_corr;
+
       //GRID AND STATES PARAMETERS
       int m_gsize_x;
       int m_tgsize_x;
@@ -131,5 +135,6 @@ class hamilton_matrix {
       void set_pot_vec_tm_mod(double value);
       double pot_vec_mod();
       double pot_vec_tm_mod();
+      void plot_integrated_cross_section(std::string file_address,int neut_state,int cat_state);
 };
 

@@ -207,7 +207,7 @@ void wavefunction::initialize(hamilton_matrix* H)
          H_mat_gs[i*(this->m_tgsize_x)+i]=H->pot_neut(0,i);
          H_mat_gs[i*(this->m_tgsize_x)+j]+=H->kinetic_energy_matrix(i,j);
          cmatrix[i*(this->m_tgsize_x)+j]=std::complex<double>(H_mat_gs[i*(this->m_tgsize_x)+j],0);
-         //std::cout<<H_mat_gs[i*(this->m_tgsize_x)+j]<<"   ";
+   //      std::cout<<H_mat_gs[i*(this->m_tgsize_x)+j]<<"   ";
       }
       //std::cout<<std::endl;
    }
@@ -216,8 +216,8 @@ void wavefunction::initialize(hamilton_matrix* H)
    for(int i=0;i!=this->m_tgsize_x;i++)
    {
       std::cout<<H->pot_neut(0,i)<<std::endl;
-   }
-   */
+   }*/
+   
    std::cout<<"#############################"<<std::endl;
 
    std::cout<<"LAPACKE zhetrd returns "<<LAPACKE_zhetrd(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x),cmatrix,(this->m_tgsize_x),d,e,tau)<<std::endl;
