@@ -12,13 +12,13 @@ int main( int argc, char * argv [])
     string neutral_dipole("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_neut_");
     string cation_dipole("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_cat_");
     string neutral_nac("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_NAC_");
-    string ionization_coupling_file("/data1/home/stephan/LiH_512_points_pice_28_05_18/LiH_");//LiH_PICE_R_i_j.txt
+    string ionization_coupling_file("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_pice_data.h5");//LiH_PICE_R_i_j.txt
 //    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
-    string out_file="wvpck_test_spectrum/Output.log";
-    string read_file="wvpck_test_spectrum/PI_spectrum.txt";
-    string wf_out_file="wvpck_test_spectrum/neut_wf_state_";
-    string wf1d_out_file="wvpck_test_spectrum/neut_wf1d_state_";
-    string pi_cs_file="wvpck_test_spectrum/cs42_";
+    string out_file="wvpck_pump_probe/Output_ceppi_8.log";
+////    string read_file="wvpck_pump_probe_CEP0/PI_spectrum.txt";
+//    string wf_out_file="wvpck_astridpulse_0.04/neut_ceppi_wf_state_";
+//    string wf1d_out_file="wvpck_test5/neut_wf1d_state_";
+//    string pi_cs_file="wvpck_test5/cs_";
     stringstream ss_wf;
     string s_wf;
     ofstream output;
@@ -28,28 +28,31 @@ int main( int argc, char * argv [])
     //PARAMETERS OF THE SIMULATION
     int gsize_x(512);
     int tgsize_x(gsize_x+10);
-    int small_gsize_x(512);
+    int small_gsize_x(64);
     int dgsize(tgsize_x-gsize_x);
-    int n_states_neut(1);
+    int n_states_neut(19);
     int n_states_cat(1);
-    int n_angles(128);
-    int n_k(100);
+    int n_angles(32);
+    int n_k(35);
+    double kmin=0.0001;
+    double kmax=0.8;//1.212;//1.36;
     double xmin(0.8/0.529);//!!! THESE VALUES ARE IN ATOMIC UNITS AND NOT IN ANGSTROM
     double xmax(21.6/0.529);
     double mass(1836*(1.007825*6.015122795/(1.007825+6.015122795)));
     double total_time(100/0.02418884);
-    double h(0.0025/0.02418884);
+    double h(0.005/0.02418884);
     int n_times(int(total_time/h));
     int time_index(0);
     double dipole[3];
     double efield[3];
-    double efield_thresh(1e-5);
+    double efield_thresh(2e-4);
+    double pot_vec_thresh(5e-3);
     double norm;
     double temp;
    double spectrum(0);
 
     wavefunction* Psi= new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);
-    hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,small_gsize_x,n_states_neut,n_states_cat,n_k,n_angles,xmin,xmax,mass,n_times,h,efield_thresh);
+    hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,small_gsize_x,n_states_neut,n_states_cat,n_k,n_angles,kmin,kmax,xmin,xmax,mass,n_times,h,efield_thresh,pot_vec_thresh,ionization_coupling_file.c_str());
 
 
 
@@ -58,8 +61,8 @@ int main( int argc, char * argv [])
     H->set_dm_neut(neutral_dipole.c_str());
     H->set_dm_cat(cation_dipole.c_str());
     H->set_NAC(neutral_nac);
-    H->set_PICE(ionization_coupling_file.c_str());
-
+    H->set_PICE();
+/*
     stringstream tempstr;
     string filename;
     for(int i=0;i!=n_states_neut;i++)
@@ -69,7 +72,8 @@ int main( int argc, char * argv [])
        filename=tempstr.str();
        H->plot_integrated_cross_section(filename.c_str(),i,0);
     }
-    return EXIT_SUCCESS;
+    */
+//    return EXIT_SUCCESS;
 
 /*    int i(10);
     int j(tgsize_x*1+12);
@@ -111,21 +115,21 @@ int main( int argc, char * argv [])
        */
     Psi->initialize(H);
 
-    read.open(read_file.c_str());
+  //  read.open(read_file.c_str());
 //    std::cout<<"Initial state:"<<std::endl;
-    for(int i=0;i!=tgsize_x;i++)
-    {
+//    for(int i=0;i!=tgsize_x;i++)
+//    {
 //        std::cout<<"probe "<<i<<std::endl;
-       read<<H->pot_neut(0,i)<<","<<Psi->show_neut_psi(i,0).real()<<","<<Psi->show_neut_psi(i,0).imag()<<std::endl;
-    }
-    read.close();
+//       read<<H->pot_neut(0,i)<<","<<Psi->show_neut_psi(i,0).real()<<","<<Psi->show_neut_psi(i,0).imag()<<std::endl;
+//    }
+//    read.close();
     std::cout<<"##################"<<std::endl;
 
     output.open(out_file.c_str());
     output<<"initial energy of the system "<<setprecision(15)<<H->energy(Psi,0)<<std::endl<<"initial norm of the system = 1"<<std::endl;;
 //    output<<setprecision(15)<<Psi->norm(H)<<std::endl;
     output.close();
-       for(int m=0;m!=n_states_neut;m++)
+ /*      for(int m=0;m!=n_states_neut;m++)
        {
           ss_wf.str("");
           ss_wf<<wf_out_file<<m<<".wvpck";
@@ -139,12 +143,13 @@ int main( int argc, char * argv [])
 //          wf_out.close();
        }
 
-    //wavefunction* dPsi= new wavefunction(gsize_x, n_states_neut,n_states_cat,n_angles*n_k);
+*/    //wavefunction* dPsi= new wavefunction(gsize_x, n_states_neut,n_states_cat,n_angles*n_k);
 
     while(time_index <= n_times)
     {
        propagate(Psi,H,&time_index,16);
        H->electric_field(time_index,efield);
+       Psi->set_dipole(H);
        output.open(out_file.c_str(),ios_base::app);
 
        output<<"Time "<<time_index*h*0.02418884<<std::endl;
@@ -152,7 +157,7 @@ int main( int argc, char * argv [])
        output<<"Electric field (Y)"<<efield[1]<<std::endl;
        output<<"Electric field (Z)"<<efield[2]<<std::endl;
        output<<"Energy of the system "<<setprecision(15)<<H->energy(Psi,time_index)<<std::endl;
-       Psi->show_dipole(dipole);
+       Psi->show_dipole(dipole,0);
        output<<"Total dipole "<<setprecision(15)<<dipole[0]<<", "<<dipole[1]<<", "<<dipole[2]<<std::endl;
 
        norm=0;
@@ -161,6 +166,8 @@ int main( int argc, char * argv [])
           temp=Psi->state_pop(0,m);
           norm+=temp;
           output<<"Population on neutral state "<<m+1<<" = "<<setprecision(15)<<temp<<std::endl;
+       
+  /*        
           ss_wf.str("");
           ss_wf<<wf_out_file<<m<<".wvpck";
           s_wf=ss_wf.str();
@@ -170,42 +177,37 @@ int main( int argc, char * argv [])
              output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<s_wf.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
              exit(EXIT_FAILURE);
           }
+          
           for(int k=dgsize;k!=tgsize_x;k++)
           {
               wf_out<<time_index*h*0.02418884<<"   "<<xmin+(k-dgsize)*(xmax-xmin)/gsize_x<<"   "<<real(Psi->show_neut_psi(k,m))<<"   "<<imag(Psi->show_neut_psi(k,m))<<std::endl;
           }wf_out<<std::endl;
           wf_out.close();
-
-/*          ss_wf.str("");
-          ss_wf<<wf1d_out_file<<m<<".wvpck";
-          s_wf=ss_wf.str();
-          wf_out.open(s_wf.c_str(),ios_base::app);
-          for(int k=0;k!=gsize_x;k++)
-          {
-              wf_out<<time_index*h*0.02418884<<"   "<<xmin+k*(xmax-xmin)/gsize_x<<"   "<<H->pot_neut(m,k)<<"   "<<real(Psi->show_neut_psi(k,m))<<"   "<<imag(Psi->show_neut_psi(k,m))<<std::endl;
-          }wf_out<<std::endl<<std::endl;
-          wf_out.close();
-*/
+          */
        }
-
-/*       read.open(read_file.c_str(),ios_base::app);
+ /*      read.open(read_file.c_str(),ios_base::app);
        if(!read.is_open())
        {
-         output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<read.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
+         output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<read_file.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
          exit(EXIT_FAILURE);
        }
        for(int k=0;k!=n_k;k++)
        {
-          spectrum=0;
-          for(int r=0;r!=tgsize_x;r++)
+          for(int c=0;c!=n_states_cat;c++)
           {
-             for(int o=0;o!=n_angles;o++)
+             spectrum=0;
+             for(int r=0;r!=tgsize_x;r++)
              {
-                spectrum+=std::norm(Psi->show_cat_psi(r,0,k*n_angles+o));
+                for(int o=0;o!=n_angles;o++)
+                {
+                   spectrum+=std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
+                }
              }
           }
-          read<<time_index*h*0.02418884<<"   "<<
-       }*/
+          read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<spectrum<<std::endl;
+       }std::cout<<std::endl;
+       read.close();
+       */
        for(int m=0;m!=n_states_cat;m++)
        {
           temp=Psi->state_pop(1,m,H);

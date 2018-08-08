@@ -1,6 +1,8 @@
 #include <cstdlib>
 #include <cmath>
 #include <complex>
+#include <ctime>
+
 
 class hamilton_matrix;
 
@@ -22,7 +24,7 @@ class wavefunction {
       void set_norm(double value);
       double norm(hamilton_matrix *H);
       void set_dipole(hamilton_matrix *H);
-      void show_dipole(double *vector);
+      void show_dipole(double *vector,bool species);
       void add_wf(std::complex<double>* a,wavefunction* y=NULL,bool cat=1);
       void set_wf(wavefunction* x,bool cat=1);
       void set_psi_elwise(int i,std::complex<double> val);
@@ -40,7 +42,8 @@ class wavefunction {
       std::complex<double> *m_cat_part;//cation and continuum part of the wavefunction vector
       double m_norm;
       double m_ion_pop;
-      double *m_dipole;
+      double *m_dipole_neut;
+      double *m_dipole_cat;
 };
 
 class hamilton_matrix {
@@ -61,17 +64,17 @@ class hamilton_matrix {
       double m_xmin;
       double m_xmax;
       double m_mass;
-      double m_kxmin;
-      double m_kxmax;
-      double m_kymin;
-      double m_kymax;
-      double m_kzmin;
-      double m_kzmax;
-      int m_n_kx;
-      int m_n_ky;
-      int m_n_kz;
-      std::string m_PICE_address;
+      double m_kmin;
+      double m_kmax;
+//      double m_kymin;
+//      double m_kymax;
+//      double m_kzmin;
+//      double m_kzmax;
+//      int m_n_kx;
+//      int m_n_ky;
+//      int m_n_kz;
       //ELECTRIC FIELD THRESHOLD
+      double m_pot_vec_thresh;
       double m_efield_thresh;
       double m_pot_vec_mod;
       double m_pot_vec_tm_mod;
@@ -99,15 +102,18 @@ class hamilton_matrix {
       double *derivative_matrix;
       double *position_array_script;
       double *m_dk_vec;
+      pice_set *pice_data;
 
    public:
-      hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh);
+      hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double kmin,double kmax,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh,double pot_vec_thresh,std::string pice_data_loc);
       ~hamilton_matrix();
       void set_pot_neut(std::string file_address);
       void set_pot_cat(std::string file_address);
       void set_dm_neut(std::string file_address);
       void set_dm_cat(std::string file_address);
-      void set_PICE(std::string file_address,double *pot_vec=NULL);
+      double show_dm_neut(int state_index_1,int state_index_2,int grid_index,int component);
+      double show_dm_cat(int state_index_1,int state_index_2,int grid_index,int component);
+      void set_PICE(double *pot_vec=NULL);
       void set_NAC(std::string file_address);
       std::complex<double> hamilt_element(double time_index,int i,int j);
       double h();
@@ -127,14 +133,16 @@ class hamilton_matrix {
       void print_dipole_neut();
       void dk_vec(double *array);
       double show_nac(int state_index_1,int state_index_2,int grid_index_1,int grid_index_2);
-      void spherical_extract_from_cube(int neut_state,int cat_state,int r_index,int component,double *Recube,double *Imcube,double *pot_vec);
+//      void spherical_extract_from_cube(int neut_state,int cat_state,int r_index,int component,double *Recube,double *Imcube,double *pot_vec);
       void sphere_dist_gen(bool randiso=1,int n_phi=0);
-      bool cube_reader(std::string MO_cube_loc,double *cube_array,bool extract_dimensions=0);
-      double grid_k_cube_spacing(); 
+//      bool cube_reader(std::string MO_cube_loc,double *cube_array,bool extract_dimensions=0);
+//      double grid_k_cube_spacing(); 
       void set_pot_vec_mod(double value);
       void set_pot_vec_tm_mod(double value);
       double pot_vec_mod();
       double pot_vec_tm_mod();
+      double pot_vec_thresh() const;
       void plot_integrated_cross_section(std::string file_address,int neut_state,int cat_state);
+      double k_mod_val(int k_index) const;
 };
 

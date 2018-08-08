@@ -15,7 +15,8 @@ wavefunction::wavefunction(int gsize_x,int tgsize_x,int n_states_neut,int n_stat
    this->m_neut_part=new std::complex<double>[tgsize_x*n_states_neut];
    if(n_states_cat!=0 && n_states_cont != 0)
       this->m_cat_part=new std::complex<double>[tgsize_x*n_states_cat*n_states_cont];
-   this->m_dipole=new double[3];
+   this->m_dipole_neut=new double[3];
+   this->m_dipole_cat=new double[3];
 }
 //##########################################################################
 //
@@ -26,7 +27,8 @@ wavefunction::~wavefunction()
    delete [] this->m_neut_part;
    if(this->m_n_states_cat!=0 && this->m_n_states_cont != 0)
       delete [] this->m_cat_part;
-   delete [] this->m_dipole;
+   delete [] this->m_dipole_neut;
+   delete [] this->m_dipole_cat;
 }
 //##########################################################################
 //
@@ -266,47 +268,42 @@ void wavefunction::set_norm(double value)
 //##########################################################################
 void wavefunction::set_dipole(hamilton_matrix *H)
 {
-   return ;
-   double *vector=new double[3];
+   std::complex<double> *vector=new std::complex<double> [3];
    int state_index;
    int grid_index;
    int state_index_cont;
 
-   for(int i=0;i!=this->m_gsize_x*this->m_n_states_neut;i++)
+   for(int i=0;i!=this->m_tgsize_x*this->m_n_states_neut;i++)
    {
       H->show_indexes(i,i,&state_index,&grid_index,&state_index_cont,&state_index,&grid_index,&state_index_cont);
       for(int s=0;s!=this->m_n_states_neut;s++)
       {
-//         vector[0]+=H->m_dmx_neut[state_index*this->m_n_states_neut+s][grid_index]*;
-      }
-      for(int j=0;j!=this->m_gsize_x*this->m_n_states_cat*this->m_n_states_cont;j++)
-      {
-         continue;
+         vector[0]+=H->show_dm_neut(state_index,s,grid_index,0)*std::conj(this->m_neut_part[state_index*this->m_tgsize_x+grid_index])*this->m_neut_part[s*this->m_tgsize_x+grid_index];
+         vector[1]+=H->show_dm_neut(state_index,s,grid_index,1)*std::conj(this->m_neut_part[state_index*this->m_tgsize_x+grid_index])*this->m_neut_part[s*this->m_tgsize_x+grid_index];
+         vector[2]+=H->show_dm_neut(state_index,s,grid_index,2)*std::conj(this->m_neut_part[state_index*this->m_tgsize_x+grid_index])*this->m_neut_part[s*this->m_tgsize_x+grid_index];
       }
    }
-   for(int i=0;i!=this->m_gsize_x*this->m_n_states_cat*this->m_n_states_cont;i++)
-   {
-      for(int j=0;j!=this->m_gsize_x*this->m_n_states_neut;j++)
-      {
-         continue;
-      }
-      for(int j=0;j!=this->m_gsize_x*this->m_n_states_cat*this->m_n_states_cont;j++)
-      {
-         continue;
-      }
-   }
-   //this->m_dipole[0]=vector[0];
-   //this->m_dipole[1]=vector[1];
-   //this->m_dipole[2]=vector[2];
+   this->m_dipole_neut[0]=real(vector[0]);
+   this->m_dipole_neut[1]=real(vector[1]);
+   this->m_dipole_neut[2]=real(vector[2]);
 }
 //##########################################################################
 //
 //##########################################################################
-void wavefunction::show_dipole(double* vector)
+void wavefunction::show_dipole(double* vector,bool species)
 {
-   vector[0]=this->m_dipole[0];
-   vector[1]=this->m_dipole[1];
-   vector[2]=this->m_dipole[2];
+   if(!species)
+   {
+      vector[0]=this->m_dipole_neut[0];
+      vector[1]=this->m_dipole_neut[1];
+      vector[2]=this->m_dipole_neut[2];
+   }
+   else
+   {
+      vector[0]=this->m_dipole_cat[0];
+      vector[1]=this->m_dipole_cat[1];
+      vector[2]=this->m_dipole_cat[2];
+   }
 }
 //##########################################################################
 //

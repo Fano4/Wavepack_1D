@@ -23,7 +23,7 @@
 //##########################################################################
 //
 //##########################################################################
-hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh)
+hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double kmin,double kmax,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh,double pot_vec_thresh,std::string pice_data_loc)
 {
    using namespace std;
    //initialize grid parameters and time settings
@@ -41,6 +41,9 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    this->m_h=h;
    this->m_mass=mass;
    this->m_efield_thresh=efield_thresh;
+   this->m_pot_vec_thresh=pot_vec_thresh;
+   this->m_kmin=kmin;
+   this->m_kmax=kmax;
    double delta_x((xmax-xmin)/gsize_x);
    std::cout<<"Size of the pixel is "<<delta_x<<std::endl;
 
@@ -117,6 +120,7 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    std::cout<<"dipole arrays of the cation initialized!"<<std::endl;
    //initialize photoionization coupling elements surfaces arrays
    std::cout<<"initializing PICE arrays...";
+   this->pice_data=new pice_set(pice_data_loc); //Initialize a pice dataset object
    this->m_dk_vec=new double[this->m_n_states_cont];
    this->m_PICE_x=new std::complex<double> *[n_states_neut*n_states_cat*this->m_n_states_cont];
    std::cout<<" ...";
@@ -150,13 +154,14 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    this->k_modulus=new double[n_k];
    this->sphere_dist_gen(1);
    std::cout<<" ...";
-//   this->translation_vector=new int*[this->m_n_states_cont];
-//   std::cout<<" ...";
-//   for(int i=0;i!=m_n_states_cont;i++)
-//   {
-//      this->translation_vector[i]=new int[m_n_times];
-//   }
-//   std::cout<<" ...";
+   for(int i=0;i!=this->m_n_k;i++)
+   {
+      this->k_modulus[i]=kmin+i*(kmax-kmin)/this->m_n_k;
+      for(int j=0;j!=this->m_n_angles;j++)
+      {
+          m_dk_vec[i*this->m_n_angles+j]=2*4*acos(-1)*this->k_modulus[i]*(kmax-kmin)/(pow(2*acos(-1),3)*this->m_n_k*this->m_n_angles);
+      }
+   }
    std::cout<<"momentum vectors arrays initialized!"<<std::endl;
    //initialize Non-adiabatic coupling surfaces arrays
    std::cout<<"initializing NAC arrays...";
@@ -516,957 +521,77 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
       }
    }
 }
+
 //##########################################################################
 //
 //##########################################################################
-void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
+
+void hamilton_matrix::set_PICE(double* pot_vec)
 {
+   const int nstneut=this->m_n_states_neut;
+   const int nstcat=this->m_n_states_cat;
+   const int nk=this->m_n_k;
+   const int ndist=this->m_n_angles;
+   //std::cout<<"probe"<<std::endl;
+
+   std::complex<double> pice_x;
+   std::complex<double> pice_y;
+   std::complex<double> pice_z;
+
    using namespace std;
-   stringstream name_indenter2;
-   stringstream name_indenter;
-   double *position=new double[this->m_small_gsize_x];
-   bool test(0);
-   bool test2(0);
-   double temp2(0);
-   int index_pos=0;
-   string filename;
-   int dgsize(this->m_tgsize_x-this->m_gsize_x);
-   double temp;
-   double pos;
-   double r_val(0);
-   int x(0);
-   
-   
+   double duration;
+   clock_t begin;
+   clock_t end;
 
+   int ratio(this->m_gsize_x/this->m_small_gsize_x);
 
-
-      ifstream input_file;
-      name_indenter2.str("");
-      name_indenter2<<file_address<<"coordinates.input";
-      filename=name_indenter2.str();
-      input_file.open(filename.c_str());
-      if(!input_file.is_open())
-      {
-         std::cout<<"POSITION INPUT SCRIPT FILE CANNOT BE FOUND "<<std::endl;
-         exit(EXIT_FAILURE);
-      }
-      for(int i=0;i!=this->m_small_gsize_x;i++)
-      {
-         input_file>>position[i];
-      }
-      input_file.close();
-
-      pos=position[0];
-      name_indenter2.str("");
-      name_indenter2<<file_address<<"RePICE_"<<pos<<"_X_"<<0<<"_"<<0<<".txt";
-      filename=name_indenter2.str();
-      if(!this->cube_reader(filename,NULL,1))
-      {
-         cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-         exit(EXIT_FAILURE);
-      }
-
-      std::cout<<"momentum cube parameters read !"<<std::endl;
-
-   double *Retemp_cube_x=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
-   double *Imtemp_cube_x=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
-   double *Retemp_cube_y=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
-   double *Imtemp_cube_y=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
-   double *Retemp_cube_z=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
-   double *Imtemp_cube_z=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
-
-
-   if(file_address != "")//If we give the files address, it means that it is the first time the routine is called => We generate PICE for zero external field and we generate a random angular distribution.
+   int k(0);
+   int l(0);
+   for(int x=0;x!=this->m_gsize_x;x++)
    {
-      this->m_PICE_address=file_address;
-
-      for(int i=0;i!=this->m_n_states_neut;i++)
+      std::cout<<x<<" position "<<std::endl;
+      for( int i=0;i!=nstneut;i++)
       {
-         for(int j=0;j!=this->m_n_states_cat;j++)
+         std::cout<<"stneut"<<i<<std::endl;
+         for(int j=0;j!=nstcat;j++)
          {
-            std::cout<<"Getting PICE for states "<<i<<" - "<<j<<std::endl;
-
-            for(int k=dgsize;k!=this->m_tgsize_x;k++)
+         std::cout<<"stcat"<<j<<std::endl;
+         begin = clock();
+            #pragma omp parallel for private(k,l,pice_x,pice_y,pice_z) shared(x,i,j,nk,ndist,ratio)
+            for(k=0;k<nk;k++)
             {
-               test2=0;
-
-               r_val=0.529*(this->m_xmin+(k-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x);
-
-               std::cout<<"Loop "<<k-dgsize<<", position "<<r_val<<std::endl;
-/*
-               for(int l=0;l!=this->m_small_gsize_x;l++)
+               for(l=0;l<ndist;l++)
                {
-//                  std::cout<<" now comparing : "<<position[l]<<" <= "<<r_val<<" < "<<position[l+1]<<"..."<<std::endl;
-                  if( r_val < position[l+1] && r_val >= position[l] )
-                  {
-//                     std::cout<<"TRUE !"<<std::endl;
-                     x=l;
-                     if(l==m_small_gsize_x-1 || l==0)
-                     {
-//                        std::cout<<" Warning! out of bound for interpolated data! "<<std::endl;
-                     }
-                     else if(temp2 == position[l] && l!=0)
-                     {
-//                        std::cout<<"Checking test2 ! "<<temp2<<" ; "<<position[l]<<std::endl;
-                        test2=1;
-                     }
-//                     break;
-                  }
-               }
-               if(test2)
-               {
-//                  std::cout<<"test 2 checked "<<r_val<<std::endl;
-                  this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,NULL);
-                  this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,NULL);
-                  this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,NULL);
-                  continue;
-               }
-*/
-               x=k-dgsize;
-               temp2=position[x];
-              // std::cout<<"Loading new PICE file for R = "<<position[x]<<". New ref value = "<<temp2<<std::endl;
-
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Retemp_cube_x))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               std::cout<<x<<"/"<<this->m_tgsize_x<<"..."<<std::endl;
-               pos=position[x-dgsize];
-               name_indenter.str("");
-               name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Retemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Retemp_cube,1))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }
-               */
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Imtemp_cube_x))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               name_indenter.str("");
-               name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Imtemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Imtemp_cube))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }*/
-               this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,NULL);
-
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Retemp_cube_y))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               name_indenter.str("");
-               name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Retemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Retemp_cube))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }
-               */
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Imtemp_cube_y))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               name_indenter.str("");
-               name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Imtemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Imtemp_cube))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }
-               */
-               this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,NULL);
-
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Retemp_cube_z))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               name_indenter.str("");
-               name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Retemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Retemp_cube))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }
-               */
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Imtemp_cube_z))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               name_indenter.str("");
-               name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Imtemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Imtemp_cube))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }
-               */
-
-               //std::cout<<"pice "<<i<<"   "<<j<<"   "<<k<<"   "<<Retemp_cube_z[49*this->m_n_ky*this->m_n_kz+51*this->m_n_kz+49]<<"   "<<Imtemp_cube_z[49*this->m_n_ky*this->m_n_kz+51*this->m_n_kz+49]<<std::endl;
-               this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,NULL);
-
-            }
-         }
-      }
-   }
-   else
-   {
-
-      for(int i=0;i!=this->m_n_states_neut;i++)
-      {
-         for(int j=0;j!=this->m_n_states_cat;j++)
-         {
-            std::cout<<"Getting PICE for states "<<i<<" - "<<j<<std::endl;
-            std::cout<<"point...";
-            for(int k=dgsize;k!=this->m_tgsize_x;k++)
-            {
-
-/*               test2=0;
-
-               r_val=0.529*(this->m_xmin+(k-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x);
-
-               std::cout<<"Loop "<<k<<", position "<<r_val<<std::endl;
-
-               for(int l=0;l!=this->m_small_gsize_x;l++)
-               {
-//                  std::cout<<" now comparing : "<<position[l]<<" <= "<<r_val<<" < "<<position[l+1]<<"..."<<std::endl;
-                  if( r_val < position[l+1] && r_val >= position[l] )
-                  {
-//                     std::cout<<"TRUE !"<<std::endl;
-                     x=l;
-                     if(l==m_small_gsize_x-1 || l==0)
-                     {
-//                        std::cout<<" Warning! out of bound for interpolated data! "<<std::endl;
-                     }
-                     else if(temp2 == position[l] && l!=0)
-                     {
-//                        std::cout<<"Checking test2 ! "<<temp2<<" ; "<<position[l]<<std::endl;
-                        test2=1;
-                     }
-//                     break;
-                  }
-               }
-               if(test2)
-               {
-//                  std::cout<<"test 2 checked "<<r_val<<std::endl;
-                  this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,pot_vec);
-                  this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,pot_vec);
-                  this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,pot_vec);
-                  continue;
-               }
-*/
-               x=k-dgsize;
-               temp2=position[x];
-
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Retemp_cube_x))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               name_indenter.str("");
-               name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Retemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Retemp_cube))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }
-               */
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Imtemp_cube_x))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               name_indenter.str("");
-               name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Imtemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Imtemp_cube))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }
-               */
-               this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,pot_vec);
-
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Retemp_cube_y))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               name_indenter.str("");
-               name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Retemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Retemp_cube))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }
-               */
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Imtemp_cube_y))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               name_indenter.str("");
-               name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Imtemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Imtemp_cube))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }
-               */
-               this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,pot_vec);
-
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Retemp_cube_z))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               name_indenter.str("");
-               name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Retemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Retemp_cube))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }
-               */
-               test=0;
-               index_pos=0;
-               do
-               {
-                  pos=position[x-index_pos];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-
-                  if(!this->cube_reader(filename,Imtemp_cube_z))
-                  {
-                     if(x==0)
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                     else
-                     {
-                        index_pos++;
-                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
-                        continue;
-                     }
-                  }
-                  else
-                     test=1;
-               }while(test!=1);
-               /*
-               name_indenter.str("");
-               name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-               filename=name_indenter.str();
-
-               if(!this->cube_reader(filename,Imtemp_cube))
-               {
-                  if(x==0)
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
-                  else
-                  {
-                     pos=position[x-1-dgsize];
-                     name_indenter.str("");
-                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
-                     filename=name_indenter.str();
-                     if(!this->cube_reader(filename,Imtemp_cube))
-                     {
-                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                        exit(EXIT_FAILURE);
-                     }
-                  }
-               }
-               */
-               this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,pot_vec);
-            }
-         }
-      }
-   }
-   delete [] Retemp_cube_x;
-   delete [] Imtemp_cube_x;
-   delete [] Retemp_cube_y;
-   delete [] Imtemp_cube_y;
-   delete [] Retemp_cube_z;
-   delete [] Imtemp_cube_z;
-/*   
-   for(int i=0;i!=this->m_n_states_neut;i++)
-   {
-      for(int j=0;j!=this->m_n_states_cat;j++)
-      {
-         std::cout<<"Getting PICE for states "<<i<<" - "<<j<<std::endl;
-         for(int x=dgsize;x!=this->m_tgsize_x;x++)
-         {
-            pos=position[x-dgsize];
-            name_indenter.str("");
-            name_indenter<<file_address<<pos<<"_"<<i<<"_"<<j<<".txt";
-            filename=name_indenter.str();
-            input_file.open(filename.c_str());
-            if(!input_file.is_open())
-            {
-               if(x==0)
-               {
-                  cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                  exit(EXIT_FAILURE);
-               }
-               else
-               {
-                  pos=position[x-1-dgsize];
-                  name_indenter.str("");
-                  name_indenter<<file_address<<pos<<"_"<<i<<"_"<<j<<".txt";
-                  filename=name_indenter.str();
-                  input_file.open(filename.c_str());
-                  if(!input_file.is_open())
-                  {
-                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-                     exit(EXIT_FAILURE);
-                  }
+                   if(x%ratio == 0 || x==0)
+                   {
+                       this->pice_data->fill_pice(&pice_x,&pice_y,&pice_z,x,i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
+                       this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=pice_x;
+                       this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=pice_y;
+                       this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=pice_z;
+                   }
+                   else
+                   {
+                       this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1];
+                       this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1];
+                       this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1];
+                   }
+//                   std::cout<<this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<std::endl;
+//                   exit(EXIT_SUCCESS);
+                   //std::cout<<"probe "<<x<<","<<i<<","<<j<<","<<k<<","<<l<<std::endl;
                }
             }
-            {
-               for(int k=0;k!=this->m_n_k;k++)
-               {
-                  for(int l=0;l!=this->m_n_angles;l++)
-                  {
-                     input_file>>this->k_modulus[k];
-                     if(k==50)
-                     {
-                        input_file>>this->k_orientation[0][l];
-                        input_file>>this->k_orientation[1][l];
-                     }
-                     else
-                     {
-                        input_file>>temp;
-                        input_file>>temp;
-                     }
-                     input_file>>Re_value;
-                     input_file>>Im_value;
-                     this->m_PICE_x[i*this->m_n_states_cat*this->m_n_states_cont+j*this->m_n_states_cont+k*this->m_n_angles+l][x]=std::complex<double>(Re_value,Im_value);
-                     input_file>>Re_value;
-                     input_file>>Im_value;
-                     this->m_PICE_y[i*this->m_n_states_cat*this->m_n_states_cont+j*this->m_n_states_cont+k*this->m_n_angles+l][x]=std::complex<double>(Re_value,Im_value);
-                     input_file>>Re_value;
-                     input_file>>Im_value;
-                     this->m_PICE_z[i*this->m_n_states_cat*this->m_n_states_cont+j*this->m_n_states_cont+k*this->m_n_angles+l][x]=std::complex<double>(Re_value,Im_value);
-
-                  }
-               }
-               input_file.close();
-            }
+            end = clock();
+           duration=double(end-begin)/CLOCKS_PER_SEC;
+           std::cout<<duration/16<<"s"<<std::endl;
          }
       }
-   }
-   this->m_dk_vec=new double[this->m_n_states_cont];
-   double deltak=(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
-   for(int i=0;i!=this->m_n_states_cont;i++)
-   {
-      this->m_dk_vec[i]=deltak*(55*55*55)*this->k_modulus[(i-i%this->m_n_angles)/this->m_n_angles]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
-   }
 
-   std::cout<<"Got all PICE ! "<<std::endl<<"NOT Determining closest pair of plane waves in reciprocal space"<<std::endl;
-   for(int t=0;t!=this->m_n_times;t++)
-   {
-      for(int i=0;i!=this->m_n_states_cont;i++)
-         this->translation_vector[i][t]=i;
+//      int i=18;
+//      int j=0;
+//      int k=2;
+//      int l=1;
+//      std::cout<<this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<std::endl;
    }
-   
-      //DETERMINING THE CLOSEST PAIR OF PLANE WAVES IN THE RECIPROCAL SPACE
-
-                               for(int m=0;m!=this->m_n_states_cont;m++)
-                               {   
-                                  std::cout<<"element "<<m<<"/"<<this->m_n_states_cont<<"checked"<<std::endl;
-                                  for(int v=m+1;v!=this->m_n_states_cont;v++)
-                                  {   
-                                     if(m==0 && v==1)
-                                        this->min_distance=sqrt(pow(this->k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*cos(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*cos(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(this->k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*sin(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*sin(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(this->k_modulus[m%this->m_n_angles]*cos(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*cos(this->k_orientation[0][v-v%this->m_n_k]),2));
-                                     if(sqrt(pow(this->k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*cos(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*cos(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(this->k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*sin(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*sin(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(this->k_modulus[m%this->m_n_angles]*cos(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*cos(this->k_orientation[0][v-v%this->m_n_k]),2))<min_distance)
-                                     {   
-                                        this->min_distance=sqrt(pow(this->k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*cos(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*cos(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*sin(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*sin(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(this->k_modulus[m%this->m_n_angles]*cos(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*cos(this->k_orientation[0][v-v%this->m_n_k]),2));
-                                     }   
-                                  }   
-                               }   
-                               std::cout<<"Got closest pair !"<<std::endl;
-   //END OF CLOSEST PAIR DETERMINATION
-         for(int i=0;i!=this->m_n_states_cont;i++)
-         {
-            ref_px[i]=this->k_modulus[i%this->m_n_angles]*sin(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles])*cos(this->k_orientation[1][i-i%this->m_n_angles*this->m_n_angles]);
-            ref_py[i]=this->k_modulus[i%this->m_n_angles]*sin(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles])*sin(this->k_orientation[1][i-i%this->m_n_angles*this->m_n_angles]);
-            ref_pz[i]=this->k_modulus[i%this->m_n_angles]*cos(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles]);
-         }
-//#pragma omp parallel for
-   for(int t=0;t!=this->m_n_times;t++)
-   {
-         potential_vector(t,pot_vec);
-         std::cout<<"Translating plane waves for time "<<t<<" / "<<this->m_n_times<<std::endl;
-//#pragma omp parallel for
-      if(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2))>=min_distance && if (sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2)) >= 1e-5))
-      {
-//#pragma omp parallel for
-         for(int i=0;i!=this->m_n_states_cont;i++)
-         {
-            new_px[i]=ref_px[i]-pot_vec[0];
-            new_py[i]=ref_py[i]-pot_vec[1];
-            new_pz[i]=ref_pz[i]-pot_vec[2];
-            trial_px[i]=ref_px[i];
-            trial_py[i]=ref_py[i];
-            trial_pz[i]=ref_pz[i];
-
-//#pragma omp parallel for
-            for(int j=0;j!=this->m_n_states_cont;j++)
-            {
-               if(pow(new_px[i]-ref_px[i],2)+pow(new_py[i]-ref_py[i],2)+pow(new_pz[i]-ref_pz[i],2) < pow(new_px[i]-trial_px[i],2)+pow(new_py[i]-trial_py[i],2)+pow(new_pz[i]-trial_pz[i],2) && i!=j)
-               {
-                  this->translation_vector[i][t]=j;
-                  std::cout<<t<<"   "<<i<<"   "<<this->translation_vector[i][t]<<std::endl;
-                  trial_px[i]=ref_px[j];
-                  trial_py[i]=ref_py[j];
-                  trial_pz[i]=ref_pz[j];
-               }
-            }
-         }
-      }
-   }
-   */
-   
-
 }
 //##########################################################################
 //
@@ -1643,107 +768,6 @@ void hamilton_matrix::print_dipole_neut()
 //##########################################################################
 //
 //##########################################################################
-void hamilton_matrix::spherical_extract_from_cube(int neut_state,int cat_state,int r_index,int component,double *Recube,double *Imcube,double *pot_vec)
-{
-   double xsphere(0);
-   double ysphere(0);
-   double zsphere(0);
-   int x_index(0);
-   int y_index(0);
-   int z_index(0);
-   double k(0);
-   double deltak(0);
-   int n_points_sphere(this->m_n_angles);
-   int box_length_x(2*acos(-1)/((this->m_kxmax-m_kxmin)/this->m_n_kx));
-   int box_length_y(2*acos(-1)/((this->m_kymax-m_kymin)/this->m_n_ky));
-   int box_length_z(2*acos(-1)/((this->m_kzmax-m_kzmin)/this->m_n_kz));
-   int dgsize=this->m_tgsize_x-this->m_gsize_x;
-
-//   std::cout<<"box lengths parameters: "<<box_length_x<<"  "<<box_length_y<<"   "<<box_length_z<<std::endl;
-
-  // std::cout<<"Extracting spherical distribution PICE from cube file...";
-
-   if(pot_vec==NULL)
-   {
-      for(int j=0;j!=this->m_n_k;j++)
-      {
-         k=this->k_modulus[j];
-         for(int i=0;i!=n_points_sphere;i++)
-         {
-            xsphere=k*sin(this->k_orientation[0][i])*cos(this->k_orientation[1][i]);
-            ysphere=k*sin(this->k_orientation[0][i])*sin(this->k_orientation[1][i]);
-            zsphere=k*cos(this->k_orientation[0][i]);
- //           std::cout<<"probe sphere"<<xsphere<<"   "<<ysphere<<"   "<<zsphere<<"   "<<std::endl;
-
-            x_index=int(round((xsphere-this->m_kxmin)*this->m_n_kx/(this->m_kxmax-this->m_kxmin)));
-            y_index=int(round((ysphere-this->m_kymin)*this->m_n_ky/(this->m_kymax-this->m_kymin)));
-            z_index=int(round((zsphere-this->m_kzmin)*this->m_n_kz/(this->m_kzmax-this->m_kzmin)));
- //           std::cout<<"probe cube"<<x_index<<"   "<<y_index<<"   "<<z_index<<"   "<<std::endl;
- 
-            /*if(j==19)
-            {
-               std::cout<<x_index<<","<<y_index<<","<<z_index<<std::endl;
-            }*/
-
-            if(component==0)
-                this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
-            else if(component==1)
-                this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
-            else if(component=2)
-                this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
-            else
-            {
-               std::cout<<"ERROR ASKED FOR AN OUT OF RANGE COMPONENT OF A 3D VECTOR"<<std::endl; 
-               exit(EXIT_FAILURE);
-            }
-         }
-      }
-      deltak=(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
-      for(int i=0;i!=this->m_n_states_cont;i++)
-      {
-         this->m_dk_vec[i]=deltak*(box_length_x*box_length_y*box_length_z)*this->k_modulus[(i-i%this->m_n_angles)/this->m_n_angles]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
-      }
-   }
-      else
-      {
-      for(int j=0;j!=this->m_n_k;j++)
-      {
-         k=this->k_modulus[j];
-         for(int i=0;i!=n_points_sphere;i++)
-         {
-            xsphere=k*sin(this->k_orientation[0][i])*cos(this->k_orientation[1][i])-pot_vec[0];
-            ysphere=k*sin(this->k_orientation[0][i])*sin(this->k_orientation[1][i])-pot_vec[1];
-            zsphere=k*cos(this->k_orientation[0][i])-pot_vec[2];
-
-            x_index=int(round((xsphere-this->m_kxmin)*this->m_n_kx/(this->m_kxmax-this->m_kxmin)));
-            y_index=int(round((ysphere-this->m_kymin)*this->m_n_ky/(this->m_kymax-this->m_kymin)));
-            z_index=int(round((zsphere-this->m_kzmin)*this->m_n_kz/(this->m_kzmax-this->m_kzmin)));
-
-            if(component==0)
-                this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
-            else if(component==1)
-                this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
-            else if(component=2)
-                this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
-            else
-            {
-               std::cout<<"ERROR ASKED FOR AN OUT OF RANGE COMPONENT OF A 3D VECTOR"<<std::endl; 
-               exit(EXIT_FAILURE);
-            }
-         }
-      }
-      deltak=(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
-      for(int i=0;i!=this->m_n_states_cont;i++)
-      {
-         this->m_dk_vec[i]=deltak*(box_length_x*box_length_y*box_length_z)*this->k_modulus[(i-i%this->m_n_angles)/this->m_n_angles]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
-      }
-
-    //  std::cout<<"Done!"<<std::endl;
-      }
-}
-//##########################################################################
-//
-//##########################################################################
 void hamilton_matrix::sphere_dist_gen(bool randiso,int n_phi)
 {
    if(this->m_n_states_cont == 0 || this->m_n_k ==0)
@@ -1806,6 +830,153 @@ void hamilton_matrix::sphere_dist_gen(bool randiso,int n_phi)
          }
       }
    }
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::k_mod_val(int k_index) const
+{
+   return this->k_modulus[k_index];
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::show_dm_neut(int state_index_1,int state_index_2,int grid_index,int component)
+{
+   switch(component)
+   {
+      case 0:
+         return this->m_dmx_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index];
+      case 1:
+         return this->m_dmy_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index];
+      case 2:
+         return this->m_dmz_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index];
+   }
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::show_dm_cat(int state_index_1,int state_index_2,int grid_index,int component)
+{
+   switch(component)
+   {
+      case 0:
+         return this->m_dmx_cat[state_index_1*this->m_n_states_neut+state_index_2][grid_index];
+      case 1:
+         return this->m_dmy_cat[state_index_1*this->m_n_states_neut+state_index_2][grid_index];
+      case 2:
+         return this->m_dmz_cat[state_index_1*this->m_n_states_neut+state_index_2][grid_index];
+   }
+}
+//##########################################################################
+//
+//##########################################################################
+/*
+//##########################################################################
+//
+//END OF HAMILTON MATRIX OBJECT INITIALIZATION AND SETTINGS
+//##########################################################################
+std::complex<double> hamilton_matrix::show_pice()
+{
+   return this->m_PICE_z[i*this->m_n_states_cat*this->m_n_states_cont+j*this->m_n_states_cont+k*ndist+l][x];
+}
+void hamilton_matrix::spherical_extract_from_cube(int neut_state,int cat_state,int r_index,int component,double *Recube,double *Imcube,double *pot_vec)
+{
+   double xsphere(0);
+   double ysphere(0);
+   double zsphere(0);
+   int x_index(0);
+   int y_index(0);
+   int z_index(0);
+   double k(0);
+   double deltak(0);
+   int n_points_sphere(this->m_n_angles);
+   int box_length_x(2*acos(-1)/((this->m_kxmax-m_kxmin)/this->m_n_kx));
+   int box_length_y(2*acos(-1)/((this->m_kymax-m_kymin)/this->m_n_ky));
+   int box_length_z(2*acos(-1)/((this->m_kzmax-m_kzmin)/this->m_n_kz));
+   int dgsize=this->m_tgsize_x-this->m_gsize_x;
+
+//   std::cout<<"box lengths parameters: "<<box_length_x<<"  "<<box_length_y<<"   "<<box_length_z<<std::endl;
+
+  // std::cout<<"Extracting spherical distribution PICE from cube file...";
+
+   if(pot_vec==NULL)
+   {
+      for(int j=0;j!=this->m_n_k;j++)
+      {
+         k=this->k_modulus[j];
+         for(int i=0;i!=n_points_sphere;i++)
+         {
+            xsphere=k*sin(this->k_orientation[0][i])*cos(this->k_orientation[1][i]);
+            ysphere=k*sin(this->k_orientation[0][i])*sin(this->k_orientation[1][i]);
+            zsphere=k*cos(this->k_orientation[0][i]);
+ //           std::cout<<"probe sphere"<<xsphere<<"   "<<ysphere<<"   "<<zsphere<<"   "<<std::endl;
+
+            x_index=int(round((xsphere-this->m_kxmin)*this->m_n_kx/(this->m_kxmax-this->m_kxmin)));
+            y_index=int(round((ysphere-this->m_kymin)*this->m_n_ky/(this->m_kymax-this->m_kymin)));
+            z_index=int(round((zsphere-this->m_kzmin)*this->m_n_kz/(this->m_kzmax-this->m_kzmin)));
+ //           std::cout<<"probe cube"<<x_index<<"   "<<y_index<<"   "<<z_index<<"   "<<std::endl;
+ 
+            / *if(j==19)
+            {
+               std::cout<<x_index<<","<<y_index<<","<<z_index<<std::endl;
+            } * /
+
+            if(component==0)
+                this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
+            else if(component==1)
+                this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
+            else if(component=2)
+                this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
+            else
+            {
+               std::cout<<"ERROR ASKED FOR AN OUT OF RANGE COMPONENT OF A 3D VECTOR"<<std::endl; 
+               exit(EXIT_FAILURE);
+            }
+         }
+      }
+      deltak=(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
+      for(int i=0;i!=this->m_n_states_cont;i++)
+      {
+         this->m_dk_vec[i]=deltak*(box_length_x*box_length_y*box_length_z)*this->k_modulus[(i-i%this->m_n_angles)/this->m_n_angles]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
+      }
+   }
+      else
+      {
+      for(int j=0;j!=this->m_n_k;j++)
+      {
+         k=this->k_modulus[j];
+         for(int i=0;i!=n_points_sphere;i++)
+         {
+            xsphere=k*sin(this->k_orientation[0][i])*cos(this->k_orientation[1][i])-pot_vec[0];
+            ysphere=k*sin(this->k_orientation[0][i])*sin(this->k_orientation[1][i])-pot_vec[1];
+            zsphere=k*cos(this->k_orientation[0][i])-pot_vec[2];
+
+            x_index=int(round((xsphere-this->m_kxmin)*this->m_n_kx/(this->m_kxmax-this->m_kxmin)));
+            y_index=int(round((ysphere-this->m_kymin)*this->m_n_ky/(this->m_kymax-this->m_kymin)));
+            z_index=int(round((zsphere-this->m_kzmin)*this->m_n_kz/(this->m_kzmax-this->m_kzmin)));
+
+            if(component==0)
+                this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
+            else if(component==1)
+                this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
+            else if(component=2)
+                this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+j*n_points_sphere+i][r_index]=std::complex<double>(Recube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index],Imcube[x_index*this->m_n_ky*this->m_n_kz+y_index*this->m_n_kz+z_index])*this->sign_corr[neut_state][r_index-dgsize];
+            else
+            {
+               std::cout<<"ERROR ASKED FOR AN OUT OF RANGE COMPONENT OF A 3D VECTOR"<<std::endl; 
+               exit(EXIT_FAILURE);
+            }
+         }
+      }
+      deltak=(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
+      for(int i=0;i!=this->m_n_states_cont;i++)
+      {
+         this->m_dk_vec[i]=deltak*(box_length_x*box_length_y*box_length_z)*this->k_modulus[(i-i%this->m_n_angles)/this->m_n_angles]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
+      }
+
+    //  std::cout<<"Done!"<<std::endl;
+      }
 }
 //##########################################################################
 //
@@ -1898,5 +1069,960 @@ bool hamilton_matrix::cube_reader(std::string MO_cube_loc,double *cube_array,boo
 //##########################################################################
 //
 //##########################################################################
-//END OF HAMILTON MATRIX OBJECT INITIALIZATION AND SETTINGS
 
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::set_PICE(std::string file_address,double* pot_vec)
+{
+   using namespace std;
+   stringstream name_indenter2;
+   stringstream name_indenter;
+   double *position=new double[this->m_small_gsize_x];
+   bool test(0);
+   bool test2(0);
+   double temp2(0);
+   int index_pos=0;
+   string filename;
+   int dgsize(this->m_tgsize_x-this->m_gsize_x);
+   double temp;
+   double pos;
+   double r_val(0);
+   int x(0);
+   
+   
+
+
+
+      ifstream input_file;
+      name_indenter2.str("");
+      name_indenter2<<file_address<<"coordinates.input";
+      filename=name_indenter2.str();
+      input_file.open(filename.c_str());
+      if(!input_file.is_open())
+      {
+         std::cout<<"POSITION INPUT SCRIPT FILE CANNOT BE FOUND "<<std::endl;
+         exit(EXIT_FAILURE);
+      }
+      for(int i=0;i!=this->m_small_gsize_x;i++)
+      {
+         input_file>>position[i];
+      }
+      input_file.close();
+
+      pos=position[0];
+      name_indenter2.str("");
+      name_indenter2<<file_address<<"RePICE_"<<pos<<"_X_"<<0<<"_"<<0<<".txt";
+      filename=name_indenter2.str();
+      if(!this->cube_reader(filename,NULL,1))
+      {
+         cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+         exit(EXIT_FAILURE);
+      }
+
+      std::cout<<"momentum cube parameters read !"<<std::endl;
+
+   double *Retemp_cube_x=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+   double *Imtemp_cube_x=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+   double *Retemp_cube_y=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+   double *Imtemp_cube_y=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+   double *Retemp_cube_z=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+   double *Imtemp_cube_z=new double [this->m_n_kx*this->m_n_ky*this->m_n_kz];
+
+
+   if(file_address != "")//If we give the files address, it means that it is the first time the routine is called => We generate PICE for zero external field and we generate a random angular distribution.
+   {
+      this->m_PICE_address=file_address;
+
+      for(int i=0;i!=this->m_n_states_neut;i++)
+      {
+         for(int j=0;j!=this->m_n_states_cat;j++)
+         {
+            std::cout<<"Getting PICE for states "<<i<<" - "<<j<<std::endl;
+
+            for(int k=dgsize;k!=this->m_tgsize_x;k++)
+            {
+               test2=0;
+
+               r_val=0.529*(this->m_xmin+(k-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x);
+
+               std::cout<<"Loop "<<k-dgsize<<", position "<<r_val<<std::endl;
+/ *
+               for(int l=0;l!=this->m_small_gsize_x;l++)
+               {
+//                  std::cout<<" now comparing : "<<position[l]<<" <= "<<r_val<<" < "<<position[l+1]<<"..."<<std::endl;
+                  if( r_val < position[l+1] && r_val >= position[l] )
+                  {
+//                     std::cout<<"TRUE !"<<std::endl;
+                     x=l;
+                     if(l==m_small_gsize_x-1 || l==0)
+                     {
+//                        std::cout<<" Warning! out of bound for interpolated data! "<<std::endl;
+                     }
+                     else if(temp2 == position[l] && l!=0)
+                     {
+//                        std::cout<<"Checking test2 ! "<<temp2<<" ; "<<position[l]<<std::endl;
+                        test2=1;
+                     }
+//                     break;
+                  }
+               }
+               if(test2)
+               {
+//                  std::cout<<"test 2 checked "<<r_val<<std::endl;
+                  this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,NULL);
+                  this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,NULL);
+                  this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,NULL);
+                  continue;
+               }
+* /
+               x=k-dgsize;
+               temp2=position[x];
+              // std::cout<<"Loading new PICE file for R = "<<position[x]<<". New ref value = "<<temp2<<std::endl;
+
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube_x))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               std::cout<<x<<"/"<<this->m_tgsize_x<<"..."<<std::endl;
+               pos=position[x-dgsize];
+               name_indenter.str("");
+               name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Retemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Retemp_cube,1))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }
+               * /
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Imtemp_cube_x))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               name_indenter.str("");
+               name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Imtemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Imtemp_cube))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }* /
+               this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,NULL);
+
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube_y))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               name_indenter.str("");
+               name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Retemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Retemp_cube))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }
+               * /
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Imtemp_cube_y))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               name_indenter.str("");
+               name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Imtemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Imtemp_cube))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }
+               * /
+               this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,NULL);
+
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube_z))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               name_indenter.str("");
+               name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Retemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Retemp_cube))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }
+               * /
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Imtemp_cube_z))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               name_indenter.str("");
+               name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Imtemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Imtemp_cube))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }
+               * /
+
+               //std::cout<<"pice "<<i<<"   "<<j<<"   "<<k<<"   "<<Retemp_cube_z[49*this->m_n_ky*this->m_n_kz+51*this->m_n_kz+49]<<"   "<<Imtemp_cube_z[49*this->m_n_ky*this->m_n_kz+51*this->m_n_kz+49]<<std::endl;
+               this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,NULL);
+
+            }
+         }
+      }
+   }
+   else
+   {
+
+      for(int i=0;i!=this->m_n_states_neut;i++)
+      {
+         for(int j=0;j!=this->m_n_states_cat;j++)
+         {
+            std::cout<<"Getting PICE for states "<<i<<" - "<<j<<std::endl;
+            std::cout<<"point...";
+            for(int k=dgsize;k!=this->m_tgsize_x;k++)
+            {
+
+/ *               test2=0;
+
+               r_val=0.529*(this->m_xmin+(k-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x);
+
+               std::cout<<"Loop "<<k<<", position "<<r_val<<std::endl;
+
+               for(int l=0;l!=this->m_small_gsize_x;l++)
+               {
+//                  std::cout<<" now comparing : "<<position[l]<<" <= "<<r_val<<" < "<<position[l+1]<<"..."<<std::endl;
+                  if( r_val < position[l+1] && r_val >= position[l] )
+                  {
+//                     std::cout<<"TRUE !"<<std::endl;
+                     x=l;
+                     if(l==m_small_gsize_x-1 || l==0)
+                     {
+//                        std::cout<<" Warning! out of bound for interpolated data! "<<std::endl;
+                     }
+                     else if(temp2 == position[l] && l!=0)
+                     {
+//                        std::cout<<"Checking test2 ! "<<temp2<<" ; "<<position[l]<<std::endl;
+                        test2=1;
+                     }
+//                     break;
+                  }
+               }
+               if(test2)
+               {
+//                  std::cout<<"test 2 checked "<<r_val<<std::endl;
+                  this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,pot_vec);
+                  this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,pot_vec);
+                  this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,pot_vec);
+                  continue;
+               }
+* /
+               x=k-dgsize;
+               temp2=position[x];
+
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube_x))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               name_indenter.str("");
+               name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Retemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"RePICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Retemp_cube))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }
+               * /
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Imtemp_cube_x))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               name_indenter.str("");
+               name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Imtemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_X_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Imtemp_cube))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }
+               * /
+               this->spherical_extract_from_cube(i,j,k,0,Retemp_cube_x,Imtemp_cube_x,pot_vec);
+
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube_y))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               name_indenter.str("");
+               name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Retemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"RePICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Retemp_cube))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }
+               * /
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Imtemp_cube_y))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               name_indenter.str("");
+               name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Imtemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_Y_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Imtemp_cube))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }
+               * /
+               this->spherical_extract_from_cube(i,j,k,1,Retemp_cube_y,Imtemp_cube_y,pot_vec);
+
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Retemp_cube_z))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               name_indenter.str("");
+               name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Retemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"RePICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Retemp_cube))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }
+               * /
+               test=0;
+               index_pos=0;
+               do
+               {
+                  pos=position[x-index_pos];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+
+                  if(!this->cube_reader(filename,Imtemp_cube_z))
+                  {
+                     if(x==0)
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                     else
+                     {
+                        index_pos++;
+                        cout<<" PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"GO TO R="<<position[x-index_pos]<<endl;
+                        continue;
+                     }
+                  }
+                  else
+                     test=1;
+               }while(test!=1);
+               / *
+               name_indenter.str("");
+               name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+               filename=name_indenter.str();
+
+               if(!this->cube_reader(filename,Imtemp_cube))
+               {
+                  if(x==0)
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+                  else
+                  {
+                     pos=position[x-1-dgsize];
+                     name_indenter.str("");
+                     name_indenter<<file_address<<"ImPICE_"<<pos<<"_Z_"<<i<<"_"<<j<<".txt";
+                     filename=name_indenter.str();
+                     if(!this->cube_reader(filename,Imtemp_cube))
+                     {
+                        cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                        exit(EXIT_FAILURE);
+                     }
+                  }
+               }
+               * /
+               this->spherical_extract_from_cube(i,j,k,2,Retemp_cube_z,Imtemp_cube_z,pot_vec);
+            }
+         }
+      }
+   }
+   delete [] Retemp_cube_x;
+   delete [] Imtemp_cube_x;
+   delete [] Retemp_cube_y;
+   delete [] Imtemp_cube_y;
+   delete [] Retemp_cube_z;
+   delete [] Imtemp_cube_z;
+/ *   
+   for(int i=0;i!=this->m_n_states_neut;i++)
+   {
+      for(int j=0;j!=this->m_n_states_cat;j++)
+      {
+         std::cout<<"Getting PICE for states "<<i<<" - "<<j<<std::endl;
+         for(int x=dgsize;x!=this->m_tgsize_x;x++)
+         {
+            pos=position[x-dgsize];
+            name_indenter.str("");
+            name_indenter<<file_address<<pos<<"_"<<i<<"_"<<j<<".txt";
+            filename=name_indenter.str();
+            input_file.open(filename.c_str());
+            if(!input_file.is_open())
+            {
+               if(x==0)
+               {
+                  cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                  exit(EXIT_FAILURE);
+               }
+               else
+               {
+                  pos=position[x-1-dgsize];
+                  name_indenter.str("");
+                  name_indenter<<file_address<<pos<<"_"<<i<<"_"<<j<<".txt";
+                  filename=name_indenter.str();
+                  input_file.open(filename.c_str());
+                  if(!input_file.is_open())
+                  {
+                     cout<<"ERROR PICE FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+                     exit(EXIT_FAILURE);
+                  }
+               }
+            }
+            {
+               for(int k=0;k!=this->m_n_k;k++)
+               {
+                  for(int l=0;l!=this->m_n_angles;l++)
+                  {
+                     input_file>>this->k_modulus[k];
+                     if(k==50)
+                     {
+                        input_file>>this->k_orientation[0][l];
+                        input_file>>this->k_orientation[1][l];
+                     }
+                     else
+                     {
+                        input_file>>temp;
+                        input_file>>temp;
+                     }
+                     input_file>>Re_value;
+                     input_file>>Im_value;
+                     this->m_PICE_x[i*this->m_n_states_cat*this->m_n_states_cont+j*this->m_n_states_cont+k*this->m_n_angles+l][x]=std::complex<double>(Re_value,Im_value);
+                     input_file>>Re_value;
+                     input_file>>Im_value;
+                     this->m_PICE_y[i*this->m_n_states_cat*this->m_n_states_cont+j*this->m_n_states_cont+k*this->m_n_angles+l][x]=std::complex<double>(Re_value,Im_value);
+                     input_file>>Re_value;
+                     input_file>>Im_value;
+                     this->m_PICE_z[i*this->m_n_states_cat*this->m_n_states_cont+j*this->m_n_states_cont+k*this->m_n_angles+l][x]=std::complex<double>(Re_value,Im_value);
+
+                  }
+               }
+               input_file.close();
+            }
+         }
+      }
+   }
+   this->m_dk_vec=new double[this->m_n_states_cont];
+   double deltak=(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k;
+   for(int i=0;i!=this->m_n_states_cont;i++)
+   {
+      this->m_dk_vec[i]=deltak*(55*55*55)*this->k_modulus[(i-i%this->m_n_angles)/this->m_n_angles]*this->m_n_k/(pow(acos(-1),2)*2*this->m_n_states_cont);
+   }
+
+   std::cout<<"Got all PICE ! "<<std::endl<<"NOT Determining closest pair of plane waves in reciprocal space"<<std::endl;
+   for(int t=0;t!=this->m_n_times;t++)
+   {
+      for(int i=0;i!=this->m_n_states_cont;i++)
+         this->translation_vector[i][t]=i;
+   }
+   
+      //DETERMINING THE CLOSEST PAIR OF PLANE WAVES IN THE RECIPROCAL SPACE
+
+                               for(int m=0;m!=this->m_n_states_cont;m++)
+                               {   
+                                  std::cout<<"element "<<m<<"/"<<this->m_n_states_cont<<"checked"<<std::endl;
+                                  for(int v=m+1;v!=this->m_n_states_cont;v++)
+                                  {   
+                                     if(m==0 && v==1)
+                                        this->min_distance=sqrt(pow(this->k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*cos(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*cos(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(this->k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*sin(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*sin(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(this->k_modulus[m%this->m_n_angles]*cos(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*cos(this->k_orientation[0][v-v%this->m_n_k]),2));
+                                     if(sqrt(pow(this->k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*cos(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*cos(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(this->k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*sin(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*sin(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(this->k_modulus[m%this->m_n_angles]*cos(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*cos(this->k_orientation[0][v-v%this->m_n_k]),2))<min_distance)
+                                     {   
+                                        this->min_distance=sqrt(pow(this->k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*cos(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*cos(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(k_modulus[m%this->m_n_angles]*sin(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])*sin(this->k_orientation[1][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*sin(this->k_orientation[0][v-v%this->m_n_k])*sin(this->k_orientation[1][v-v%this->m_n_k]),2)+pow(this->k_modulus[m%this->m_n_angles]*cos(this->k_orientation[0][m-m%this->m_n_angles*this->m_n_angles])-this->k_modulus[v%this->m_n_k]*cos(this->k_orientation[0][v-v%this->m_n_k]),2));
+                                     }   
+                                  }   
+                               }   
+                               std::cout<<"Got closest pair !"<<std::endl;
+   //END OF CLOSEST PAIR DETERMINATION
+         for(int i=0;i!=this->m_n_states_cont;i++)
+         {
+            ref_px[i]=this->k_modulus[i%this->m_n_angles]*sin(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles])*cos(this->k_orientation[1][i-i%this->m_n_angles*this->m_n_angles]);
+            ref_py[i]=this->k_modulus[i%this->m_n_angles]*sin(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles])*sin(this->k_orientation[1][i-i%this->m_n_angles*this->m_n_angles]);
+            ref_pz[i]=this->k_modulus[i%this->m_n_angles]*cos(this->k_orientation[0][i-i%this->m_n_angles*this->m_n_angles]);
+         }
+//#pragma omp parallel for
+   for(int t=0;t!=this->m_n_times;t++)
+   {
+         potential_vector(t,pot_vec);
+         std::cout<<"Translating plane waves for time "<<t<<" / "<<this->m_n_times<<std::endl;
+//#pragma omp parallel for
+      if(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2))>=min_distance && if (sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2)) >= 1e-5))
+      {
+//#pragma omp parallel for
+         for(int i=0;i!=this->m_n_states_cont;i++)
+         {
+            new_px[i]=ref_px[i]-pot_vec[0];
+            new_py[i]=ref_py[i]-pot_vec[1];
+            new_pz[i]=ref_pz[i]-pot_vec[2];
+            trial_px[i]=ref_px[i];
+            trial_py[i]=ref_py[i];
+            trial_pz[i]=ref_pz[i];
+
+//#pragma omp parallel for
+            for(int j=0;j!=this->m_n_states_cont;j++)
+            {
+               if(pow(new_px[i]-ref_px[i],2)+pow(new_py[i]-ref_py[i],2)+pow(new_pz[i]-ref_pz[i],2) < pow(new_px[i]-trial_px[i],2)+pow(new_py[i]-trial_py[i],2)+pow(new_pz[i]-trial_pz[i],2) && i!=j)
+               {
+                  this->translation_vector[i][t]=j;
+                  std::cout<<t<<"   "<<i<<"   "<<this->translation_vector[i][t]<<std::endl;
+                  trial_px[i]=ref_px[j];
+                  trial_py[i]=ref_py[j];
+                  trial_pz[i]=ref_pz[j];
+               }
+            }
+         }
+      }
+   }
+   * /
+   
+
+}
+//##########################################################################
+//
+//##########################################################################
+ * */

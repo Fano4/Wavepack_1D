@@ -723,9 +723,16 @@ double hamilton_matrix::show_nac(int state_index_1,int state_index_2,int grid_in
 //##########################################################################
 //
 //##########################################################################
-double hamilton_matrix::grid_k_cube_spacing() 
+/*double hamilton_matrix::grid_k_cube_spacing() 
 {
    return (this->m_kxmax-this->m_kxmin)/this->m_n_kx;
+}*/
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::pot_vec_thresh() const
+{
+   return this->m_pot_vec_thresh;
 }
 //##########################################################################
 //
@@ -780,7 +787,8 @@ void hamilton_matrix::plot_integrated_cross_section(std::string file_address,int
          cs=0;
          for(int i=0;i!=this->m_n_angles;i++)
          {
-            cs+=pow(abs(this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2);
+//            std::cout<<neut_state<<","<<k<<","<<i<<std::endl<<this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<","<<this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<","<<this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<std::endl;
+            cs+=pow(abs(this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2)*pow(this->k_modulus[k],2)*this->m_dk_vec[k*this->m_n_angles+i]*4*acos(-1)/this->m_n_angles;
           //  cs=this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+1][x];
          }
          cs_out<<this->m_xmin + (x-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x<<"   "<<this->k_modulus[0]+k*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k<<"   "<<real(cs)<<"   "<<imag(cs)<<std::endl;
