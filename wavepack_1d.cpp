@@ -14,9 +14,9 @@ int main( int argc, char * argv [])
     string neutral_nac("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_NAC_");
     string ionization_coupling_file("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_pice_data.h5");//LiH_PICE_R_i_j.txt
 //    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
-    string out_file="wvpck_pump_probe/Output_ceppi_8.log";
-////    string read_file="wvpck_pump_probe_CEP0/PI_spectrum.txt";
-//    string wf_out_file="wvpck_astridpulse_0.04/neut_ceppi_wf_state_";
+    string out_file="wvpck_electron_wvpck/Output.log";
+    string read_file="wvpck_electron_wvpck/photoelectron_wvpck.txt";
+    string wf_out_file="wvpck_electron_wvpck/neut_wf_state_";
 //    string wf1d_out_file="wvpck_test5/neut_wf1d_state_";
 //    string pi_cs_file="wvpck_test5/cs_";
     stringstream ss_wf;
@@ -31,9 +31,9 @@ int main( int argc, char * argv [])
     int small_gsize_x(64);
     int dgsize(tgsize_x-gsize_x);
     int n_states_neut(19);
-    int n_states_cat(1);
-    int n_angles(32);
-    int n_k(35);
+    int n_states_cat(0);//1);
+    int n_angles(0);//32);
+    int n_k(0);//35);
     double kmin=0.0001;
     double kmax=0.8;//1.212;//1.36;
     double xmin(0.8/0.529);//!!! THESE VALUES ARE IN ATOMIC UNITS AND NOT IN ANGSTROM
@@ -115,21 +115,21 @@ int main( int argc, char * argv [])
        */
     Psi->initialize(H);
 
-  //  read.open(read_file.c_str());
+     read.open(read_file.c_str());
 //    std::cout<<"Initial state:"<<std::endl;
 //    for(int i=0;i!=tgsize_x;i++)
 //    {
 //        std::cout<<"probe "<<i<<std::endl;
 //       read<<H->pot_neut(0,i)<<","<<Psi->show_neut_psi(i,0).real()<<","<<Psi->show_neut_psi(i,0).imag()<<std::endl;
 //    }
-//    read.close();
+    read.close();
     std::cout<<"##################"<<std::endl;
 
     output.open(out_file.c_str());
     output<<"initial energy of the system "<<setprecision(15)<<H->energy(Psi,0)<<std::endl<<"initial norm of the system = 1"<<std::endl;;
 //    output<<setprecision(15)<<Psi->norm(H)<<std::endl;
     output.close();
- /*      for(int m=0;m!=n_states_neut;m++)
+       for(int m=0;m!=n_states_neut;m++)
        {
           ss_wf.str("");
           ss_wf<<wf_out_file<<m<<".wvpck";
@@ -143,7 +143,7 @@ int main( int argc, char * argv [])
 //          wf_out.close();
        }
 
-*/    //wavefunction* dPsi= new wavefunction(gsize_x, n_states_neut,n_states_cat,n_angles*n_k);
+    //wavefunction* dPsi= new wavefunction(gsize_x, n_states_neut,n_states_cat,n_angles*n_k);
 
     while(time_index <= n_times)
     {
@@ -167,7 +167,7 @@ int main( int argc, char * argv [])
           norm+=temp;
           output<<"Population on neutral state "<<m+1<<" = "<<setprecision(15)<<temp<<std::endl;
        
-  /*        
+          
           ss_wf.str("");
           ss_wf<<wf_out_file<<m<<".wvpck";
           s_wf=ss_wf.str();
@@ -183,9 +183,9 @@ int main( int argc, char * argv [])
               wf_out<<time_index*h*0.02418884<<"   "<<xmin+(k-dgsize)*(xmax-xmin)/gsize_x<<"   "<<real(Psi->show_neut_psi(k,m))<<"   "<<imag(Psi->show_neut_psi(k,m))<<std::endl;
           }wf_out<<std::endl;
           wf_out.close();
-          */
+          
        }
- /*      read.open(read_file.c_str(),ios_base::app);
+read.open(read_file.c_str(),ios_base::app);
        if(!read.is_open())
        {
          output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<read_file.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
@@ -195,19 +195,21 @@ int main( int argc, char * argv [])
        {
           for(int c=0;c!=n_states_cat;c++)
           {
-             spectrum=0;
-             for(int r=0;r!=tgsize_x;r++)
+             for(int o=0;o!=n_angles;o++)
              {
-                for(int o=0;o!=n_angles;o++)
+                respectrum=0;
+                imspectrum=0;
+                for(int r=0;r!=tgsize_x;r++)
                 {
-                   spectrum+=std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
+                   respectrum+=real(Psi->show_cat_psi(r,c,k*n_angles+o));
+                   imspectrum+=imag(Psi->show_cat_psi(r,c,k*n_angles+o));
                 }
+                read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<respectrum<<"    "<<imspectrum<<std::endl;
              }
           }
-          read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<spectrum<<std::endl;
        }std::cout<<std::endl;
        read.close();
-       */
+       
        for(int m=0;m!=n_states_cat;m++)
        {
           temp=Psi->state_pop(1,m,H);

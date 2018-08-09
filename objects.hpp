@@ -144,5 +144,6 @@ class hamilton_matrix {
       double pot_vec_thresh() const;
       void plot_integrated_cross_section(std::string file_address,int neut_state,int cat_state);
       double k_mod_val(int k_index) const;
+      double k_spher_orient(bool component, int index) const;
 };
 
