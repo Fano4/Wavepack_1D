@@ -197,6 +197,8 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
          }
       }
    }
+   std::cout<<"FATAL ERROR !! UNASSIGNED MATRIX ELEMENT IN HAMILTON_MATRIX::HAMILT_ELEMENT"<<std::endl; 
+   return -1;
 }
 //##########################################################################
 //
@@ -765,7 +767,7 @@ double hamilton_matrix::pot_vec_tm_mod()
 //##########################################################################
 //
 //##########################################################################
-void hamilton_matrix::plot_integrated_cross_section(std::string file_address,int neut_state,int cat_state)
+void hamilton_matrix::plot_integrated_cross_section(std::string file_address,int neut_state,int cat_state,int pos_index)
 {
 
    using namespace std;
@@ -780,21 +782,40 @@ void hamilton_matrix::plot_integrated_cross_section(std::string file_address,int
       std::cout<<"ERROR, IMPOSSIBLE TO OPEN "<<file_address.c_str()<<std::endl;
    }
 
-   for(int x=0;x!=this->m_tgsize_x;x++)
+   if(pos_index==-1)
    {
-      for(int k=0;k!=this->m_n_k;k++)
+      for(int x=0;x!=this->m_tgsize_x;x++)
       {
-         cs=0;
-         for(int i=0;i!=this->m_n_angles;i++)
+         for(int k=0;k!=this->m_n_k;k++)
          {
+            cs=0;
+            for(int i=0;i!=this->m_n_angles;i++)
+            {
 //            std::cout<<neut_state<<","<<k<<","<<i<<std::endl<<this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<","<<this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<","<<this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<std::endl;
-            cs+=pow(abs(this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2)*pow(this->k_modulus[k],2)*this->m_dk_vec[k*this->m_n_angles+i]*4*acos(-1)/this->m_n_angles;
+               cs+=pow(abs(this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2)*pow(this->k_modulus[k],2)*4*acos(-1)/this->m_n_angles;
           //  cs=this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+1][x];
-         }
-         cs_out<<this->m_xmin + (x-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x<<"   "<<this->k_modulus[0]+k*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k<<"   "<<real(cs)<<"   "<<imag(cs)<<std::endl;
-      }cs_out<<std::endl;
+            }
+            cs_out<<(this->m_xmin + (x-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x)*0.529<<"   "<<pow(this->k_modulus[0]+k*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k,2)*27.211/2<<"   "<<real(cs)<<"   "<<imag(cs)<<std::endl;
+         }cs_out<<std::endl;
+      }
+      cs_out.close();
    }
-   cs_out.close();
+   else
+   {
+      int x=pos_index;
+         for(int k=0;k!=this->m_n_k;k++)
+         {
+            cs=0;
+            for(int i=0;i!=this->m_n_angles;i++)
+            {
+//            std::cout<<neut_state<<","<<k<<","<<i<<std::endl<<this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<","<<this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<","<<this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<std::endl;
+               cs+=pow(abs(this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2)*pow(this->k_modulus[k],2)*4*acos(-1)/this->m_n_angles;
+          //  cs=this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+1][x];
+            }
+            cs_out<<(this->m_xmin + (x-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x)*0.529<<"   "<<pow(this->k_modulus[0]+k*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k,2)*27.211/2<<"   "<<real(cs)<<"   "<<imag(cs)<<std::endl;
+         }cs_out<<std::endl;
+         cs_out.close();
+   }
 }
 //##########################################################################
 //

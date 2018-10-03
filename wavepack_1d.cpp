@@ -12,44 +12,45 @@ int main( int argc, char * argv [])
     string neutral_dipole("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_neut_");
     string cation_dipole("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_cat_");
     string neutral_nac("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_NAC_");
-    string ionization_coupling_file("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_pice_data.h5");//LiH_PICE_R_i_j.txt
+    string ionization_coupling_file("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_pice_data_newnorm.h5");//LiH_PICE_R_i_j.txt
 //    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
-    string out_file="wvpck_electron_wvpck/Output.log";
-    string read_file="wvpck_electron_wvpck/photoelectron_wvpck.txt";
-    string wf_out_file="wvpck_electron_wvpck/neut_wf_state_";
+    string out_file="/data1/home/stephan/wvpck_newpice/Output_o_40_64_CEP0.log";
+    string read_file="/data1/home/stephan/wvpck_newpice/read_o_40_64_CEP0.txt";
+    string wf_out_file="/data1/home/stephan/wvpck_newpice/neut_o_40_64_CEP0_wf_state_";
 //    string wf1d_out_file="wvpck_test5/neut_wf1d_state_";
-//    string pi_cs_file="wvpck_test5/cs_";
+    string pi_cs_file="/data1/home/stephan/wvpck_newpice/cs_";
     stringstream ss_wf;
     string s_wf;
     ofstream output;
-    ofstream read;
+//    ofstream read;
     ofstream wf_out;
     //string elec_wavepack_file="LiH_elec_wvpck.txt";
     //PARAMETERS OF THE SIMULATION
     int gsize_x(512);
     int tgsize_x(gsize_x+10);
-    int small_gsize_x(64);
+    int small_gsize_x(128);
     int dgsize(tgsize_x-gsize_x);
     int n_states_neut(19);
-    int n_states_cat(0);//1);
-    int n_angles(0);//32);
-    int n_k(0);//35);
-    double kmin=0.0001;
-    double kmax=0.8;//1.212;//1.36;
+    int n_states_cat(1);
+    int n_angles(64);
+    int n_k(40);
+    double kmin=1e-4;
+    double kmax=1.5;
     double xmin(0.8/0.529);//!!! THESE VALUES ARE IN ATOMIC UNITS AND NOT IN ANGSTROM
     double xmax(21.6/0.529);
     double mass(1836*(1.007825*6.015122795/(1.007825+6.015122795)));
     double total_time(100/0.02418884);
-    double h(0.005/0.02418884);
+    double h(0.0005/0.02418884);
     int n_times(int(total_time/h));
     int time_index(0);
     double dipole[3];
     double efield[3];
-    double efield_thresh(2e-4);
-    double pot_vec_thresh(5e-3);
+    double efield_thresh(1e-4);
+    double pot_vec_thresh(1e-4);
     double norm;
     double temp;
-   double spectrum(0);
+   double respectrum(0);
+   double imspectrum(0);
 
     wavefunction* Psi= new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);
     hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,small_gsize_x,n_states_neut,n_states_cat,n_k,n_angles,kmin,kmax,xmin,xmax,mass,n_times,h,efield_thresh,pot_vec_thresh,ionization_coupling_file.c_str());
@@ -72,9 +73,9 @@ int main( int argc, char * argv [])
        filename=tempstr.str();
        H->plot_integrated_cross_section(filename.c_str(),i,0);
     }
-    */
-//    return EXIT_SUCCESS;
-
+    
+    return EXIT_SUCCESS;
+*/
 /*    int i(10);
     int j(tgsize_x*1+12);
     int state_index_1;
@@ -115,14 +116,14 @@ int main( int argc, char * argv [])
        */
     Psi->initialize(H);
 
-     read.open(read_file.c_str());
+//     read.open(read_file.c_str());
 //    std::cout<<"Initial state:"<<std::endl;
 //    for(int i=0;i!=tgsize_x;i++)
 //    {
 //        std::cout<<"probe "<<i<<std::endl;
 //       read<<H->pot_neut(0,i)<<","<<Psi->show_neut_psi(i,0).real()<<","<<Psi->show_neut_psi(i,0).imag()<<std::endl;
 //    }
-    read.close();
+//    read.close();
     std::cout<<"##################"<<std::endl;
 
     output.open(out_file.c_str());
@@ -147,7 +148,7 @@ int main( int argc, char * argv [])
 
     while(time_index <= n_times)
     {
-       propagate(Psi,H,&time_index,16);
+       propagate(Psi,H,&time_index,100);
        H->electric_field(time_index,efield);
        Psi->set_dipole(H);
        output.open(out_file.c_str(),ios_base::app);
@@ -185,7 +186,7 @@ int main( int argc, char * argv [])
           wf_out.close();
           
        }
-read.open(read_file.c_str(),ios_base::app);
+/*read.open(read_file.c_str(),ios_base::app);
        if(!read.is_open())
        {
          output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<read_file.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
@@ -197,19 +198,15 @@ read.open(read_file.c_str(),ios_base::app);
           {
              for(int o=0;o!=n_angles;o++)
              {
-                respectrum=0;
-                imspectrum=0;
                 for(int r=0;r!=tgsize_x;r++)
                 {
-                   respectrum+=real(Psi->show_cat_psi(r,c,k*n_angles+o));
-                   imspectrum+=imag(Psi->show_cat_psi(r,c,k*n_angles+o));
+                   read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<std::endl;
                 }
-                read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<respectrum<<"    "<<imspectrum<<std::endl;
              }
           }
-       }std::cout<<std::endl;
+       }//std::cout<<std::endl;
        read.close();
-       
+  */     
        for(int m=0;m!=n_states_cat;m++)
        {
           temp=Psi->state_pop(1,m,H);

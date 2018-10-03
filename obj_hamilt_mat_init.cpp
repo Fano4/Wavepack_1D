@@ -120,7 +120,9 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    std::cout<<"dipole arrays of the cation initialized!"<<std::endl;
    //initialize photoionization coupling elements surfaces arrays
    std::cout<<"initializing PICE arrays...";
+
    this->pice_data=new pice_set(pice_data_loc); //Initialize a pice dataset object
+
    this->m_dk_vec=new double[this->m_n_states_cont];
    this->m_PICE_x=new std::complex<double> *[n_states_neut*n_states_cat*this->m_n_states_cont];
    std::cout<<" ...";
@@ -159,7 +161,7 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
       this->k_modulus[i]=kmin+i*(kmax-kmin)/this->m_n_k;
       for(int j=0;j!=this->m_n_angles;j++)
       {
-          m_dk_vec[i*this->m_n_angles+j]=2*4*acos(-1)*this->k_modulus[i]*(kmax-kmin)/(pow(2*acos(-1),3)*this->m_n_k*this->m_n_angles);
+          m_dk_vec[i*this->m_n_angles+j]=4*acos(-1)*sqrt(this->k_modulus[i])*(kmax-kmin)/(this->m_n_k*this->m_n_angles);
       }
    }
    std::cout<<"momentum vectors arrays initialized!"<<std::endl;
@@ -283,6 +285,9 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
          for(int j=dgsize;j!=this->m_tgsize_x;j++)
          {
             input_file>>this->m_pot_neut[this->m_tgsize_x*i+j];
+
+ //           this->m_pot_neut[this->m_tgsize_x*i+j]/=27.211; // !!!! REMOVE THIS LINE !!
+
            // cout<<this->m_pot_neut[this->m_gsize_x*i+j]<<endl;
          }
          input_file.close();
@@ -294,7 +299,7 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
       else
       {
          cout<<"ERROR POTENTIAL FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
-         exit;
+         exit(EXIT_FAILURE);
       }
    }
 }
@@ -533,6 +538,10 @@ void hamilton_matrix::set_PICE(double* pot_vec)
    const int nk=this->m_n_k;
    const int ndist=this->m_n_angles;
    //std::cout<<"probe"<<std::endl;
+   //
+   std::stringstream ss_file_cs;
+   std::string s_file_cs;
+   int dgsize_x(this->m_tgsize_x-this->m_gsize_x);
 
    std::complex<double> pice_x;
    std::complex<double> pice_y;
@@ -547,33 +556,39 @@ void hamilton_matrix::set_PICE(double* pot_vec)
 
    int k(0);
    int l(0);
-   for(int x=0;x!=this->m_gsize_x;x++)
+   int x(0);
+   int i(0);
+   int j(0);
+   for( x=0;x<this->m_gsize_x;x++)
    {
-      std::cout<<x<<" position "<<std::endl;
-      for( int i=0;i!=nstneut;i++)
+      std::cout<<x<<" position "<<0.529*(this->m_xmin+x*(this->m_xmax-this->m_xmin)/this->m_gsize_x)<<"Angstrom"<<std::endl;
+      for( i=0;i<nstneut;i++)
       {
          std::cout<<"stneut"<<i<<std::endl;
-         for(int j=0;j!=nstcat;j++)
+         for( j=0;j<nstcat;j++)
          {
          std::cout<<"stcat"<<j<<std::endl;
          begin = clock();
-            #pragma omp parallel for private(k,l,pice_x,pice_y,pice_z) shared(x,i,j,nk,ndist,ratio)
+            #pragma omp parallel for private(k,l) shared(x,i,j,nk,ndist,nstcat,dgsize_x,pot_vec,ratio)
             for(k=0;k<nk;k++)
             {
                for(l=0;l<ndist;l++)
                {
                    if(x%ratio == 0 || x==0)
                    {
-                       this->pice_data->fill_pice(&pice_x,&pice_y,&pice_z,x,i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
-                       this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=pice_x;
-                       this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=pice_y;
-                       this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=pice_z;
+                       this->pice_data->fill_pice(&this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],x,i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
+//                      std::cout<<"probe 2 t = "<<double(end-begin)/CLOCKS_PER_SEC<<std::endl;
+//                       this->pice_data->fill_pice(&pice_x,&pice_y,&pice_z,x,i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
+//                       this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=sqrt(2)*pice_x;
+//                       this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=sqrt(2)*pice_y;
+//                      this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=sqrt(2)*pice_z;
+//                       std::cout<<i<<"-"<<j<<" : "<<this->k_modulus[k]<<","<<this->k_orientation[0][l]<<","<<this->k_orientation[1][l]<<" == "<<this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]<<std::endl;
                    }
                    else
                    {
-                       this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1];
-                       this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1];
-                       this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]=this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1];
+                       this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1+dgsize_x];
+                       this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1+dgsize_x];
+                       this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1+dgsize_x];
                    }
 //                   std::cout<<this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<std::endl;
 //                   exit(EXIT_SUCCESS);
@@ -583,6 +598,15 @@ void hamilton_matrix::set_PICE(double* pot_vec)
             end = clock();
            duration=double(end-begin)/CLOCKS_PER_SEC;
            std::cout<<duration/16<<"s"<<std::endl;
+
+           /*
+           ss_file_cs.str("");
+           ss_file_cs<<"cs_";
+           ss_file_cs<<i<<"_"<<j<<".txt";
+           s_file_cs=ss_file_cs.str();
+           std::cout<<"Printing CS"<<std::endl;
+           this->plot_integrated_cross_section(s_file_cs.c_str(),i,j,x+dgsize_x);
+           */
          }
       }
 
@@ -628,6 +652,9 @@ void hamilton_matrix::set_NAC(std::string file_address)
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
                    input_file>>this->m_NAC[i*this->m_n_states_neut+j][k];
+
+//                   this->m_NAC[i*this->m_n_states_neut+j][k]*=5e6; /// !!!!!!REMOVE THIS LINE !!!!!
+
 //                   std::cout<<"NACME "<<i<<"-"<<j<<" at "<<k<<"="<<this->m_NAC[i*this->m_n_states_neut+j][k]<<std::endl;
                    this->m_NAC[j*this->m_n_states_neut+i][k]=-this->m_NAC[i*this->m_n_states_neut+j][k];
                 }
@@ -851,7 +878,11 @@ double hamilton_matrix::show_dm_neut(int state_index_1,int state_index_2,int gri
          return this->m_dmy_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index];
       case 2:
          return this->m_dmz_neut[state_index_1*this->m_n_states_neut+state_index_2][grid_index];
+      default:
+         std::cout<<"ERROR COMPONENT OF DIPOLE MOMENT NOT RECOGNIZED IN HAMILTON_MATRIX::SHOW_DM_NEUT === > EXIT"<<std::endl;
+         exit(EXIT_FAILURE);
    }
+   return 0;
 }
 //##########################################################################
 //
@@ -866,7 +897,11 @@ double hamilton_matrix::show_dm_cat(int state_index_1,int state_index_2,int grid
          return this->m_dmy_cat[state_index_1*this->m_n_states_neut+state_index_2][grid_index];
       case 2:
          return this->m_dmz_cat[state_index_1*this->m_n_states_neut+state_index_2][grid_index];
+      default:
+         std::cout<<"ERROR COMPONENT OF DIPOLE MOMENT NOT RECOGNIZED IN HAMILTON_MATRIX::SHOW_DM_CAT === > EXIT"<<std::endl;
+         exit(EXIT_FAILURE);
    }
+   return 0;
 }
 //##########################################################################
 //

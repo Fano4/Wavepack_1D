@@ -14,7 +14,14 @@ geometry={
  basis=${basis_set}
 
 
-file,2,${molpro_wfu_file}${R}.wfu,new
+file,2,${molpro_wfu_file}${R}.wfu
+restart,2;
+geometry={
+ 2
+ LiH
+  H          0.0000000000        0.0000000000      ${RH}
+  Li         0.0000000000        0.0000000000      ${RLi}
+ }
 
 {casscf
 maxiter, 40
@@ -26,9 +33,17 @@ wf,4,1,0;state, ${n_states_neut_sym[0]};!weight, ${weight_neut_states_sym[0]};
 wf,4,2,0;state, ${n_states_neut_sym[1]};!weight, ${weight_neut_states_sym[1]};
 wf,4,3,0;state, ${n_states_neut_sym[2]};!weight, ${weight_neut_states_sym[2]};
 wf,4,4,0;state, ${n_states_neut_sym[3]};!weight, ${weight_neut_states_sym[3]};
+ORBITAL,2140.2
 }
 
-file,2,${molpro_wfu_prefile}${R}.wfu,new
+file,2,${molpro_wfu_prefile}${R}.wfu
+restart,2;
+geometry={
+ 2
+ LiH
+  H          0.0000000000        0.0000000000      ${RH}
+  Li         0.0000000000        0.0000000000      ${RLi}
+ }
 
 {casscf
 maxiter,40
@@ -37,8 +52,8 @@ occ, ${n_occ_sym[0]} , ${n_occ_sym[1]} , ${n_occ_sym[2]} , ${n_occ_sym[3]}
 !pspace,5
 config
 wf,3,1,1,1;state, ${n_states_cat_sym[0]} ;
-!wf,3,2,1,1;state, ${n_states_cat_sym[1]} ;
-!wf,3,3,1,1;state, ${n_states_cat_sym[2]} ;
+wf,3,2,1,1;state, ${n_states_cat_sym[1]} ;
+wf,3,3,1,1;state, ${n_states_cat_sym[2]} ;
 !wf,3,4,1,1;state, ${n_states_cat} ;
 }
 
@@ -51,7 +66,7 @@ function main_input () {
 
 ***,lithium_hydride
  
-gprint,civector,orbitals
+gprint,basis,civector,orbitals
 geometry={
  2
  LiH
@@ -66,6 +81,7 @@ geometry={
  }
 
 file,2,${molpro_wfu_file}${R}.wfu
+restart,2;
 
 {casscf
 maxiter, 40
@@ -77,14 +93,30 @@ wf,4,1,0;state, ${n_states_neut_sym[0]};!weight, ${weight_neut_states_sym[0]};
 wf,4,2,0;state, ${n_states_neut_sym[1]};!weight, ${weight_neut_states_sym[1]};
 wf,4,3,0;state, ${n_states_neut_sym[2]};!weight, ${weight_neut_states_sym[2]};
 wf,4,4,0;state, ${n_states_neut_sym[3]};!weight, ${weight_neut_states_sym[3]};
+ORBITAL,2140.2
 }
 
-!{cube,${orbital_name},-1,125,125,125;
-! orbital,occ
-! BRAGG,10
-! }
+ {matrop;
+    load,mo,orb,2140.2;
+    load,dmx,oper,dmx
+    tran,dmx_mo,dmx,mo
+    print dmx_mo
+ }
+ {matrop;
+    load,mo,orb,2140.2;
+    load,dmy,oper,dmy
+    tran,dmy_mo,dmy,mo
+    print dmy_mo
+ }
+ {matrop;
+    load,mo,orb,2140.2;
+    load,dmz,oper,dmz
+    tran,dmz_mo,dmz,mo
+    print dmz_mo
+ }
 
 file,2,${molpro_wfu_prefile}${R}.wfu
+restart,2;
 
 {casscf
 maxiter,40
@@ -93,8 +125,8 @@ occ, ${n_occ_sym[0]} , ${n_occ_sym[1]} , ${n_occ_sym[2]} , ${n_occ_sym[3]}
 !pspace,5
 config
 wf,3,1,1,1;state, ${n_states_cat_sym[0]} ;
-!wf,3,2,1,1;state, ${n_states_cat_sym[1]} ;
-!wf,3,3,1,1;state, ${n_states_cat_sym[2]} ;
+wf,3,2,1,1;state, ${n_states_cat_sym[1]} ;
+wf,3,3,1,1;state, ${n_states_cat_sym[2]} ;
 !wf,3,4,1,1;state, ${n_states_cat} ;
 }
 

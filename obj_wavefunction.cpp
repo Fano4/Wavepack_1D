@@ -192,7 +192,7 @@ void wavefunction::initialize(hamilton_matrix* H)
    double *e=new double [(this->m_tgsize_x)-1];
    std::complex<double> *tau=new std::complex<double> [(this->m_tgsize_x)-1];
    std::complex<double> *cmatrix=new std::complex<double> [(this->m_tgsize_x)*(this->m_tgsize_x)];
-   double min_pot(0);
+   double min_pot(10000);
    for(int i=0;i!=this->m_tgsize_x;i++)
    {
       if(H->pot_neut(0,i) < min_pot)
@@ -213,12 +213,13 @@ void wavefunction::initialize(hamilton_matrix* H)
       }
       //std::cout<<std::endl;
    }
-/*
-   std::cout<<"PES OF THE GS "<<std::endl;
+
+  /* std::cout<<"PES OF THE GS "<<std::endl;
    for(int i=0;i!=this->m_tgsize_x;i++)
    {
       std::cout<<H->pot_neut(0,i)<<std::endl;
    }*/
+
    
    std::cout<<"#############################"<<std::endl;
 
