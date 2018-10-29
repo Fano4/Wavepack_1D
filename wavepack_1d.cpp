@@ -4,7 +4,7 @@ int main( int argc, char * argv [])
 {
     using namespace std;
 
-    omp_set_num_threads(16);
+    omp_set_num_threads(32);
 
     //PATH LINKING OTHER FILES
     string neutral_pes("/data1/home/stephan/Wavepack_1D/wavepack_int_input/Int_pes_");
@@ -14,28 +14,33 @@ int main( int argc, char * argv [])
     string neutral_nac("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_NAC_");
     string ionization_coupling_file("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_pice_data_newnorm.h5");//LiH_PICE_R_i_j.txt
 //    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
-    string out_file="/data1/home/stephan/wvpck_newpice/Output_o_40_64_CEP0.log";
-    string read_file="/data1/home/stephan/wvpck_newpice/read_o_40_64_CEP0.txt";
-    string wf_out_file="/data1/home/stephan/wvpck_newpice/neut_o_40_64_CEP0_wf_state_";
+    string out_file="/data1/home/stephan/wvpck_mfpad_probe/Output_test_probe_1.log";
+    string read_file="/data1/home/stephan/wvpck_mfpad_probe/read_test_probe_1.txt";//="/data1/home/stephan/wvpck_newpice/read_03_10_18.txt";
+    string wf_out_file="/data1/home/stephan/wvpck_mfpad_probe/neut_test_probe_1_wf_state_";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
+    string spectrum_out_file="/data1/home/stephan/wvpck_mfpad_probe/spect_test_probe_1.txt";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
+    string mfpad_out_file="/data1/home/stephan/wvpck_mfpad_probe/mfpad_test_probe_1.txt";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
 //    string wf1d_out_file="wvpck_test5/neut_wf1d_state_";
-    string pi_cs_file="/data1/home/stephan/wvpck_newpice/cs_";
+    string pi_cs_file="/data1/home/stephan/wvpck_mfpad_probe/cs_";
     stringstream ss_wf;
     string s_wf;
     ofstream output;
 //    ofstream read;
     ofstream wf_out;
+    ofstream spectrum;
+    ofstream mfpad;
     //string elec_wavepack_file="LiH_elec_wvpck.txt";
     //PARAMETERS OF THE SIMULATION
     int gsize_x(512);
     int tgsize_x(gsize_x+10);
-    int small_gsize_x(128);
+    int small_gsize_x(64);
     int dgsize(tgsize_x-gsize_x);
-    int n_states_neut(19);
+    int n_states_neut(10);
     int n_states_cat(1);
-    int n_angles(64);
-    int n_k(40);
+    int n_angles(45);
+    int n_k(30);
+    double kp(13);
     double kmin=1e-4;
-    double kmax=1.5;
+    double kmax=1.0;//
     double xmin(0.8/0.529);//!!! THESE VALUES ARE IN ATOMIC UNITS AND NOT IN ANGSTROM
     double xmax(21.6/0.529);
     double mass(1836*(1.007825*6.015122795/(1.007825+6.015122795)));
@@ -46,7 +51,7 @@ int main( int argc, char * argv [])
     double dipole[3];
     double efield[3];
     double efield_thresh(1e-4);
-    double pot_vec_thresh(1e-4);
+    double pot_vec_thresh(1.);
     double norm;
     double temp;
    double respectrum(0);
@@ -186,27 +191,50 @@ int main( int argc, char * argv [])
           wf_out.close();
           
        }
-/*read.open(read_file.c_str(),ios_base::app);
-       if(!read.is_open())
+//read.open(read_file.c_str(),ios_base::app);
+       /*if(!read.is_open())
+       {
+         output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<read_file.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
+         exit(EXIT_FAILURE);
+       }*/
+       //mfpad.open(mfpad_out_file.c_str(),ios_base::app);
+       for(int o=0;o!=n_angles;o++)
+       {
+          temp=0;
+          for(int r=0;r!=tgsize_x;r++)
+          {
+             temp+=std::norm(Psi->show_cat_psi(r,0,kp*n_angles+o));
+          }
+//          mfpad<<time_index*h*0.02418884<<"   "<<H->k_spher_orient(0,o)<<"   "<<H->k_spher_orient(1,o)<<"   "<<temp<<std::endl;
+       }//mfpad<<std::endl;
+       //mfpad.close();
+
+       spectrum.open(spectrum_out_file.c_str(),ios_base::app);
+       if(!spectrum.is_open())
        {
          output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<read_file.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
          exit(EXIT_FAILURE);
        }
        for(int k=0;k!=n_k;k++)
        {
+          temp=0;
           for(int c=0;c!=n_states_cat;c++)
           {
              for(int o=0;o!=n_angles;o++)
              {
                 for(int r=0;r!=tgsize_x;r++)
                 {
-                   read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<std::endl;
+      //             read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<std::endl;
+                   temp+=std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
                 }
              }
           }
+          spectrum<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"   "<<temp<<std::endl;
        }//std::cout<<std::endl;
-       read.close();
-  */     
+          spectrum<<std::endl;
+    //   read.close();
+       spectrum.close();
+       
        for(int m=0;m!=n_states_cat;m++)
        {
           temp=Psi->state_pop(1,m,H);

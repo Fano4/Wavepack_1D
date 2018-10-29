@@ -161,7 +161,8 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
       this->k_modulus[i]=kmin+i*(kmax-kmin)/this->m_n_k;
       for(int j=0;j!=this->m_n_angles;j++)
       {
-          m_dk_vec[i*this->m_n_angles+j]=4*acos(-1)*sqrt(this->k_modulus[i])*(kmax-kmin)/(this->m_n_k*this->m_n_angles);
+         //!!!!! sqrt(k) or just k?
+          m_dk_vec[i*this->m_n_angles+j]=4*acos(-1)*pow(this->k_modulus[i],2)*(kmax-kmin)/(this->m_n_k*this->m_n_angles);
       }
    }
    std::cout<<"momentum vectors arrays initialized!"<<std::endl;

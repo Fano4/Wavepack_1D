@@ -157,9 +157,9 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
             {
                return (std::complex<double>(
                         0.5*(
-                           pow(this->k_modulus[(state_index_cont_1-state_index_cont_1%(this->m_n_states_cont/this->m_n_k))/(this->m_n_states_cont/this->m_n_k)]*sin(this->k_orientation[0][state_index_cont_1%(this->m_n_states_cont/this->m_n_k)])*cos(this->k_orientation[1][state_index_cont_1%(this->m_n_states_cont/this->m_n_k)])-pot_vector[0],2)
-                           +pow(k_modulus[(state_index_cont_1-state_index_cont_1%(this->m_n_states_cont/this->m_n_k))/(this->m_n_states_cont/this->m_n_k)]*sin(this->k_orientation[0][state_index_cont_1%(this->m_n_states_cont/this->m_n_k)])*sin(this->k_orientation[1][state_index_cont_1%(this->m_n_states_cont/this->m_n_k)])-pot_vector[1],2)
-                           +pow(this->k_modulus[(state_index_cont_1-state_index_cont_1%(this->m_n_states_cont/this->m_n_k))/(this->m_n_states_cont/this->m_n_k)]*cos(this->k_orientation[0][state_index_cont_1%(this->m_n_states_cont/this->m_n_k)])-pot_vector[2],2))
+                           pow(this->k_modulus[(state_index_cont_1-state_index_cont_1%(this->m_n_states_cont/this->m_n_k))/(this->m_n_states_cont/this->m_n_k)]*sin(this->k_orientation[0][state_index_cont_1%(this->m_n_states_cont/this->m_n_k)])*cos(this->k_orientation[1][state_index_cont_1%(this->m_n_states_cont/this->m_n_k)])+pot_vector[0],2)
+                           +pow(k_modulus[(state_index_cont_1-state_index_cont_1%(this->m_n_states_cont/this->m_n_k))/(this->m_n_states_cont/this->m_n_k)]*sin(this->k_orientation[0][state_index_cont_1%(this->m_n_states_cont/this->m_n_k)])*sin(this->k_orientation[1][state_index_cont_1%(this->m_n_states_cont/this->m_n_k)])+pot_vector[1],2)
+                           +pow(this->k_modulus[(state_index_cont_1-state_index_cont_1%(this->m_n_states_cont/this->m_n_k))/(this->m_n_states_cont/this->m_n_k)]*cos(this->k_orientation[0][state_index_cont_1%(this->m_n_states_cont/this->m_n_k)])+pot_vector[2],2))
                         +this->kinetic_energy[grid_index_1*this->m_tgsize_x+grid_index_2]
                         +this->m_pot_cat[state_index_1*this->m_tgsize_x+grid_index_1]
                         -this->m_dmx_cat[state_index_1*this->m_n_states_cat+state_index_2][grid_index_1]*elec_field[0]
