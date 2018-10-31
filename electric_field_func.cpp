@@ -10,7 +10,7 @@ double hamilton_matrix::electric_field(double time_index,double* vector)
    double CEP(0-2*acos(-1)*int((energy*origin)/(2*acos(-1))));//acos(-1));
 //   double CEP(acos(-1)-2*acos(-1)*int((energy*origin)/(2*acos(-1))));//acos(-1));
 
-   double pump_probe_delay(5.0/0.02418884);
+   double pump_probe_delay(17.0/0.02418884);
 
    double strength_probe(0.005);//0.022);
    double origin_probe(origin+pump_probe_delay);//(4/0.02418884);//3.4/0.02418884);
@@ -38,7 +38,7 @@ double hamilton_matrix::potential_vector(double time_index,double* vector)
    double CEP(0-2*acos(-1)*int((energy*origin)/(2*acos(-1))));//acos(-1));
 //   double CEP(acos(-1)-2*acos(-1)*int((energy*origin)/(2*acos(-1))));//acos(-1));
 
-   double pump_probe_delay(5.0/0.02418884);
+   double pump_probe_delay(17.0/0.02418884);
 
   double strength_probe(0.005);//0.022);
    double origin_probe(origin+pump_probe_delay);//(4/0.02418884);//3.4/0.02418884);

@@ -14,11 +14,11 @@ int main( int argc, char * argv [])
     string neutral_nac("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_NAC_");
     string ionization_coupling_file("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_pice_data_newnorm.h5");//LiH_PICE_R_i_j.txt
 //    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
-    string out_file="/data1/home/stephan/wvpck_mfpad_probe/Output_test_probe_1.log";
-    string read_file="/data1/home/stephan/wvpck_mfpad_probe/read_test_probe_1.txt";//="/data1/home/stephan/wvpck_newpice/read_03_10_18.txt";
-    string wf_out_file="/data1/home/stephan/wvpck_mfpad_probe/neut_test_probe_1_wf_state_";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
-    string spectrum_out_file="/data1/home/stephan/wvpck_mfpad_probe/spect_test_probe_1.txt";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
-    string mfpad_out_file="/data1/home/stephan/wvpck_mfpad_probe/mfpad_test_probe_1.txt";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
+    string out_file="/data1/home/stephan/wvpck_mfpad_probe/Output_test_probe_4.log";
+    string read_file="/data1/home/stephan/wvpck_mfpad_probe/read_test_probe_4.txt";//="/data1/home/stephan/wvpck_newpice/read_03_10_18.txt";
+    string wf_out_file="/data1/home/stephan/wvpck_mfpad_probe/neut_test_probe_4_wf_state_";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
+    string spectrum_out_file="/data1/home/stephan/wvpck_mfpad_probe/spect_test_probe_4.txt";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
+    string mfpad_out_file="/data1/home/stephan/wvpck_mfpad_probe/mfpad_test_probe_4.txt";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
 //    string wf1d_out_file="wvpck_test5/neut_wf1d_state_";
     string pi_cs_file="/data1/home/stephan/wvpck_mfpad_probe/cs_";
     stringstream ss_wf;

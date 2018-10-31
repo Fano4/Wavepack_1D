@@ -2,218 +2,8 @@
 
 //##########################################################################
 //
-//##########################################################################
-/*bool Runge_kutta_notdH(wavefunction *Psi0,hamilton_matrix *H, int time_index)
-{
-    wavefunction* k1=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k2=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k3=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k4=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k5=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k6=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* k7=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-
-    wavefunction* temp=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-    wavefunction* temp2=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-
-    wavefunction** dpsi_mat=new wavefunction *[(Psi0->n_states_neut())*(Psi0->gsize_x())+(Psi0->n_states_cat())*(Psi0->n_states_cont())*(Psi0->gsize_x())]; 
-       for(int i=0;i!=(Psi0->n_states_neut())*(Psi0->gsize_x())+(Psi0->n_states_cat())*(Psi0->n_states_cont())*(Psi0->gsize_x());i++)
-       {
-          dpsi_mat[i]=new wavefunction(Psi0->gsize_x(),Psi0->n_states_neut(),Psi0->n_states_cat(),Psi0->n_states_cont());
-       }
-
-
-    int state_index;
-    int grid_index;
-    int state_index_cont;
-    std::complex<double> ctemp;
-
-    const double a21(1);
-    const double a31(3./8.),a32(1./8.);
-    const double a41(8./27.),a42(2./27.),a43(8./27.);
-    const double  a51(3.*(3.*sqrt(21.)-7.)/392.),a52(-8.*(7.- sqrt(21.))/392.),a53(48.*(7.-sqrt(21.))/392.),a54(-3.*(21.-sqrt(21.))/392.);
-    const double a61(-5.*(231.+51.*sqrt(21.))/1960.),a62(-40.*(7.+sqrt(21.))/1960.),a63(-320.*sqrt(21.)/1960.),a64(3.*(21.+121.*sqrt(21.))/1960.),a65(392.*(6.+sqrt(21.))/1960.);
-    const double a71(15.*(22.+7*sqrt(21.))/180.),a72(120./180.),a73(40.*(7.*sqrt(21.)-5.)/180.),a74(-63.*(3.*sqrt(21.)-2.)/180.),a75(-14.*(49.+9.*sqrt(21))/180.),a76(70.*(7.-sqrt(21.))/180.);
-    const double ddc1(9./180.),ddc2(0.),ddc3(64./180.),ddc4(0.),ddc5(49./180.),ddc6(49./180.),ddc7(9./180.);//SIXTH ORDER RK COEFF
-
-    t_deriv_matrix(H,dpsi_mat,time_index);
-
-    k1->matrix_prod(dpsi_mat,Psi0,H);
-    temp->set_wf(Psi0);
-    ctemp=std::complex<double>(a21*H->h(),0);
-    temp->add_wf(&ctemp,k1);
-
-    k2->matrix_prod(dpsi_mat,temp,H);
-    temp->set_wf(Psi0);
-    ctemp=std::complex<double>(a31*H->h(),0);
-    temp->add_wf(&ctemp,k1);
-    ctemp=std::complex<double>(a32*H->h(),0);
-    temp->add_wf(&ctemp,k2);
-
-    k3->matrix_prod(dpsi_mat,temp,H);
-    temp->set_wf(Psi0);
-    ctemp=std::complex<double>(a41*H->h(),0);
-    temp->add_wf(&ctemp,k1);
-    ctemp=std::complex<double>(a42*H->h(),0);
-    temp->add_wf(&ctemp,k2);
-    ctemp=std::complex<double>(a43*H->h(),0);
-    temp->add_wf(&ctemp,k3);
-
-    k4->matrix_prod(dpsi_mat,temp,H);
-    temp->set_wf(Psi0);
-    ctemp=std::complex<double>(a51*H->h(),0);
-    temp->add_wf(&ctemp,k1);
-    ctemp=std::complex<double>(a52*H->h(),0);
-    temp->add_wf(&ctemp,k2);
-    ctemp=std::complex<double>(a53*H->h(),0);
-    temp->add_wf(&ctemp,k3);
-    ctemp=std::complex<double>(a54*H->h(),0);
-    temp->add_wf(&ctemp,k4);
-
-    k5->matrix_prod(dpsi_mat,temp,H);
-    temp->set_wf(Psi0);
-    ctemp=std::complex<double>(a61*H->h(),0);
-    temp->add_wf(&ctemp,k1);
-    ctemp=std::complex<double>(a62*H->h(),0);
-    temp->add_wf(&ctemp,k2);
-    ctemp=std::complex<double>(a63*H->h(),0);
-    temp->add_wf(&ctemp,k3);
-    ctemp=std::complex<double>(a64*H->h(),0);
-    temp->add_wf(&ctemp,k4);
-    ctemp=std::complex<double>(a65*H->h(),0);
-    temp->add_wf(&ctemp,k5);
-
-    k6->matrix_prod(dpsi_mat,temp,H);
-    temp->set_wf(Psi0);
-    ctemp=std::complex<double>(a71*H->h(),0);
-    temp->add_wf(&ctemp,k1);
-    ctemp=std::complex<double>(a72*H->h(),0);
-    temp->add_wf(&ctemp,k2);
-    ctemp=std::complex<double>(a73*H->h(),0);
-    temp->add_wf(&ctemp,k3);
-    ctemp=std::complex<double>(a74*H->h(),0);
-    temp->add_wf(&ctemp,k4);
-    ctemp=std::complex<double>(a75*H->h(),0);
-    temp->add_wf(&ctemp,k5);
-    ctemp=std::complex<double>(a76*H->h(),0);
-    temp->add_wf(&ctemp,k6);
-
-
-    k7->matrix_prod(dpsi_mat,temp,H);
-    temp->set_wf(Psi0);
-    ctemp=std::complex<double>(ddc1*H->h(),0);
-    temp->add_wf(&ctemp,k1);
-    ctemp=std::complex<double>(ddc2*H->h(),0);
-    temp->add_wf(&ctemp,k2);
-    ctemp=std::complex<double>(ddc3*H->h(),0);
-    temp->add_wf(&ctemp,k3);
-    ctemp=std::complex<double>(ddc4*H->h(),0);
-    temp->add_wf(&ctemp,k4);
-    ctemp=std::complex<double>(ddc5*H->h(),0);
-    temp->add_wf(&ctemp,k5);
-    ctemp=std::complex<double>(ddc6*H->h(),0);
-    temp->add_wf(&ctemp,k6);
-    ctemp=std::complex<double>(ddc7*H->h(),0);
-    temp->add_wf(&ctemp,k7);
-    Psi0->set_wf(temp);
-
-    delete k1;
-    delete k2;
-    delete k3;
-    delete k4;
-    delete k5;
-    delete k6;
-    delete k7;
-    delete temp;
-    delete temp2;
-    delete [] dpsi_mat;
-}
-//##########################################################################
-//
-//##########################################################################
-bool t_deriv_matrix(hamilton_matrix *H,wavefunction **dPsi_mat,double time_index)
-{
-   double* vector=new double[3];
-   H->electric_field(time_index,vector);
-   double efield_magnitude(sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2]));
-   bool condition(0);
-   std::complex<double> ctemp(0,-1);
-
-#pragma omp parallel for
-      for(int i=0;i!=(dPsi_mat[0]->n_states_neut())*(dPsi_mat[0]->gsize_x());i++)
-      {//LOOP OVER THE LINES OF THE H MATRIX
-         int j(0);
-         j=(i%dPsi_mat[0]->gsize_x()-2)*bool(i%dPsi_mat[0]->gsize_x()-2 >= 0);
-      //WE USE FINITE DIFFERENCE METHOD TO FOURTH ORDER. ONLY THE 5 DIAGONALS ARE NON-ZERO. WE BEGIN AT i-2
-         //std::cout<<"probe1 : "<<i<<" , "<<j<<std::endl;
-         wavefunction* temp=new wavefunction (dPsi_mat[0]->gsize_x(),dPsi_mat[0]->n_states_neut(),dPsi_mat[0]->n_states_cat(),dPsi_mat[0]->n_states_cont());
-
-         for(int s=0;s!=dPsi_mat[0]->n_states_neut();s++)
-         {//LOOP OVER THE ELECTRONIC STATES OF THE NEUTRAL, COLUMN OF H
-            while( (j%dPsi_mat[0]->gsize_x()) <= i%dPsi_mat[0]->gsize_x()+2)
-            {//LOOP OVER THE GRID POINTS AROUND THE DIAGONAL
-               //std::cout<<" j = "<<j<<" : "<<j%Psi->gsize_x()<<"/"<<(i%Psi->gsize_x()+2)<<" => "<<bool( (j%Psi->gsize_x()) <= (i%Psi->gsize_x()+2))<<std::endl;
-               temp->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-               if(!(j%dPsi_mat[0]->gsize_x() == dPsi_mat[0]->gsize_x()-1))
-                  j++;
-               else
-               {
-                  j++;
-                  break;
-               }
-            }
-            j += dPsi_mat[0]->gsize_x() - 5 + 2*bool(i%dPsi_mat[0]->gsize_x() == 0) + bool (i%dPsi_mat[0]->gsize_x() == 1) + 2*bool(i%dPsi_mat[0]->gsize_x() == dPsi_mat[0]->gsize_x()-1) + bool (i%dPsi_mat[0]->gsize_x() == dPsi_mat[0]->gsize_x()-2);
-            //std::cout<<"probe2 j = "<<j<<std::endl;
-         }
-         j+=2;
-         if(efield_magnitude > H->efield_thresh())
-         {
-            for(int s=0;s!=dPsi_mat[0]->n_states_cat()*dPsi_mat[0]->n_states_cont();s++)
-            {
-               temp->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-               j += dPsi_mat[0]->gsize_x();
-            }
-         }
-         dPsi_mat[i]->add_wf(&ctemp,temp);
-
-         delete temp;
-      }
-
-#pragma omp parallel for
-      for(int i=(dPsi_mat[0]->n_states_neut())*(dPsi_mat[0]->gsize_x());i!=(dPsi_mat[0]->n_states_neut())*(dPsi_mat[0]->gsize_x())+(dPsi_mat[0]->n_states_cat())*(dPsi_mat[0]->n_states_cont())*(dPsi_mat[0]->gsize_x());i++)
-      {
-         int j(0);
-         wavefunction* temp=new wavefunction (dPsi_mat[0]->gsize_x(),dPsi_mat[0]->n_states_neut(),dPsi_mat[0]->n_states_cat(),dPsi_mat[0]->n_states_cont());
-         j=i%dPsi_mat[0]->gsize_x();
-         if(efield_magnitude > H->efield_thresh())
-         {
-            for(int s=0;s!=dPsi_mat[0]->n_states_neut();s++)
-            {
-               temp->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-               j += dPsi_mat[0]->gsize_x();
-            }
-         }
-         for(int s=0;s!=dPsi_mat[0]->n_states_cat()*dPsi_mat[0]->n_states_cont();s++)
-         {
-            while(j%dPsi_mat[0]->gsize_x() <= (i+2)%dPsi_mat[0]->gsize_x())
-            {
-               temp->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-               if(!(j%dPsi_mat[0]->gsize_x() == dPsi_mat[0]->gsize_x()-1))
-                  j++;
-               else
-               {
-                  j++;
-                  break;
-               }
-            }
-            j += dPsi_mat[0]->gsize_x() - 5 + 2*bool(i%dPsi_mat[0]->gsize_x() == 0) + bool (i%dPsi_mat[0]->gsize_x() == 1) + 2*bool(i%dPsi_mat[0]->gsize_x() == dPsi_mat[0]->gsize_x()-1) + bool (i%dPsi_mat[0]->gsize_x() ==dPsi_mat[0]->gsize_x()-2);
-         }
-         dPsi_mat[i]->add_wf(&ctemp,temp);
-         delete temp;
-      }
-}
-*/
-//##########################################################################
+//Runge Kutta routine is the ODE integrator. it is implemented to the sixth order, with an older implementation to fourth order. It takes both the wave function and the 
+//Hamiltonian objects as arguments, along with the time-index for time-dependent Hamiltonian.
 //
 //##########################################################################
 bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
@@ -250,10 +40,14 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     bool cat=bool(efield_magnitude >= H->efield_thresh());
 
 
+    // k1 = dPsi(t0) / dt | t = t0
+
     t_deriv(Psi0,H,k1,time_index);
     temp->set_wf(Psi0,cat);
     ctemp=std::complex<double>(a21*H->h(),0);
     temp->add_wf(&ctemp,k1,cat);
+
+    // k2 = d[ a21*k1 + Psi(t0) ]/dt | t = t0 + h
 
     t_deriv(temp,H,k2,time_index+1);
     temp->set_wf(Psi0,cat);
@@ -261,6 +55,8 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     temp->add_wf(&ctemp,k1,cat);
     ctemp=std::complex<double>(a32*H->h(),0);
     temp->add_wf(&ctemp,k2,cat);
+
+    // k3 = d[ a31*k1 + a32*k2 + Psi(t0) ]/dt | t = t0 + .5*h
 
     t_deriv(temp,H,k3,time_index+.5);
     temp->set_wf(Psi0,cat);
@@ -270,6 +66,8 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     temp->add_wf(&ctemp,k2,cat);
     ctemp=std::complex<double>(a43*H->h(),0);
     temp->add_wf(&ctemp,k3,cat);
+
+    // k4 = d[ a41*k1 + a42*k2 + a43*k3 + Psi(t0) ]/dt | t = t0 + (2/3)*h
 
     t_deriv(temp,H,k4,time_index+2./3.);
     temp->set_wf(Psi0,cat);
@@ -281,6 +79,8 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     temp->add_wf(&ctemp,k3,cat);
     ctemp=std::complex<double>(a54*H->h(),0);
     temp->add_wf(&ctemp,k4,cat);
+
+    // k5 = d[ a51*k1 + a52*k2 + a53*k3 + a54*k4 + Psi(t0) ]/dt | t = t0 + ( 7-sqrt(21)/14 )*h
 
     t_deriv(temp,H,k5,time_index+(7.-sqrt(21))/14);
     temp->set_wf(Psi0,cat);
@@ -294,6 +94,8 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     temp->add_wf(&ctemp,k4,cat);
     ctemp=std::complex<double>(a65*H->h(),0);
     temp->add_wf(&ctemp,k5,cat);
+
+    // k6 = d[ a61*k1 + a62*k2 + a63*k3 + a64*k4 + a65*k5 + Psi(t0) ]/dt | t = t0 + ( 7+sqrt(21)/14 )*h
 
     t_deriv(temp,H,k6,time_index+(7.+sqrt(21))/14);
     temp->set_wf(Psi0,cat);
@@ -310,8 +112,13 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
     ctemp=std::complex<double>(a76*H->h(),0);
     temp->add_wf(&ctemp,k6,cat);
 
+    // k7 = d[ a71*k1 + a72*k2 + a73*k3 + a74*k4 + a75*k5 + a76*k6 + Psi(t0) ]/dt | t = t0 + h
+
     t_deriv(temp,H,k7,time_index+1);
     temp->set_wf(Psi0,cat);
+
+    // Psi(t) = ddc1 * h * k1 + ddc2 * h * k2 + ddc3 * h * k3 + ddc4 * h * k4 + ddc5 * h * k5 + ddc6 * h * k6 + ddc7 * h * k7
+
     ctemp=std::complex<double>(ddc1*H->h(),0);
     temp->add_wf(&ctemp,k1,cat);
     ctemp=std::complex<double>(ddc2*H->h(),0);
@@ -342,6 +149,10 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
 }
 //##########################################################################
 //
+//The t_deriv routine computes the time-derivative of the wavefunction Psi at the instant given by time_index using the TDSE, from the Hamiltonian H. 
+//The derivative is written in the wavefunction dPsi.
+//This routine is usually called either by the Runge-Kutta routine or for energy computation.
+//
 //##########################################################################
 
 bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time_index)
@@ -362,7 +173,6 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
    double imsum;
    int j(0);
 
-//std::cout<<"N block... "<<(Psi->n_states_neut())*(Psi->gsize_x())<<" elements."<<std::endl;
 #pragma omp parallel for reduction(+:rsum,imsum) private(state_index,grid_index,state_index_cont,state_index2,grid_index2,state_index_cont2,j)
    for(int i=0;i<(Psi->n_states_neut())*(Psi->tgsize_x());i++)//read every line in the Neutral part of the matrix
    {
@@ -376,8 +186,6 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
        */
       for(int s=0;s<Psi->n_states_neut();s++)
       {
-         //if(s==state_index)//Diagonal block in electronic state => pentadiagonal in grid index
-         {
             j=(grid_index-2)*bool(grid_index-2 >= 0)+s*Psi->tgsize_x();//initial grid index of column in diagonal block
             while( (j%Psi->tgsize_x()) <= grid_index+2 && (j%Psi->tgsize_x()) < Psi->tgsize_x()-1)
             {
@@ -388,30 +196,17 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
                imsum+=imag(ctemp);//energy
                j++;
             }
-         }
-         /*else//Non-diagonal block in electronic state => diagonal in grid index
-         {
-            j=grid_index+s*Psi->gsize_x();//grid index of column in diagonal block
-            H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
-               ctemp=(H->hamilt_element(time_index,i,j))*(Psi->show_neut_psi(grid_index2,state_index2));
-               rsum+=real(ctemp);//energy
-               imsum+=imag(ctemp);//energy
-            //rsum+=real((H->hamilt_element(time_index,i,j))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
-            //imsum+=imag((H->hamilt_element(time_index,i,j))*(Psi->show_neut_psi(grid_index2,state_index2)));//energy
-         }*/
       }
       /*
        * End of  N-N block of the hamilton matrix
        */
       if(efield_magnitude >= H->efield_thresh())
       {
-//         std::cout<<"probe 1"<<std::endl;
          /*
           *  N-C block of the hamilton matrix
           */
          for(int s=0;s<Psi->n_states_cat()*Psi->n_states_cont();s++)
          {
-//            std::cout<<"probe NC j = "<<j<<std::endl;
             j=Psi->n_states_neut()*Psi->tgsize_x()+s*Psi->tgsize_x()+grid_index;
             H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
             ctemp=(H->hamilt_element(time_index,i,j))*Psi->show_cat_psi(grid_index,state_index2,state_index_cont2);
@@ -419,7 +214,7 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
             imsum+=imag(ctemp);
          }
          /*
-          *  N-C block of the hamilton matrix
+          * End of N-C block of the hamilton matrix
           */
       }
       std::complex<double> sum(0,0);
@@ -428,7 +223,6 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
    }
    if(efield_magnitude >= H->efield_thresh())
    {
-      //std::cout<<"C block... "<<(Psi->n_states_cat())*(Psi->n_states_cont())*(Psi->gsize_x())<<" elements."<<std::endl;
 #pragma omp parallel for reduction(+:rsum,imsum) private(state_index,grid_index,state_index_cont,state_index2,grid_index2,state_index_cont2,j)
       for(int i=(Psi->n_states_neut())*(Psi->tgsize_x());i<(Psi->n_states_neut())*(Psi->tgsize_x())+(Psi->n_states_cat())*(Psi->n_states_cont())*(Psi->tgsize_x());i++)//read every line in the Cation part of the matrix
       {
@@ -443,9 +237,7 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
           */
          for(int s=0;s<Psi->n_states_neut();s++)
          {
-//            std::cout<<"probe CN"<<std::endl;
             j=s*Psi->tgsize_x()+grid_index;
-//            H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
             ctemp=(H->hamilt_element(time_index,i,j))*Psi->show_neut_psi(grid_index,s);
             rsum+=real(ctemp);//state_index2));
             imsum+=imag(ctemp);//state_index2));
@@ -453,196 +245,53 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
          /*
           *  End of C-N block of the hamilton matrix
           */
+
          /*
           * C-C block of the hamilton matrix
           */
          for(int s=0;s<(Psi->n_states_cat());s++)
          {
-//            std::cout<<"probe CC"<<std::endl;
-            //if(s==state_index)//Diagonal block in electronic state => pentadiagonal in grid index
+            j=(Psi->n_states_neut())*(Psi->tgsize_x())+(i%Psi->tgsize_x()-2)*bool(i%Psi->tgsize_x()-2 >= 0)+s*Psi->n_states_cont()*Psi->tgsize_x()+state_index_cont*Psi->tgsize_x();//initial grid index of column in diagonal block
+
+            while( (j%Psi->tgsize_x()) <= grid_index+2 && (j%Psi->tgsize_x()) < Psi->tgsize_x()-1)
             {
-               j=(Psi->n_states_neut())*(Psi->tgsize_x())+(i%Psi->tgsize_x()-2)*bool(i%Psi->tgsize_x()-2 >= 0)+s*Psi->n_states_cont()*Psi->tgsize_x()+state_index_cont*Psi->tgsize_x();//initial grid index of column in diagonal block
-
-                  while( (j%Psi->tgsize_x()) <= grid_index+2 && (j%Psi->tgsize_x()) < Psi->tgsize_x()-1)
-                  {
-                     H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
-
-                     ctemp=(H->hamilt_element(time_index,i,j))*Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2);
-                     rsum+=real(ctemp);//energy
-                     imsum+=imag(ctemp);//energy
-                     j++;
-
-                  /*   if(!(grid_index2 == Psi->tgsize_x()-1))//if you do not reach the edge of the grid, continue
-                        j++;
-                     else //end of the loop
-                     {
-                        j++;
-                        break;
-                     }*/
-                  }
-               }
-/*               else//Non-diagonal block in electronic state => diagonal in grid index
-               {
-                  j=(Psi->n_states_neut())*(Psi->tgsize_x())+i%Psi->tgsize_x()+s*Psi->tgsize_x()*Psi->n_states_cont()+state_index_cont*Psi->tgsize_x();//grid index of column in diagonal block
-                  H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
-                  rsum+=real((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
-                  imsum+=imag((H->hamilt_element(time_index,i,j))*(Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2)));
-
-               }*/
-            }
-      /*
-       *  End of C-C block of the hamilton matrix
-       */
-      std::complex<double> sum(0,0);
-      sum=std::complex<double>(rsum,imsum);
-      dPsi->set_cat_psi(state_index,state_index_cont,grid_index,std::complex<double>(0,-1)*sum);
-   }
-   }
-   //std::cout<<"entering time deriv routine "<<std::endl;
-//#################################
-//#################################
-//#################################
-   //((Psi->n_states_neut())*(Psi->gsize_x())+(Psi->n_states_cat())*(Psi->n_states_cont())*(Psi->gsize_x()))
-//#pragma omp parallel for
-//N-N block and N-C blocks
-/*std::cout<<"N block"<<std::endl;
-      for(int i=0;i!=(Psi->n_states_neut())*(Psi->gsize_x());i++)
-      {
-         int j(0);
-         wavefunction* Hvec=new wavefunction (Psi->gsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
-
-         H->show_indexes(i,i,&state_index,&grid_index,&state_index_cont,&state_index,&grid_index,&state_index_cont);
-
-//#pragma omp parallel for
-      /
-       * N-N block of the hamilton matrix
-       /
-         std::cout<<"NN block"<<std::endl;
-         for(int s=0;s!=Psi->n_states_neut();s++)
-         {
-            if(s==state_index)
-            {
-               j=(s*(Psi->gsize_x())+(grid_index-2))*bool(grid_index-2 >= 0);
-
-               while( (j%Psi->gsize_x()) <= grid_index + 2 && j%Psi->gsize_x() != Psi->gsize_x()-1 ) 
-               {
-                  Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-                  j++;
-               }
-            }
-            else
-            {
-               j=(s*(Psi->gsize_x())+(grid_index));
-               Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-            }
-               //j += Psi->gsize_x() - 5 + 2*bool(i%Psi->gsize_x() == 0) + bool (i%Psi->gsize_x() == 1) + 2*bool(i%Psi->gsize_x() == Psi->gsize_x()-1) + bool (i%Psi->gsize_x() ==Psi->gsize_x()-2);
-         }
-      *
-       *  N-C block of the hamilton matrix
-       *
-         std::cout<<"NC block"<<std::endl;
-         //if(efield_magnitude > H->efield_thresh())
-         {
-            for(int s=0;s!=Psi->n_states_cat()*Psi->n_states_cont();s++)
-            {
-               std::cout<<"s="<<s<<std::endl;
-               j=Psi->n_states_neut()*Psi->gsize_x()+s*Psi->gsize_x()+grid_index;
-               std::cout<<"j="<<j<<std::endl;
-               Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-            }
-         }
-         std::cout<<"probe"<<std::endl;
-
-*         j+=2;
-         if(efield_magnitude >= H->efield_thresh())
-         {
-            for(int s=0;s!=Psi->n_states_cat()*Psi->n_states_cont();s++)
-            {
-               Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-               j += Psi->gsize_x();
-            }
-         }*
-         //std::cout<<"Then "<<Hvec->show_neut_psi(21,0).real()<<std::endl;
-         dPsi->set_psi_elwise(i,std::complex<double>(0,-1)*Psi->dot_prod(Hvec));
-
-         delete Hvec;
-      }
-*         for(int m=0;m!=Psi->gsize_x();m++)
-         {
-            std::cout<<(H->xmin()+m*(H->xmax()-H->xmin())/(Psi->gsize_x()))*0.529<<"  ,"<<H->pot_neut(1,m)<<" ,"<<norm(Psi->show_neut_psi(m,1))<<","<<norm(dPsi->show_neut_psi(m,1))<<std::endl;
-         }std::cout<<"##########################################################"<<std::endl;
-*
-std::cout<<"C block"<<std::endl;
-      for(int i=(Psi->n_states_neut())*(Psi->gsize_x());i!=(Psi->n_states_neut())*(Psi->gsize_x())+(Psi->n_states_cat())*(Psi->n_states_cont())*(Psi->gsize_x());i++)
-      {
-         int j(0);
-         wavefunction* Hvec=new wavefunction (Psi->gsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
-         H->show_indexes(i,i,&state_index,&grid_index,&state_index_cont,&state_index,&grid_index,&state_index_cont);
-
-      *
-       * C-N block of the hamilton matrix
-       *
-         std::cout<<"CN block"<<std::endl;
-         if(efield_magnitude > H->efield_thresh())
-         {
-            for(int s=0;s!=Psi->n_states_neut();s++)
-            {
-               j=s*Psi->gsize_x()+grid_index;
-               Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-            }
-         }
-      *
-       * C-C block of the hamilton matrix
-       *
-         std::cout<<"CC block"<<std::endl;
-         for(int s=0;s!=Psi->n_states_cat();s++)
-         {
-            if(s==state_index)
-            {
-               j=(Psi->n_states_neut())*(Psi->gsize_x())+(s*(Psi->gsize_x())*(Psi->n_states_cont())+state_index_cont*Psi->gsize_x()+(grid_index-2))*bool(grid_index-2 >= 0);
-
-               while(j%Psi->gsize_x() <= i%Psi->gsize_x()+2)
-               {
-                  Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
-                  if(!(j%Psi->gsize_x() == Psi->gsize_x()-1))
-                     j++;
-                  else
-                  {
-                     j++;
-                     break;
-                  }
-               }
-            }
-            else
-            {
-               j=(Psi->n_states_neut())*(Psi->gsize_x())+i%Psi->gsize_x()+s*Psi->gsize_x()*Psi->n_states_cont()+state_index_cont*Psi->gsize_x();
                H->show_indexes(i,j,&state_index,&grid_index,&state_index_cont,&state_index2,&grid_index2,&state_index_cont2);
-               Hvec->set_psi_elwise(j,H->hamilt_element(time_index,i,j));
+               ctemp=(H->hamilt_element(time_index,i,j))*Psi->show_cat_psi(grid_index2,state_index2,state_index_cont2);
+               rsum+=real(ctemp);//energy
+               imsum+=imag(ctemp);//energy
+               j++;
+
             }
-            //   j += Psi->gsize_x() - 5 + 2*bool(i%Psi->gsize_x() == 0) + bool (i%Psi->gsize_x() == 1) + 2*bool(i%Psi->gsize_x() == Psi->gsize_x()-1) + bool (i%Psi->gsize_x() ==Psi->gsize_x()-2);
-            }
-            dPsi->set_psi_elwise(i,std::complex<double>(0,-1)*Psi->dot_prod(Hvec));
-            delete Hvec;
+         }
+         /*
+          *  End of C-C block of the hamilton matrix
+          */
+         std::complex<double> sum(0,0);
+         sum=std::complex<double>(rsum,imsum);
+         dPsi->set_cat_psi(state_index,state_index_cont,grid_index,std::complex<double>(0,-1)*sum);
       }
-    //std::cout<<"leaving time deriv routine "<<std::endl;
-    */
+   }
     return 0;
 }
 //##########################################################################
+//
+//The propagate routine is a routine called by the main function to propagate the wave function. It is this routine that calls Runge-Kutta and makes the efield and 
+//pot vec evolve. it also checks that the thresholds for taking the effect of efield or pot vec of ionization are crossed or not.
+//When it is needed, this routine calls for the reco;putation of the PICE, under translation by the pot_vec.
 //
 //##########################################################################
 void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_loop)
 {
    double *pot_vec=new double [3];
+
    for(int i=0;i!=num_of_loop;i++)
    {
-//      std::cout<<"loop "<<i<<std::endl;
       H->potential_vector(*time_index,pot_vec);
       H->set_pot_vec_mod(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2)));
 
       if( fabs(H->pot_vec_mod() - H->pot_vec_tm_mod()) >= H->pot_vec_thresh() && H->pot_vec_mod() >= H->pot_vec_thresh())
       {
-         std::cout<<"translating the coupling elements! "<<std::endl<<fabs(H->pot_vec_mod() - H->pot_vec_tm_mod())<<" >= "<<H->pot_vec_thresh()<<std::endl<<H->pot_vec_mod()<<" >= "<<H->pot_vec_thresh()<<std::endl;
+//         std::cout<<"translating the coupling elements! "<<std::endl<<fabs(H->pot_vec_mod() - H->pot_vec_tm_mod())<<" >= "<<H->pot_vec_thresh()<<std::endl<<H->pot_vec_mod()<<" >= "<<H->pot_vec_thresh()<<std::endl;
           H->set_PICE(pot_vec);
           H->set_pot_vec_tm_mod(H->pot_vec_mod());
       }

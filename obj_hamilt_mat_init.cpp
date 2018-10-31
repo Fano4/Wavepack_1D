@@ -22,6 +22,8 @@
 //HAMILTON MATRIX OBJECT INITIALIZATION AND SETTINGS
 //##########################################################################
 //
+//Constructor of the Hamilton_matrix object. This initializes all the arrays and values relative to the Hamiltonian operator
+//
 //##########################################################################
 hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double kmin,double kmax,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh,double pot_vec_thresh,std::string pice_data_loc)
 {
@@ -58,38 +60,18 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
          this->sign_corr[i][j]=1;
       }
    }
-/*   //MANUAL PICE SIGMN CORRECTION PARAMETRING
-   ifstream sign_corr_str;
-   stringstream sign_corr_ss;
-   string sign_corr_s;
-   for(int i=0;i!=this->m_n_states_neut;i++)
-   {
-      sign_corr_ss.str("");
-      sign_corr_ss<<"/data1/home/stephan/LiH_512_points_pice_16_05_18/sign_pice_corr_"<<i<<"_0.txt";
-      sign_corr_s=sign_corr_ss.str();
-      sign_corr_str.open(sign_corr_s.c_str());
-      if(!sign_corr_str.is_open())
-      {
-         std::cout<<"SIGN CORRECTION FILE NOT FOUND. IGNORING"<<std::endl;
-      }
-      else
-      {
-         for(int j=0;j!=this->m_small_gsize_x;j++)
-         {
-            sign_corr_str>>this->sign_corr[i][j];
-         }
-      }
-   }
-   //END OF MANUAL PICE SIGMN CORRECTION PARAMETRING
-*/
+   //
    //initialize potential energy surfaces arrays
+   //
    std::cout<<"initializing PES arrays...";
    this->m_pot_neut=new double [tgsize_x*n_states_neut];
    std::cout<<" ...";
    this->m_pot_cat=new double [tgsize_x*n_states_cat*this->m_n_states_cont];
    std::cout<<"PES arrays initialized!"<<std::endl;
+   //
    //initialize dipole moment surfaces arrays
    //of the neutral
+   //
    std::cout<<"initializing dipole arrays...";
    this->m_dmx_neut=new double*[n_states_neut*n_states_neut];
    std::cout<<" ...";
@@ -104,7 +86,10 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
       this->m_dmz_neut[i]=new double[tgsize_x];
    }
    std::cout<<"dipole arrays of the neutral initialized!"<<std::endl;
+   //
+   //initialize dipole moment surfaces arrays
    //of the cation
+   //
    this->m_dmx_cat=new double*[n_states_cat*n_states_cat];
    std::cout<<" ...";
    this->m_dmy_cat=new double*[n_states_cat*n_states_cat];
@@ -118,7 +103,9 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
       this->m_dmz_cat[i]=new double[tgsize_x];
    }
    std::cout<<"dipole arrays of the cation initialized!"<<std::endl;
+   //
    //initialize photoionization coupling elements surfaces arrays
+   //
    std::cout<<"initializing PICE arrays...";
 
    this->pice_data=new pice_set(pice_data_loc); //Initialize a pice dataset object
@@ -156,17 +143,23 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    this->k_modulus=new double[n_k];
    this->sphere_dist_gen(1);
    std::cout<<" ...";
+
+   //
+   //Initialize the coordinates of the reciprocal space for describing the continuum
+   //
    for(int i=0;i!=this->m_n_k;i++)
    {
       this->k_modulus[i]=kmin+i*(kmax-kmin)/this->m_n_k;
       for(int j=0;j!=this->m_n_angles;j++)
       {
-         //!!!!! sqrt(k) or just k?
+         //rho(k) * dk * dO = k*k * dk * dO
           m_dk_vec[i*this->m_n_angles+j]=4*acos(-1)*pow(this->k_modulus[i],2)*(kmax-kmin)/(this->m_n_k*this->m_n_angles);
       }
    }
    std::cout<<"momentum vectors arrays initialized!"<<std::endl;
+   //
    //initialize Non-adiabatic coupling surfaces arrays
+   //
    std::cout<<"initializing NAC arrays...";
    this->m_NAC=new double*[n_states_neut*n_states_neut];
    std::cout<<" ...";
@@ -176,7 +169,9 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    }
    std::cout<<" ...";
    std::cout<<" NAC initialized!"<<std::endl;
+   //
    //Initialize and set up kinetic energy matrix
+   //
    std::cout<<"initializing kinetic energy array...";
    this->kinetic_energy=new double[tgsize_x*tgsize_x];
    this->derivative_matrix=new double[tgsize_x*tgsize_x];
@@ -240,6 +235,8 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
 }
 //##########################################################################
 //
+//Destructor of the Hamilton_matrix object
+//
 //##########################################################################
 hamilton_matrix::~hamilton_matrix()
 {
@@ -258,6 +255,10 @@ hamilton_matrix::~hamilton_matrix()
    delete [] this->kinetic_energy;
 }
 //##########################################################################
+//
+// This routine sets up the Potential energy curves for the neutral electronic states from an input file located at "file_address"
+// The potential energy surfaces are extrapolated with a harmonic border so that the potential bordr is repulsive and that the wave packet never collides with the edges
+//
 //
 //##########################################################################
 void hamilton_matrix::set_pot_neut(std::string file_address)
@@ -286,14 +287,11 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
          for(int j=dgsize;j!=this->m_tgsize_x;j++)
          {
             input_file>>this->m_pot_neut[this->m_tgsize_x*i+j];
-
- //           this->m_pot_neut[this->m_tgsize_x*i+j]/=27.211; // !!!! REMOVE THIS LINE !!
-
-           // cout<<this->m_pot_neut[this->m_gsize_x*i+j]<<endl;
          }
          input_file.close();
          for(int j=1;j<=dgsize;j++)
          {
+            //Here, the PEC is extrapolated with a harmonic potential.
             this->m_pot_neut[this->m_tgsize_x*i+(dgsize-j)]=this->m_pot_neut[this->m_tgsize_x*i+dgsize]+j*(this->m_pot_neut[this->m_tgsize_x*i+dgsize]-this->m_pot_neut[this->m_tgsize_x*i+dgsize+1])+5e-3*j*j;
          }
       }
@@ -305,6 +303,9 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
    }
 }
 //##########################################################################
+//
+// This routine sets up the Potential energy curves for the cation electronic states from an input file located at "file_address"
+// The potential energy surfaces are extrapolated with a harmonic border so that the potential bordr is repulsive and that the wave packet never collides with the edges
 //
 //##########################################################################
 void hamilton_matrix::set_pot_cat(std::string file_address)
@@ -332,11 +333,11 @@ void hamilton_matrix::set_pot_cat(std::string file_address)
          for(int j=dgsize;j!=this->m_tgsize_x;j++)
          {
             input_file>>this->m_pot_cat[this->m_tgsize_x*i+j];
-            //cout<<this->m_pot_cat[this->m_gsize_x*i+j]<<std::endl;
          }
          input_file.close();
          for(int j=1;j<=dgsize;j++)
          {
+            //Here, the PEC is extrapolated with a harmonic potential.
             this->m_pot_cat[this->m_tgsize_x*i+(dgsize-j)]=this->m_pot_cat[this->m_tgsize_x*i+dgsize]+j*(this->m_pot_cat[this->m_tgsize_x*i+dgsize]-this->m_pot_cat[this->m_tgsize_x*i+dgsize+1])+5e-3*j*j;
          }
       }
