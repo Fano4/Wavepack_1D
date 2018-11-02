@@ -3,20 +3,19 @@
 
 double hamilton_matrix::electric_field(double time_index,double* vector)
 {
-   double strength(0.01);//0.022);
-   double origin(5.0/0.02418884);//(2/0.02418884);//3.4/0.02418884);
-   double sigma(1.189051/0.02418884);//0.887/0.02418884);//0.677/0.02418884);
-   double energy(6.0/27.211);//3.75/27.211);//0.08563);//0.05695);
-   double CEP(0-2*acos(-1)*int((energy*origin)/(2*acos(-1))));//acos(-1));
-//   double CEP(acos(-1)-2*acos(-1)*int((energy*origin)/(2*acos(-1))));//acos(-1));
+   double strength(this->m_pump_strength);
+   double origin(this->m_pump_origin);
+   double sigma(this->m_pump_sigma);
+   double energy(this->m_pump_energy);
+   double CEP(this->m_pump_CEP-2*acos(-1)*int((energy*origin)/(2*acos(-1))));
 
-   double pump_probe_delay(17.0/0.02418884);
+   double pump_probe_delay(this->m_pprobe_delay);
 
-   double strength_probe(0.005);//0.022);
-   double origin_probe(origin+pump_probe_delay);//(4/0.02418884);//3.4/0.02418884);
-   double sigma_probe(0.25/0.02418884);//2.0/0.02418884);//0.677/0.02418884);
-   double energy_probe(0.551);//0.08563);//0.05695);
-   double CEP_probe(0-2*acos(-1)*int((energy_probe*origin_probe)/(2*acos(-1))));//acos(-1));
+   double strength_probe(this->m_probe_strength);
+   double origin_probe(origin+pump_probe_delay);
+   double sigma_probe(this->m_probe_sigma);
+   double energy_probe(this->m_probe_energy);
+   double CEP_probe(this->m_probe_CEP-2*acos(-1)*int((energy_probe*origin_probe)/(2*acos(-1))));
 
    double time(this->m_h*time_index);
    double amplitude(strength*exp(-pow((time-origin),2)/(2*sigma*sigma))*(cos(energy*(time-origin)+CEP)-(time-origin)*sin(energy*(time-origin)+CEP)/(energy*sigma*sigma))
@@ -31,20 +30,19 @@ double hamilton_matrix::electric_field(double time_index,double* vector)
 }
 double hamilton_matrix::potential_vector(double time_index,double* vector)
 {
-   double strength(0.01);//0.022);
-   double origin(5.0/0.02418884);//4/0.02418884);//3.4/0.02418884);
-   double sigma(1.189051/0.02418884);//0.887/0.02418884);//0.677/0.02418884);
-   double energy(6.0/27.211);//3.75/27.211);//0.12656)/0.08563);//0.05695);
-   double CEP(0-2*acos(-1)*int((energy*origin)/(2*acos(-1))));//acos(-1));
-//   double CEP(acos(-1)-2*acos(-1)*int((energy*origin)/(2*acos(-1))));//acos(-1));
+   double strength(this->m_pump_strength);
+   double origin(this->m_pump_origin);
+   double sigma(this->m_pump_sigma);
+   double energy(this->m_pump_energy);
+   double CEP(this->m_pump_CEP-2*acos(-1)*int((energy*origin)/(2*acos(-1))));
 
-   double pump_probe_delay(17.0/0.02418884);
+   double pump_probe_delay(this->m_pprobe_delay);
 
-  double strength_probe(0.005);//0.022);
-   double origin_probe(origin+pump_probe_delay);//(4/0.02418884);//3.4/0.02418884);
-   double sigma_probe(0.25/0.02418884);//0.887/0.02418884);//0.677/0.02418884);
-   double energy_probe(0.551);//0.08563);//0.05695);
-   double CEP_probe(0-2*acos(-1)*int((energy_probe*origin_probe)/(2*acos(-1))));//acos(-1));
+   double strength_probe(this->m_probe_strength);
+   double origin_probe(origin+pump_probe_delay);
+   double sigma_probe(this->m_probe_sigma);
+   double energy_probe(this->m_probe_energy);
+   double CEP_probe(this->m_probe_CEP-2*acos(-1)*int((energy_probe*origin_probe)/(2*acos(-1))));
 
    double time(this->m_h*time_index);
    double amplitude(strength*exp(-pow((time-origin),2)/(2*sigma*sigma))*sin(energy*(time-origin)+CEP)

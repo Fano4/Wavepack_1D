@@ -1,0 +1,11 @@
+prefix=/data1/home/stephan/gsl
+exec_prefix=/data1/home/stephan/gsl
+libdir=/data1/home/stephan/gsl/lib
+includedir=/data1/home/stephan/gsl/include
+GSL_CBLAS_LIB=-lgslcblas
+
+Name: GSL
+Description: GNU Scientific Library
+Version: 2.4
+Libs: -L/data1/home/stephan/gsl/lib -lgsl ${GSL_CBLAS_LIB} -lm -lm 
+Cflags: -I/data1/home/stephan/gsl/include

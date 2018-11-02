@@ -25,7 +25,7 @@
 //Constructor of the Hamilton_matrix object. This initializes all the arrays and values relative to the Hamiltonian operator
 //
 //##########################################################################
-hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double kmin,double kmax,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh,double pot_vec_thresh,std::string pice_data_loc)
+hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double kmin,double kmax,double xmin,double xmax,double mass,int n_times,double h,double pump_strength,double probe_strength,double pump_origin,double pprobe_delay,double pump_sigma,double probe_sigma,double pump_energy,double probe_energy,double pump_CEP,double probe_CEP,double efield_thresh,double pot_vec_thresh,std::string pice_data_loc)
 {
    using namespace std;
    //initialize grid parameters and time settings
@@ -48,6 +48,19 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    this->m_kmax=kmax;
    double delta_x((xmax-xmin)/gsize_x);
    std::cout<<"Size of the pixel is "<<delta_x<<std::endl;
+   //
+   //initialize pulses parameters
+
+   this->m_pump_strength=pump_strength;
+   this->m_probe_strength=probe_strength;
+   this->m_pump_origin=pump_origin;
+   this->m_pprobe_delay=pprobe_delay;
+   this->m_pump_sigma=pump_sigma;
+   this->m_probe_sigma=probe_sigma;
+   this->m_pump_energy=pump_energy;
+   this->m_probe_energy=probe_energy;
+   this->m_pump_CEP=pump_CEP;
+   this->m_probe_CEP=probe_CEP;
 
    //TEMPORARY PICE SIGN CORRECTION 
    //

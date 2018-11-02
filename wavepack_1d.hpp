@@ -17,5 +17,6 @@
 #include "obj_hamilt_mat_init.cpp"
 #include "obj_hamilt_mat_comp.cpp"
 #include "electric_field_func.cpp"
+#include "input_reader.cpp"
 
 

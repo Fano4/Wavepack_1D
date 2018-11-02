@@ -4,23 +4,36 @@ int main( int argc, char * argv [])
 {
     using namespace std;
 
-    omp_set_num_threads(32);
+    std::string input_file_loc;
+    int nproc(0);
+
+    if(argc<3)
+    {
+       std::cout<<"Error: too few arguments for calling Wavepack. I need the location of the input file and the number of processes used. EXIT"<<std::endl;
+       exit(EXIT_SUCCESS);
+    }
+    else
+    {
+       input_file_loc=std::string(argv[1]);
+       nproc=std::atoi(std::string(argv[2]).c_str());
+       std::cout<<"Running wavepack using input file "<<input_file_loc.c_str()<<" with "<<nproc<<"processes !"<<std::endl;
+    }
+
+    omp_set_num_threads(nproc);
 
     //PATH LINKING OTHER FILES
-    string neutral_pes("/data1/home/stephan/Wavepack_1D/wavepack_int_input/Int_pes_");
-    string cation_pes("/data1/home/stephan/Wavepack_1D/wavepack_int_input/Int_pes_cat_");
-    string neutral_dipole("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_neut_");
-    string cation_dipole("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_cat_");
-    string neutral_nac("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_NAC_");
-    string ionization_coupling_file("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_pice_data_newnorm.h5");//LiH_PICE_R_i_j.txt
-//    string phase_file("/data1/home/stephan/LiH_gridtest/phase_");
-    string out_file="/data1/home/stephan/wvpck_mfpad_probe/Output_test_probe_4.log";
-    string read_file="/data1/home/stephan/wvpck_mfpad_probe/read_test_probe_4.txt";//="/data1/home/stephan/wvpck_newpice/read_03_10_18.txt";
-    string wf_out_file="/data1/home/stephan/wvpck_mfpad_probe/neut_test_probe_4_wf_state_";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
-    string spectrum_out_file="/data1/home/stephan/wvpck_mfpad_probe/spect_test_probe_4.txt";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
-    string mfpad_out_file="/data1/home/stephan/wvpck_mfpad_probe/mfpad_test_probe_4.txt";//"/data1/home/stephan/wvpck_newpice/neut_03_10_18_wf_state_";
-//    string wf1d_out_file="wvpck_test5/neut_wf1d_state_";
-    string pi_cs_file="/data1/home/stephan/wvpck_mfpad_probe/cs_";
+    string neutral_pes;
+    string cation_pes;
+    string neutral_dipole;
+    string cation_dipole;
+    string neutral_nac;
+    string ionization_coupling_file;//LiH_PICE_R_i_j.txt
+    string out_file;
+    string read_file;
+    string wf_out_file;
+    string spectrum_out_file;
+    string mfpad_out_file;
+    string pi_cs_file;
     stringstream ss_wf;
     string s_wf;
     ofstream output;
@@ -30,35 +43,54 @@ int main( int argc, char * argv [])
     ofstream mfpad;
     //string elec_wavepack_file="LiH_elec_wvpck.txt";
     //PARAMETERS OF THE SIMULATION
-    int gsize_x(512);
-    int tgsize_x(gsize_x+10);
-    int small_gsize_x(64);
-    int dgsize(tgsize_x-gsize_x);
-    int n_states_neut(10);
-    int n_states_cat(1);
-    int n_angles(45);
-    int n_k(30);
-    double kp(13);
-    double kmin=1e-4;
-    double kmax=1.0;//
-    double xmin(0.8/0.529);//!!! THESE VALUES ARE IN ATOMIC UNITS AND NOT IN ANGSTROM
-    double xmax(21.6/0.529);
-    double mass(1836*(1.007825*6.015122795/(1.007825+6.015122795)));
-    double total_time(100/0.02418884);
-    double h(0.0005/0.02418884);
-    int n_times(int(total_time/h));
-    int time_index(0);
+    int gsize_x;
+    int small_gsize_x;
+    int n_states_neut;
+    int n_states_cat;
+    int n_angles;
+    int n_k;
+    int kp;
+    double kmin;
+    double kmax;//
+    double xmin;//!!! THESE VALUES ARE IN ATOMIC UNITS AND NOT IN ANGSTROM
+    double xmax;
+    double mass;
+    double total_time;
+    double h;
+    int time_index;
     double dipole[3];
     double efield[3];
-    double efield_thresh(1e-4);
-    double pot_vec_thresh(1.);
+    double efield_thresh;
+    double pot_vec_thresh;
     double norm;
     double temp;
+    double pump_strength;
+    double probe_strength;
+    double pump_origin;
+    double pprobe_delay;
+    double pump_sigma;
+    double probe_sigma;
+    double pump_energy;
+    double probe_energy;
+    double pump_CEP;
+    double probe_CEP;
+    time_t date_num;
+    std::string date_str;
+    
+    time(&date_num);
+    date_str=ctime(&date_num);
+
    double respectrum(0);
    double imspectrum(0);
 
+    input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
+
+    int tgsize_x(gsize_x+10);
+    int n_times(int(total_time/h));
+    int dgsize(tgsize_x-gsize_x);
+
     wavefunction* Psi= new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);
-    hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,small_gsize_x,n_states_neut,n_states_cat,n_k,n_angles,kmin,kmax,xmin,xmax,mass,n_times,h,efield_thresh,pot_vec_thresh,ionization_coupling_file.c_str());
+    hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,small_gsize_x,n_states_neut,n_states_cat,n_k,n_angles,kmin,kmax,xmin,xmax,mass,n_times,h,pump_strength,pump_origin,pump_sigma,pump_energy,pump_CEP,probe_strength,pprobe_delay,probe_sigma,probe_energy,probe_CEP,efield_thresh,pot_vec_thresh,ionization_coupling_file.c_str());
 
 
 
@@ -68,6 +100,15 @@ int main( int argc, char * argv [])
     H->set_dm_cat(cation_dipole.c_str());
     H->set_NAC(neutral_nac);
     H->set_PICE();
+
+    output.open(out_file.c_str());
+    std::cout<<"Output from Wavepack_1D, developped by Stephan van den Wildenberg (Theoretical Physical Chemistry, University of Liege)"<<std::endl<<"File generated on "<<date_str<<std::endl;
+    std::cout<<"Pump and probe pulses have the following parameters:"<<std::endl
+       <<"Strength: "<<pump_strength<<" (pump) ; "<<probe_strength<<" (probe) "<<std::endl
+       <<"Sigma: "<<pump_sigma<<" (pump) ; "<<probe_sigma<<" (probe) "<<std::endl
+       <<"Carrier Energy: "<<pump_energy<<" (pump) ; "<<probe_energy<<" (probe) "<<std::endl
+       <<"CEP: "<<pump_CEP<<" (pump) ; "<<probe_CEP<<" (probe) "<<std::endl;
+    output.close();
 /*
     stringstream tempstr;
     string filename;
@@ -131,7 +172,7 @@ int main( int argc, char * argv [])
 //    read.close();
     std::cout<<"##################"<<std::endl;
 
-    output.open(out_file.c_str());
+    output.open(out_file.c_str(),ios_base::app);
     output<<"initial energy of the system "<<setprecision(15)<<H->energy(Psi,0)<<std::endl<<"initial norm of the system = 1"<<std::endl;;
 //    output<<setprecision(15)<<Psi->norm(H)<<std::endl;
     output.close();
@@ -149,7 +190,6 @@ int main( int argc, char * argv [])
 //          wf_out.close();
        }
 
-    //wavefunction* dPsi= new wavefunction(gsize_x, n_states_neut,n_states_cat,n_angles*n_k);
 
     while(time_index <= n_times)
     {

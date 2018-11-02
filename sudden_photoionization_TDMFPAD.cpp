@@ -29,20 +29,26 @@ int main(int argc, char *argv [])
 
 
    //LOCATION OF THE INPUT FILES
-   string state_1_wf_address("/data1/home/stephan/wavepack_results_dir/wvpck_astridpulse_0.02/neut_wf_ceppi_state_3.wvpck");
-   string state_2_wf_address("/data1/home/stephan/wavepack_results_dir/wvpck_astridpulse_0.02/neut_wf_ceppi_state_4.wvpck");
+   string state_1_wf_address("/data1/home/stephan/wavepack_results_dir/wvpck_mfpad_probe/neut_test_pulse_2_wf_state_3.wvpck");
+   string state_2_wf_address("/data1/home/stephan/wavepack_results_dir/wvpck_mfpad_probe/neut_test_pulse_2_wf_state_4.wvpck");
    string ionization_coupling_file("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_pice_data_newnorm.h5");//LiH_PICE_R_i_j.txt
-   string tdmfpad_address("/data1/home/stephan/wavepack_results_dir/wvpck_astridpulse_0.02/tdmfpad_sudden_st_3_4.txt");
-   string anisotropy_address("/data1/home/stephan/wavepack_results_dir/wvpck_astridpulse_0.02/anisotropy_sudden.txt");
+   string tdmfpad_address("/data1/home/stephan/wavepack_results_dir/wvpck_mfpad_probe/tdmfpad_sudden_st_3_4.txt");
+   string anisotropy_address("/data1/home/stephan/wavepack_results_dir/wvpck_mfpad_probe/anisotropy_sudden.txt");
+   string tdspec_address("/data1/home/stephan/wavepack_results_dir/wvpck_mfpad_probe/tdpes_sudden_st_3_4.txt");
 
    ifstream input;
    ofstream output;
    ofstream output2;
+   ofstream output3;
 
    //DIMENSION OF THE R GRID AND OF THE CONTINUUM
    int grid_size(512);
-   int n_theta(20);
-   int n_phi(40);
+   int n_theta(15);
+   int n_phi(20);
+   int nk(30);
+   double kmin(0);
+   double kmax(1.0);
+   double kpp;
    double kp(sqrt(2.*2./27.211));
    int n_points(n_theta*n_phi);
    int n_times(2000);
@@ -70,6 +76,13 @@ int main(int argc, char *argv [])
    std::complex<double> **dipole_2_x=new std::complex<double>*[n_points];
    std::complex<double> **dipole_2_y=new std::complex<double>*[n_points];
    std::complex<double> **dipole_2_z=new std::complex<double>*[n_points];
+   std::complex<double> ***pesdipole_1_x=new std::complex<double>**[nk];
+   std::complex<double> ***pesdipole_1_y=new std::complex<double>**[nk];
+   std::complex<double> ***pesdipole_1_z=new std::complex<double>**[nk];
+   std::complex<double> ***pesdipole_2_x=new std::complex<double>**[nk];
+   std::complex<double> ***pesdipole_2_y=new std::complex<double>**[nk];
+   std::complex<double> ***pesdipole_2_z=new std::complex<double>**[nk];
+   double **tdpes=new double*[nk];
    double **mfpad=new double*[n_points];
    std::complex<double> **wf_st_1=new std::complex<double>*[grid_size];
    std::complex<double> **wf_st_2=new std::complex<double>*[grid_size];
@@ -80,6 +93,25 @@ int main(int argc, char *argv [])
       wf_st_1[i]=new std::complex<double>[n_times];
       wf_st_2[i]=new std::complex<double>[n_times];
    }
+   for(int i=0;i!=nk;i++)
+   {
+      tdpes[i]=new double[n_times];
+      pesdipole_1_x[i]=new std::complex<double>*[n_points];
+      pesdipole_1_y[i]=new std::complex<double>*[n_points];
+      pesdipole_1_z[i]=new std::complex<double>*[n_points];
+      pesdipole_2_x[i]=new std::complex<double>*[n_points];
+      pesdipole_2_y[i]=new std::complex<double>*[n_points];
+      pesdipole_2_z[i]=new std::complex<double>*[n_points];
+      for(int j=0;j!=n_points;j++)
+      {
+         pesdipole_1_x[i][j]=new std::complex<double>[grid_size];
+         pesdipole_1_y[i][j]=new std::complex<double>[grid_size];
+         pesdipole_1_z[i][j]=new std::complex<double>[grid_size];
+         pesdipole_2_x[i][j]=new std::complex<double>[grid_size];
+         pesdipole_2_y[i][j]=new std::complex<double>[grid_size];
+         pesdipole_2_z[i][j]=new std::complex<double>[grid_size];
+      }
+   }
    for(int i=0;i!=n_theta;i++)
    {
       for(int j=0;j!=n_phi;j++)
@@ -87,9 +119,6 @@ int main(int argc, char *argv [])
           thet[i*n_phi+j]=i*Pi/n_theta;
           phi[i*n_phi+j]=j*2*Pi/n_phi;
       }
-   }
-   for(int i=0;i!=n_phi;i++)
-   {
    }
    for(int i=0;i!=n_points;i++)
    {
@@ -104,20 +133,28 @@ int main(int argc, char *argv [])
    pice_data= new pice_set(ionization_coupling_file);
    std::cout<<"GOT PICE DATA"<<std::endl;
 
-   /*
+   
    int x(0);
 #pragma omp parallel for private(x)
    for( x=0;x<grid_size;x++)
    {
+      std::cout<<"pice position "<<x<<"...";
       for(int i=0;i<n_points;i++)
       {
+         std::cout<<" angle "<<i<<"...";
          pice_data->fill_pice(&dipole_1_x[i][x],&dipole_1_y[i][x],&dipole_1_z[i][x],x,state_index_1,state_index_cat,thet[i],phi[i],kp,NULL);
          pice_data->fill_pice(&dipole_2_x[i][x],&dipole_2_y[i][x],&dipole_2_z[i][x],x,state_index_2,state_index_cat,thet[i],phi[i],kp,NULL);
+         for(int j=0;j!=nk;j++)
+         {
+            kpp=kmin+i*(kmax-kmin)/nk;
+            pice_data->fill_pice(&pesdipole_1_x[j][i][x],&pesdipole_1_y[j][i][x],&pesdipole_1_z[j][i][x],x,state_index_1,state_index_cat,thet[i],phi[i],kpp,NULL);
+            pice_data->fill_pice(&pesdipole_2_x[j][i][x],&pesdipole_2_y[j][i][x],&pesdipole_2_z[j][i][x],x,state_index_2,state_index_cat,thet[i],phi[i],kpp,NULL);
+         }
       }
-      std::cout<<"pice position "<<x<<" filled"<<std::endl;
+      std::cout<<"Done !"<<std::endl;
    }
    std::cout<<"ALL PICE FILLED"<<std::endl;
-*/
+
 //EXTRACT THE NUCLEAR WAVE FUNCTION ON STATE 1
    input.open(state_1_wf_address.c_str());
    if(!input.is_open())
@@ -181,16 +218,28 @@ int main(int argc, char *argv [])
       std::cout<<0.04*t<<","<<overlap<<std::endl;
    }
 
-   return 0;
-
    output.open(tdmfpad_address.c_str());
    output2.open(anisotropy_address.c_str());
+   output3.open(tdspec_address.c_str());
    for(int t=0;t!=n_times;t++)
    {
 
       up=0;
       down=0;
       std::cout<<"WRITING OUTPUT TIME "<<t<<" / "<<n_times<<std::endl;
+      for(int i=0;i!=nk;i++)
+      {
+         kpp=kmin+i*(kmax-kmin)/nk;
+         tdpes[i][t]=0;
+         for(int r=0;r!=grid_size;r++)
+         {
+            for(int j=0;j!=n_points;j++)
+            {
+               tdpes[i][t]+=std::norm(wf_st_1[r][t]*pesdipole_1_z[i][j][r])+std::norm(wf_st_2[r][t]*pesdipole_2_z[i][j][r])+2*std::real(wf_st_1[r][t]*pesdipole_1_z[i][j][r]*std::conj(wf_st_2[r][t]*pesdipole_2_z[i][j][r]))*pow(kpp,2)*sin(thet[j])*2*pow(acos(-1),2)/(n_theta*n_phi);
+            }
+         }
+         output3<<t*0.04<<"   "<<kpp<<"   "<<tdpes[i][t]<<std::endl;
+      }output3<<std::endl;
       for(int i=0;i!=n_points;i++)
       {
          mfpad[i][t]=0;
@@ -215,208 +264,8 @@ int main(int argc, char *argv [])
    }
    output.close();
    output2.close();
-//   std::cout<<"Electric field components : (X-comp) , (Y-comp) , (Z-comp)"<<std::endl<<x_comp<<" , "<<y_comp<<", "<<z_comp<<std::endl;
+   output3.close();
 
-
-//        compute_mfpad(x_comp,y_comp,z_comp,n_points,mfpad,kp,dipole_address);//Compute the angularly resolved differential cross section for the given direction of the electric field
 
    return 0;
-}
-
-bool angularly_resolved_dipole_reader(double *prefactor,double *theta,double *phi, double * redipole_x,double * imdipole_x,double * redipole_y,double * imdipole_y,double * redipole_z,double * imdipole_z,int n_points,std::string dipole_address)
-{
-   using namespace std;
-   string tmp_str;
-
-   ifstream dipole_file;
-   dipole_file.open(dipole_address.c_str());
-   if(!dipole_file.is_open())
-   {
-      std::cout<<"CANNOT OPEN ANGULARLY RESOLVED IONIZATION DIPOLE FILE"<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
-      exit(EXIT_FAILURE);
-   }
-   for(int i=0;i!=n_points;i++)
-   {
-      dipole_file>>tmp_str;
-      dipole_file>>theta[i];
-      dipole_file>>phi[i];
-      if(i==0)
-         dipole_file>>*prefactor;
-      else
-         dipole_file>>tmp_str;
-      dipole_file>>redipole_x[i];
-      dipole_file>>imdipole_x[i];
-      dipole_file>>redipole_y[i];
-      dipole_file>>imdipole_y[i];
-      dipole_file>>redipole_z[i];
-      dipole_file>>imdipole_z[i];
-   }
-   dipole_file.close();
-   return 1;
-   
-}
-bool compute_mfpad(double x_comp,double y_comp,double z_comp,int n_points,double *mfpad,int kp,std::string dipole_address)
-{
-   int nk(50);
-   int n_theta(20);
-   int n_phi(40);
-   double *RePICE_x=new double [n_points];
-   double *ImPICE_x=new double [n_points];
-   double *RePICE_y=new double [n_points];
-   double *ImPICE_y=new double [n_points];
-   double *RePICE_z=new double [n_points];
-   double *ImPICE_z=new double [n_points];
-   double *k=new double [n_points];
-   double *thet=new double [n_points];
-   double *phi=new double [n_points];
-
-   using namespace std;
-   ifstream input;
-   input.open(dipole_address.c_str());
-
-   if(!input.is_open())
-   {      
-      std::cout<<"CANNOT OPEN ANGULARLY RESOLVED IONIZATION DIPOLE FILE"<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
-      exit(EXIT_FAILURE);
-   }
-   else
-   {
-      for(int i=0;i!=nk*n_theta*n_phi;i++)
-      {
-         input>>k[i];
-//         std::cout<<i<<"-"<<i%(n_theta*n_phi)<<"---"<<k[i]<<std::endl;
-/*         if(i%(n_theta*n_phi)==0)
-         {
-            std::cout<<i/(n_theta*n_phi)<<"=>"<<k[i]<<std::endl;
-         }*/
-         input>>thet[i];
-         input>>phi[i];
-         input>>RePICE_x[i];
-         input>>ImPICE_x[i];
-         input>>RePICE_y[i];
-         input>>ImPICE_y[i];
-         input>>RePICE_z[i];
-         input>>ImPICE_z[i];
-      }
-   input.close();
-   for(int i=0;i!=n_theta*n_phi;i++)
-   {
-      mfpad[i]=real(std::complex<double>(x_comp*RePICE_x[kp*n_theta*n_phi+i]+y_comp*RePICE_y[kp*n_theta*n_phi+i]+z_comp*RePICE_z[kp*n_theta*n_phi+i],x_comp*ImPICE_x[kp*n_theta*n_phi+i]+y_comp*ImPICE_y[kp*n_theta*n_phi+i]+z_comp*ImPICE_z[kp*n_theta*n_phi+i])*std::complex<double>(x_comp*RePICE_x[kp*n_theta*n_phi+i]+y_comp*RePICE_y[kp*n_theta*n_phi+i]+z_comp*RePICE_z[kp*n_theta*n_phi+i],-(x_comp*ImPICE_x[kp*n_theta*n_phi+i]+y_comp*ImPICE_y[kp*n_theta*n_phi+i]+z_comp*ImPICE_z[kp*n_theta*n_phi+i])));
-      std::cout<<k[kp*n_theta*n_phi+i]<<"   "<<thet[kp*n_theta*n_phi+i]<<"   "<<phi[kp*n_theta*n_phi+i]<<"   "<<mfpad[i]<<std::endl;
-      if(i%n_phi==0 && i!=0)
-         std::cout<<std::endl;
-   }
-   return 1;
-}
-}
-bool compute_spectrum(double x_comp,double y_comp,double z_comp,int n_points,std::string dipole_address,std::string spectrum_address)
-{
-   int n_theta(20);
-   int n_phi(40);
-   int temp_int;
-   double * k=new double[n_points];
-   double * theta=new double[n_points];
-   double * phi=new double[n_points];
-   double *RePICE_x=new double[n_points];
-   double *ImPICE_x=new double[n_points];
-   double *RePICE_y=new double[n_points];
-   double *ImPICE_y=new double[n_points];
-   double *RePICE_z=new double[n_points];
-   double *ImPICE_z=new double[n_points];
-
-   const double pi(acos(-1));
-   const int nk(50);
-   double total(0);
-   double *cs=new double[nk];
-
-   using namespace std;
-   ifstream input;
-   input.open("/data1/home/stephan/kxkykz.txt");
-    double *distrib_cart=new double[3];
-
-    for(int t=0;t!=2000;t++)
-    {
-       input>>temp_int;
-       input>>distrib_cart[0];
-       input>>distrib_cart[1];
-       input>>distrib_cart[2];
-
-       for(int p=0;p!=nk;p++)
-       {
-          theta[p*2000+t]=acos(distrib_cart[2]);
-          phi[p*2000+t]=atan2(distrib_cart[1],distrib_cart[0]);
-          if(phi[p*2000+t]<0)
-             phi[p*2000+t]+=2*acos(-1);
-       }
-    }
-    input.close();
-    for(int p=0;p!=nk;p++)
-    {
-       for(int t=0;t!=2000;t++)
-       {
-          k[p*2000+t]=p*1.5/nk;
-       }
-    }
-
-   input.open(dipole_address.c_str());
-
-   if(!input.is_open())
-   {      
-      std::cout<<"CANNOT OPEN ANGULARLY RESOLVED IONIZATION DIPOLE FILE"<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
-      exit(EXIT_FAILURE);
-   }
-   else
-   {
-      for(int i=0;i!=nk*2000;i++)
-      {
-//         input>>k[i];
-//         std::cout<<i<<"-"<<i%(n_theta*n_phi)<<"---"<<k[i]<<std::endl;
-         if(i%(2000)==0)
-         {
-            std::cout<<i/(2000)<<"=>"<<k[i]<<std::endl;
-         }
-//         input>>theta[i];
-//         input>>phi[i];
-         input>>RePICE_x[i];
-         input>>ImPICE_x[i];
-         input>>RePICE_y[i];
-         input>>ImPICE_y[i];
-         input>>RePICE_z[i];
-         input>>ImPICE_z[i];
-      }
-      for(int i=0;i!=nk;i++)
-      {
-         cs[i]=0;
-         for(int j=0;j!=2000;j++)
-         {
-//             for(int l=0;l!=n_phi;l++)
-             {
-//                std::cout<<k[i*n_theta*n_phi+j*n_phi+l]<<","<<theta[i*n_theta*n_phi+j*n_phi+l]<<","<<phi[i*n_theta*n_phi+j*n_phi+l]<<","<<std::endl;
-      //          cs[i]+=pow(k[i*n_theta*n_phi+j*n_phi+l],2)*sin(theta[i*n_theta*n_phi+j*n_phi+l])*(acos(-1)/n_theta)*(2*acos(-1)/n_phi)*real(std::complex<double>(x_comp*RePICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*RePICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*RePICE_z[i*n_theta*n_phi+j*n_phi+l],x_comp*ImPICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*ImPICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*ImPICE_z[i*n_theta*n_phi+j*n_phi+l])*std::complex<double>(x_comp*RePICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*RePICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*RePICE_z[i*n_theta*n_phi+j*n_phi+l],-(x_comp*ImPICE_x[i*n_theta*n_phi+j*n_phi+l]+y_comp*ImPICE_y[i*n_theta*n_phi+j*n_phi+l]+z_comp*ImPICE_z[i*n_theta*n_phi+j*n_phi+l])));
-                cs[i]+=pow(k[i*2000+j],2)*(4*acos(-1)/2000)*real(std::complex<double>(x_comp*RePICE_x[i*2000+j]+y_comp*RePICE_y[i*2000+j]+z_comp*RePICE_z[i*2000+j],x_comp*ImPICE_x[i*2000+j]+y_comp*ImPICE_y[i*2000+j]+z_comp*ImPICE_z[i*2000+j])*std::complex<double>(x_comp*RePICE_x[i*2000+j]+y_comp*RePICE_y[i*2000+j]+z_comp*RePICE_z[i*2000+j],-(x_comp*ImPICE_x[i*2000+j]+y_comp*ImPICE_y[i*2000+j]+z_comp*ImPICE_z[i*2000+j])));
-             }
-         }
-//         total+=cs[i]*(k[nk*n_theta*n_phi-1]-k[0])/nk;
-         total+=cs[i]*(k[nk*2000-1]-k[0])/nk;
-//         std::cout<<k[i*2000]<<", "<<cs[i]<<" => total = "<<total<<std::endl;
-         std::cout<<k[i*2000]*k[i*2000]*27.211/2<<", "<<cs[i]<<std::endl;
- //        std::cout<<pow(k[i*n_theta*n_phi],2)*27.211/2<<", "<<cs[i]<<std::endl;
-         //std::cout<<pow(k[i*n_theta*n_phi],2)*27.211/2<<", "<<cs[i]*Lx*Ly*Lz/pow((2*pi),3)<<std::endl;
-      }
-      input.close(); 
-   }
-   return 1;
-}
-double total_cs(int n_theta,int n_phi,double *theta,double *phi,double *mfpad)
-{
-   double sum(0);
-   double Pi=acos(-1);
-   for(int i=0;i!=n_theta;i++)
-   {
-      for(int j=0;j!=n_phi;j++)
-      {
-          sum+=sin(theta[i*n_phi+j])*(Pi/n_theta)*(2*Pi/n_phi)*mfpad[i*n_phi+j];
-      }
-   }
-   return sum;
 }

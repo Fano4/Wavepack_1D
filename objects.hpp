@@ -78,6 +78,18 @@ class hamilton_matrix {
       double m_efield_thresh;
       double m_pot_vec_mod;
       double m_pot_vec_tm_mod;
+      //PULSES PARAMETERS
+      double m_pump_strength;
+      double m_probe_strength;
+      double m_pump_origin;
+      double m_pprobe_delay;
+      double m_pump_sigma;
+      double m_probe_sigma;
+      double m_pump_energy;
+      double m_probe_energy;
+      double m_pump_CEP;
+      double m_probe_CEP;
+
       //TIME VARIABLE SETTINGS
       int m_n_times;
       double m_h;
@@ -105,7 +117,7 @@ class hamilton_matrix {
       pice_set *pice_data;
 
    public:
-      hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double kmin,double kmax,double xmin,double xmax,double mass,int n_times,double h,double efield_thresh,double pot_vec_thresh,std::string pice_data_loc);
+      hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double kmin,double kmax,double xmin,double xmax,double mass,int n_times,double h,double pump_strength,double probe_strength,double pump_origin,double pprobe_delay,double pump_sigma,double probe_sigma,double pump_energy,double probe_energy,double pump_CEP,double probe_CEP,double efield_thresh,double pot_vec_thresh,std::string pice_data_loc);
       ~hamilton_matrix();
       void set_pot_neut(std::string file_address);
       void set_pot_cat(std::string file_address);
