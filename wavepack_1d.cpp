@@ -23,12 +23,13 @@ int main( int argc, char * argv [])
     {
        input_file_loc=std::string(argv[1]);
        nproc=std::atoi(std::string(argv[2]).c_str());
+       std::cout<<"Running wavepack using input file "<<input_file_loc.c_str()<<" with "<<nproc<<"processes !"<<std::endl;
        if(argc > 3)
        {
           restart_file_loc=std::string(argv[3]);
           init_time_index=std::atoi(std::string(argv[4]).c_str());
+          std::cout<<"Restarting wave packet at time_index "<<init_time_index<<" from input file "<<restart_file_loc.c_str()<<std::endl;
        }
-       std::cout<<"Running wavepack using input file "<<input_file_loc.c_str()<<" with "<<nproc<<"processes !"<<std::endl;
     }
 
     omp_set_num_threads(nproc);
