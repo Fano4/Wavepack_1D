@@ -126,8 +126,15 @@ int main( int argc, char * argv [])
     if(time_index != 0)
     {
         double *init_pot_vec=new double[3];
-        H->potential_vector(time_index,init_pot_vec);
-        H->set_PICE(init_pot_vec);
+        if(fabs(H->pot_vec_mod()) >= H->pot_vec_thresh())
+        {
+           H->potential_vector(time_index,init_pot_vec);
+           H->set_PICE(init_pot_vec);
+        }
+        else
+        {
+           H->set_PICE();
+        }
         delete [] init_pot_vec;
     }
     else
@@ -194,7 +201,15 @@ int main( int argc, char * argv [])
        test.close();
        exit(EXIT_SUCCESS);
        */
-    Psi->initialize(H);
+    if(time_index == 0)
+    {
+        Psi->initialize(H);
+    }
+    else
+    {
+       Psi->load_wf(restart_file_loc.c_str());
+       std::cout<<"Wave function restarted from checkpoint file!"<<std::endl;
+    }
 
 //     read.open(read_file.c_str());
 //    std::cout<<"Initial state:"<<std::endl;
