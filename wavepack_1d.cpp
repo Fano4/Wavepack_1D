@@ -5,6 +5,8 @@ int main( int argc, char * argv [])
     using namespace std;
 
     std::string input_file_loc;
+    std::string restart_file_loc;
+    int init_time_index(0);
     int nproc(0);
 
     if(argc<3)
@@ -12,10 +14,20 @@ int main( int argc, char * argv [])
        std::cout<<"Error: too few arguments for calling Wavepack. I need the location of the input file and the number of processes used. EXIT"<<std::endl;
        exit(EXIT_SUCCESS);
     }
+    else if (argc > 3 && argc < 5)
+    {
+       std::cout<<"Error : Too few arguments for restart. I need the localization of the wavepack file and the inital time index. EXIT"<<std::endl;
+       exit(EXIT_SUCCESS);
+    }
     else
     {
        input_file_loc=std::string(argv[1]);
        nproc=std::atoi(std::string(argv[2]).c_str());
+       if(argc > 3)
+       {
+          restart_file_loc=std::string(argv[3]);
+          init_time_index=std::atoi(std::string(argv[4]).c_str());
+       }
        std::cout<<"Running wavepack using input file "<<input_file_loc.c_str()<<" with "<<nproc<<"processes !"<<std::endl;
     }
 
@@ -57,7 +69,7 @@ int main( int argc, char * argv [])
     double mass;
     double total_time;
     double h;
-    int time_index;
+    int time_index(init_time_index);
     double dipole[3];
     double efield[3];
     double efield_thresh;
@@ -80,6 +92,15 @@ int main( int argc, char * argv [])
     time(&date_num);
     date_str=ctime(&date_num);
 
+    std::stringstream ss_savefile;
+    std::string s_savefile;
+    char* tempstr=new char[6];
+    mkstemp(tempstr);
+    std::string temp_string(tempstr);
+    ss_savefile.str("");
+    ss_savefile<<wf_out_file<<"_"<<temp_string<<".svwvpck";    
+    s_savefile=ss_savefile.str();
+
    double respectrum(0);
    double imspectrum(0);
 
@@ -90,7 +111,8 @@ int main( int argc, char * argv [])
     int dgsize(tgsize_x-gsize_x);
 
     wavefunction* Psi= new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);
-    hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,small_gsize_x,n_states_neut,n_states_cat,n_k,n_angles,kmin,kmax,xmin,xmax,mass,n_times,h,pump_strength,pump_origin,pump_sigma,pump_energy,pump_CEP,probe_strength,pprobe_delay,probe_sigma,probe_energy,probe_CEP,efield_thresh,pot_vec_thresh,ionization_coupling_file.c_str());
+    //hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,small_gsize_x,n_states_neut,n_states_cat,n_k,n_angles,kmin,kmax,xmin,xmax,mass,n_times,h,pump_strength,pump_origin,pump_sigma,pump_energy,pump_CEP,probe_strength,pprobe_delay,probe_sigma,probe_energy,probe_CEP,efield_thresh,pot_vec_thresh,ionization_coupling_file.c_str());
+    hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,small_gsize_x,n_states_neut,n_states_cat,n_k,n_angles,kmin,kmax,xmin,xmax,mass,n_times,h,pump_strength,probe_strength,pump_origin,pprobe_delay,pump_sigma,probe_sigma,pump_energy,probe_energy,pump_CEP,probe_CEP,efield_thresh,pot_vec_thresh,ionization_coupling_file.c_str());
 
 
 
@@ -99,16 +121,27 @@ int main( int argc, char * argv [])
     H->set_dm_neut(neutral_dipole.c_str());
     H->set_dm_cat(cation_dipole.c_str());
     H->set_NAC(neutral_nac);
-    H->set_PICE();
 
-    output.open(out_file.c_str());
-    std::cout<<"Output from Wavepack_1D, developped by Stephan van den Wildenberg (Theoretical Physical Chemistry, University of Liege)"<<std::endl<<"File generated on "<<date_str<<std::endl;
-    std::cout<<"Pump and probe pulses have the following parameters:"<<std::endl
-       <<"Strength: "<<pump_strength<<" (pump) ; "<<probe_strength<<" (probe) "<<std::endl
-       <<"Sigma: "<<pump_sigma<<" (pump) ; "<<probe_sigma<<" (probe) "<<std::endl
-       <<"Carrier Energy: "<<pump_energy<<" (pump) ; "<<probe_energy<<" (probe) "<<std::endl
-       <<"CEP: "<<pump_CEP<<" (pump) ; "<<probe_CEP<<" (probe) "<<std::endl;
-    output.close();
+    if(time_index != 0)
+    {
+        double *init_pot_vec=new double[3];
+        H->potential_vector(time_index,init_pot_vec);
+        H->set_PICE(init_pot_vec);
+        delete [] init_pot_vec;
+    }
+    else
+    {
+        H->set_PICE();
+        output.open(out_file.c_str());
+        output<<"Output from Wavepack_1D, developped by Stephan van den Wildenberg (Theoretical Physical Chemistry, University of Liege)"<<std::endl<<"File generated on "<<date_str<<std::endl;
+        output<<"Pump and probe pulses have the following parameters:"<<std::endl
+          <<"Strength: "<<pump_strength<<" (pump) ; "<<probe_strength<<" (probe) "<<std::endl
+          <<"Sigma: "<<pump_sigma<<" (pump) ; "<<probe_sigma<<" (probe) "<<std::endl
+          <<"Carrier Energy: "<<pump_energy<<" (pump) ; "<<probe_energy<<" (probe) "<<std::endl
+          <<"CEP: "<<pump_CEP<<" (pump) ; "<<probe_CEP<<" (probe) "<<std::endl;
+        output.close();
+    }
+
 /*
     stringstream tempstr;
     string filename;
@@ -172,10 +205,12 @@ int main( int argc, char * argv [])
 //    read.close();
     std::cout<<"##################"<<std::endl;
 
-    output.open(out_file.c_str(),ios_base::app);
-    output<<"initial energy of the system "<<setprecision(15)<<H->energy(Psi,0)<<std::endl<<"initial norm of the system = 1"<<std::endl;;
+    if(time_index == 0)
+    {
+       output.open(out_file.c_str(),ios_base::app);
+       output<<"initial energy of the system "<<setprecision(15)<<H->energy(Psi,0)<<std::endl<<"initial norm of the system = 1"<<std::endl;;
 //    output<<setprecision(15)<<Psi->norm(H)<<std::endl;
-    output.close();
+       output.close();
        for(int m=0;m!=n_states_neut;m++)
        {
           ss_wf.str("");
@@ -189,11 +224,12 @@ int main( int argc, char * argv [])
 //          wf_out.open(s_wf.c_str());
 //          wf_out.close();
        }
+    }
 
 
     while(time_index <= n_times)
     {
-       propagate(Psi,H,&time_index,100);
+       propagate(Psi,H,&time_index,25);
        H->electric_field(time_index,efield);
        Psi->set_dipole(H);
        output.open(out_file.c_str(),ios_base::app);
@@ -237,7 +273,7 @@ int main( int argc, char * argv [])
          output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<read_file.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
          exit(EXIT_FAILURE);
        }*/
-       //mfpad.open(mfpad_out_file.c_str(),ios_base::app);
+       mfpad.open(mfpad_out_file.c_str(),ios_base::app);
        for(int o=0;o!=n_angles;o++)
        {
           temp=0;
@@ -245,9 +281,9 @@ int main( int argc, char * argv [])
           {
              temp+=std::norm(Psi->show_cat_psi(r,0,kp*n_angles+o));
           }
-//          mfpad<<time_index*h*0.02418884<<"   "<<H->k_spher_orient(0,o)<<"   "<<H->k_spher_orient(1,o)<<"   "<<temp<<std::endl;
-       }//mfpad<<std::endl;
-       //mfpad.close();
+          mfpad<<time_index*h*0.02418884<<"   "<<H->k_spher_orient(0,o)<<"   "<<H->k_spher_orient(1,o)<<"   "<<temp<<std::endl;
+       }mfpad<<std::endl;
+       mfpad.close();
 
        spectrum.open(spectrum_out_file.c_str(),ios_base::app);
        if(!spectrum.is_open())
@@ -283,6 +319,8 @@ int main( int argc, char * argv [])
        }
        output<<"Norm of the system "<<setprecision(15)<<norm<<std::endl;
        output.close();
+
+       Psi->save_wf(s_savefile.c_str());
     }
 
     delete Psi;

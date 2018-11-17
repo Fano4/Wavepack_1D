@@ -32,6 +32,8 @@ class wavefunction {
       std::complex<double> dot_prod(wavefunction* Bra, hamilton_matrix *H);
       void matrix_prod(wavefunction** mat,wavefunction* ket,hamilton_matrix *H);
       double state_pop(bool species,int state,hamilton_matrix* H=NULL);
+      void save_wf(std::string file_loc);
+      bool load_wf(std::string file_loc);
    private:
       int m_gsize_x;
       int m_tgsize_x;

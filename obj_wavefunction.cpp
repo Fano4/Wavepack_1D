@@ -479,4 +479,73 @@ double wavefunction::state_pop(bool species,int state_index,hamilton_matrix* H)
 //##########################################################################
 //
 //##########################################################################
+void wavefunction::save_wf(std::string file_loc)
+{
+    using namespace std;
+    ofstream savestream;
+    savestream.open(file_loc.c_str(),ios_base::trunc);
+    savestream<<this->m_tgsize_x<<"\n"
+    <<this->m_gsize_x<<"\n"
+    <<this->m_n_states_neut<<"\n"
+    <<this->m_n_states_cat<<"\n"
+    <<this->m_n_states_cont<<"\n";
+
+    for(int i=0;i!=this->m_tgsize_x*this->m_n_states_neut;i++)
+    {
+        savestream<<this->m_neut_part[i]<<"\n";
+    }
+    if(this->m_n_states_cat!=0 && this->m_n_states_cont != 0)
+    {
+        for(int i=0;i!=this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont;i++)
+        {
+            savestream<<this->m_cat_part[i]<<"\n";
+        }
+    }
+    savestream.close();
+}
+//##########################################################################
+//
+//##########################################################################
+bool wavefunction::load_wf(std::string file_loc)
+{
+    using namespace std;
+    ifstream loadstream;
+    loadstream.open(file_loc.c_str());
+
+    int tgsize_x(0);
+    int gsize_x(0);
+    int n_states_neut(0);
+    int n_states_cat(0);
+    int n_states_cont(0);
+    loadstream>>tgsize_x;
+    loadstream>>gsize_x;
+    loadstream>>n_states_neut;
+    loadstream>>n_states_cat;
+    loadstream>>n_states_cont;
+
+    if(tgsize_x != this->m_tgsize_x || gsize_x != this->m_gsize_x || n_states_neut != this->m_n_states_neut || n_states_cat != this->m_n_states_cat || n_states_cont != this->m_n_states_cont)
+    {
+       std::cout<<"ERROR WHEN LOADING WAVEFUNCTION UPON RESTART. RESTARTED WF PARAMETERS DO NOT CORRESPOND TO SIMULATION PARAMETERS. EXIT"<<std::endl;
+       exit(EXIT_FAILURE);
+    }
+    else
+    {
+       for(int i=0;i!=this->m_tgsize_x*this->m_n_states_neut;i++)
+       {
+           loadstream>>this->m_neut_part[i];
+       }
+       if(this->m_n_states_cat!=0 && this->m_n_states_cont != 0)
+       {
+           for(int i=0;i!=this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont;i++)
+           {
+               loadstream>>this->m_cat_part[i];
+           }
+       }
+       loadstream.close();
+    }
+    return 1;
+}
+//##########################################################################
+//
+//##########################################################################
 //END OF THE WAVE FUNCTION OBJECT

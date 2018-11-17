@@ -53,6 +53,35 @@ bool input_reader(std::string input_loc,std::string* neutral_pes,std::string* ca
       input>>*probe_sigma;
       input>>*probe_energy;
       input>>*probe_CEP;
+
+      std::cout<<"INPUT FILE CORRECTLY READ! "<<std::endl
+      <<"neutral_pes :"<<*neutral_pes<<std::endl
+      <<"cation_pes :"<<*cation_pes<<std::endl
+      <<"neutral_dipole :"<<*neutral_dipole<<std::endl
+      <<"cation_dipole :"<<*cation_dipole<<std::endl
+      <<"neutral_nac :"<<*neutral_nac<<std::endl
+      <<"ionization_coupling_file :"<<*ionization_coupling_file<<std::endl
+      <<"out_file :"<<*out_file<<std::endl
+      <<"read_file :"<<*read_file<<std::endl
+      <<"wf_out_file :"<<*wf_out_file<<std::endl
+      <<"spectrum_out_file :"<<*spectrum_out_file<<std::endl
+      <<"mfpad_out_file :"<<*mfpad_out_file<<std::endl
+      <<"pi_cs_file :"<<*pi_cs_file<<std::endl
+      <<"gsize_x :"<<*gsize_x<<std::endl
+      <<"small_gsize_x :"<<*small_gsize_x<<std::endl
+      <<"n_states_neut :"<<*n_states_neut<<std::endl
+      <<"n_states_cat :"<<*n_states_cat<<std::endl
+      <<"n_angles : "<<*n_angles<<std::endl
+      <<"n_k :"<<*n_k<<std::endl
+      <<"k_mfpad :"<<*k_mfpad<<std::endl
+      <<"kmin :"<<*kmin<<std::endl
+      <<"kmax :"<<*kmax<<std::endl
+      <<"xmin :"<<*xmin<<std::endl
+      <<"xmax :"<<*xmax<<std::endl
+      <<"mass :"<<*mass<<std::endl
+      <<"total_time :"<<*total_time<<std::endl
+      <<"h :"<<*h<<std::endl;
+      
       return 1;
    }
 }
