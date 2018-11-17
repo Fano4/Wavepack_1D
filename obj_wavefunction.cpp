@@ -511,6 +511,11 @@ bool wavefunction::load_wf(std::string file_loc)
     using namespace std;
     ifstream loadstream;
     loadstream.open(file_loc.c_str());
+    if(!loadstream.is_open())
+    {
+       std::cout<<"ERROR. RETART FILE CANNOT BE OPENED: "<<file_loc.c_str()<<std::endl<<"!!! EXIT"<<std::endl;
+       exit(EXIT_FAILURE);
+    }
 
     int tgsize_x(0);
     int gsize_x(0);
