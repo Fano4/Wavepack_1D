@@ -207,8 +207,9 @@ int main( int argc, char * argv [])
     }
     else
     {
-       Psi->load_wf(restart_file_loc.c_str());
-       std::cout<<"Wave function restarted from checkpoint file!"<<std::endl;
+        Psi->initialize(H);
+        Psi->load_wf(restart_file_loc.c_str());
+        std::cout<<"Wave function restarted from checkpoint file!"<<std::endl;
     }
 
 //     read.open(read_file.c_str());

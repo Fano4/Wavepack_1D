@@ -492,13 +492,13 @@ void wavefunction::save_wf(std::string file_loc)
 
     for(int i=0;i!=this->m_tgsize_x*this->m_n_states_neut;i++)
     {
-        savestream<<this->m_neut_part[i]<<"\n";
+        savestream<<setprecision(15)<<this->m_neut_part[i]<<"\n";
     }
     if(this->m_n_states_cat!=0 && this->m_n_states_cont != 0)
     {
         for(int i=0;i!=this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont;i++)
         {
-            savestream<<this->m_cat_part[i]<<"\n";
+            savestream<<setprecision(15)<<this->m_cat_part[i]<<"\n";
         }
     }
     savestream.close();
