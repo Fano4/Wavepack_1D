@@ -12,15 +12,11 @@ int main( int argc, char * argv [])
 /*
     std::cout<<"TESTING SPHERICAL HARMONICS"<<std::endl;
 
-    std::cout<<"legendre(0,0.5) = "<<legendre(0,0.5)<<std::endl;
-    std::cout<<"legendre(1,0.38492) = "<<legendre(1,0.38492)<<std::endl;
-    std::cout<<"legendre(2,cos(2.74)) = "<<legendre(2,cos(2.74))<<std::endl;
-    std::cout<<"legendre(3,1./35.) = "<<legendre(3,1./35.)<<std::endl;
+    double *legendre_val=new double[gsl_sf_legendre_array_n(3)];
+    double *legendre_der_val=new double[gsl_sf_legendre_array_n(3)];
+    gsl_sf_legendre_deriv_alt_array_e(GSL_SF_LEGENDRE_SPHARM,3,0.849279,-1,legendre_val,legendre_der_val);
+    std::cout<<legendre_der_val[gsl_sf_legendre_array_index(3,2)]<<" = "<<associated_legendre_der(3,2,0.849279)<<std::endl;
 
-    std::cout<<"legendre(0,0,0.5) = "<<associated_legendre(0,0,0.5)<<std::endl;
-    std::cout<<"legendre(1,-1,0.38492) = "<<associated_legendre(1,-1,0.38492)<<std::endl;
-    std::cout<<"legendre(2,1,cos(2.74)) = "<<associated_legendre(2,1,cos(2.74))<<std::endl;
-    std::cout<<"legendre(3,3,1./35.) = "<<associated_legendre(3,3,1./35.)<<std::endl;
     exit(EXIT_SUCCESS);
 */
     if(argc<3)
@@ -140,24 +136,30 @@ int main( int argc, char * argv [])
 
     if(time_index != 0)
     {
-        double *init_pot_vec=new double[3];
-        if(fabs(H->pot_vec_mod()) >= H->pot_vec_thresh())
-        {
-           H->potential_vector(time_index,init_pot_vec);
-           H->sphere_dist_read(dist_file);
-           H->set_PICE(init_pot_vec);
-        }
-        else
-        {
-           H->sphere_dist_read(dist_file);
-           H->set_PICE();
-        }
-        delete [] init_pot_vec;
+       if(n_states_cat != 0)
+       {
+          double *init_pot_vec=new double[3];
+          if(fabs(H->pot_vec_mod()) >= H->pot_vec_thresh())
+          {
+             H->potential_vector(time_index,init_pot_vec);
+             H->sphere_dist_read(dist_file);
+             H->set_PICE(init_pot_vec);
+          }
+          else
+          {
+             H->sphere_dist_read(dist_file);
+             H->set_PICE();
+          }
+          delete [] init_pot_vec;
+       }
     }
     else
     {
-        H->sphere_dist_save(dist_file);
-        H->set_PICE();
+       if(n_states_cat != 0)
+       {
+          H->sphere_dist_save(dist_file);
+          H->set_PICE();
+       }
         output.open(out_file.c_str());
         output<<"Output from Wavepack_1D, developped by Stephan van den Wildenberg (Theoretical Physical Chemistry, University of Liege)"<<std::endl<<"File generated on "<<date_str<<std::endl;
         output<<"Pump and probe pulses have the following parameters:"<<std::endl
@@ -168,7 +170,7 @@ int main( int argc, char * argv [])
         output.close();
     }
 
-
+/*
     stringstream tempsstr;
     string filename;
     for(int i=0;i!=n_states_neut;i++)
@@ -179,7 +181,8 @@ int main( int argc, char * argv [])
        H->plot_integrated_cross_section(filename.c_str(),i,0);
     }
     
-
+    exit(EXIT_SUCCESS);
+*/
 /*    int i(10);
     int j(tgsize_x*1+12);
     int state_index_1;
