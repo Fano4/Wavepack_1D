@@ -9,6 +9,20 @@ int main( int argc, char * argv [])
     int init_time_index(0);
     int nproc(0);
 
+/*
+    std::cout<<"TESTING SPHERICAL HARMONICS"<<std::endl;
+
+    std::cout<<"legendre(0,0.5) = "<<legendre(0,0.5)<<std::endl;
+    std::cout<<"legendre(1,0.38492) = "<<legendre(1,0.38492)<<std::endl;
+    std::cout<<"legendre(2,cos(2.74)) = "<<legendre(2,cos(2.74))<<std::endl;
+    std::cout<<"legendre(3,1./35.) = "<<legendre(3,1./35.)<<std::endl;
+
+    std::cout<<"legendre(0,0,0.5) = "<<associated_legendre(0,0,0.5)<<std::endl;
+    std::cout<<"legendre(1,-1,0.38492) = "<<associated_legendre(1,-1,0.38492)<<std::endl;
+    std::cout<<"legendre(2,1,cos(2.74)) = "<<associated_legendre(2,1,cos(2.74))<<std::endl;
+    std::cout<<"legendre(3,3,1./35.) = "<<associated_legendre(3,3,1./35.)<<std::endl;
+    exit(EXIT_SUCCESS);
+*/
     if(argc<3)
     {
        std::cout<<"Error: too few arguments for calling Wavepack. I need the location of the input file and the number of processes used. EXIT"<<std::endl;
@@ -49,6 +63,7 @@ int main( int argc, char * argv [])
     string pi_cs_file;
     stringstream ss_wf;
     string s_wf;
+    string dist_file;
     ofstream output;
 //    ofstream read;
     ofstream wf_out;
@@ -105,7 +120,7 @@ int main( int argc, char * argv [])
    double respectrum(0);
    double imspectrum(0);
 
-    input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
+    input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&dist_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
 
     int tgsize_x(gsize_x+10);
     int n_times(int(total_time/h));
@@ -129,16 +144,19 @@ int main( int argc, char * argv [])
         if(fabs(H->pot_vec_mod()) >= H->pot_vec_thresh())
         {
            H->potential_vector(time_index,init_pot_vec);
+           H->sphere_dist_read(dist_file);
            H->set_PICE(init_pot_vec);
         }
         else
         {
+           H->sphere_dist_read(dist_file);
            H->set_PICE();
         }
         delete [] init_pot_vec;
     }
     else
     {
+        H->sphere_dist_save(dist_file);
         H->set_PICE();
         output.open(out_file.c_str());
         output<<"Output from Wavepack_1D, developped by Stephan van den Wildenberg (Theoretical Physical Chemistry, University of Liege)"<<std::endl<<"File generated on "<<date_str<<std::endl;
@@ -150,19 +168,18 @@ int main( int argc, char * argv [])
         output.close();
     }
 
-/*
-    stringstream tempstr;
+
+    stringstream tempsstr;
     string filename;
     for(int i=0;i!=n_states_neut;i++)
     {
-       tempstr.str("");
-       tempstr<<pi_cs_file.c_str()<<i<<"_"<<0<<".txt";
-       filename=tempstr.str();
+       tempsstr.str("");
+       tempsstr<<pi_cs_file.c_str()<<i<<"_"<<0<<".txt";
+       filename=tempsstr.str();
        H->plot_integrated_cross_section(filename.c_str(),i,0);
     }
     
-    return EXIT_SUCCESS;
-*/
+
 /*    int i(10);
     int j(tgsize_x*1+12);
     int state_index_1;

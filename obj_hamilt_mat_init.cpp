@@ -612,7 +612,7 @@ void hamilton_matrix::set_PICE(double* pot_vec)
             }
             end = clock();
            duration=double(end-begin)/CLOCKS_PER_SEC;
-           std::cout<<duration/16<<"s"<<std::endl;
+           std::cout<<duration/8<<"s"<<std::endl;
 
            /*
            ss_file_cs.str("");
@@ -805,6 +805,55 @@ void hamilton_matrix::print_dipole_neut()
       dipole_x<<endl;
       dipole_y<<endl;
       dipole_z<<endl;
+   }
+}
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::sphere_dist_save(std::string dist_file_s)
+{
+   using namespace std;
+   ofstream dist_file;
+   int n_points_sphere((this->m_n_states_cont)/this->m_n_k);
+
+   dist_file.open(dist_file_s.c_str(),ios_base::trunc);
+
+   if(!dist_file.is_open())
+   {
+      std::cout<<"ERROR WHILE OPENING ANGULAR DISTRIBUTION FILE"<<std::endl<<dist_file_s.c_str()<<std::endl;
+      exit(EXIT_FAILURE);
+   }
+   else
+   {
+      for(int i=0;i!=n_points_sphere;i++)
+      {
+         dist_file<<setprecision(15)<<this->k_orientation[0][i]<<"  "<<this->k_orientation[1][i]<<std::endl;
+      }
+   }
+}
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::sphere_dist_read(std::string dist_file_s)
+{
+   using namespace std;
+   ifstream dist_file;
+   int n_points_sphere((this->m_n_states_cont)/this->m_n_k);
+
+   dist_file.open(dist_file_s.c_str());
+
+   if(!dist_file.is_open())
+   {
+      std::cout<<"ERROR WHILE OPENING ANGULAR DISTRIBUTION FILE"<<std::endl<<dist_file_s.c_str()<<std::endl;
+      exit(EXIT_FAILURE);
+   }
+   else
+   {
+      for(int i=0;i!=n_points_sphere;i++)
+      {
+         dist_file>>this->k_orientation[0][i];
+         dist_file>>this->k_orientation[1][i];
+      }
    }
 }
 //##########################################################################

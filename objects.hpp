@@ -160,5 +160,7 @@ class hamilton_matrix {
       void plot_integrated_cross_section(std::string file_address,int neut_state,int cat_state,int pos_index=-1);
       double k_mod_val(int k_index) const;
       double k_spher_orient(bool component, int index) const;
+      void sphere_dist_read(std::string dist_file);
+      void sphere_dist_save(std::string dist_file);
 };
 

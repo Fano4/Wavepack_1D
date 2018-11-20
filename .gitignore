@@ -16,3 +16,15 @@ wavepack_int_input/*
 #all files generated with results
 
 *.eps
+
+#Autoconf temporary files
+
+.deps
+Makefile
+aclocal.m4
+autom4te.cache/
+aux_build/
+config.log
+config.status
+configure
+stamp-h1
