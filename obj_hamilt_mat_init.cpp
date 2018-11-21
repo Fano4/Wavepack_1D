@@ -605,7 +605,7 @@ void hamilton_matrix::set_PICE(double* pot_vec)
    //
    std::stringstream ss_file_cs;
    std::string s_file_cs;
-   int dgsize_x(this->m_tgsize_x-this->m_gsize_x);
+   int dgsize_x(this->m_tgsize_x-this->m_small_gsize_x);
 
    std::complex<double> pice_x;
    std::complex<double> pice_y;
@@ -661,7 +661,7 @@ void hamilton_matrix::set_PICE(double* pot_vec)
             }
             end = clock();
            duration=double(end-begin)/CLOCKS_PER_SEC;
-           std::cout<<duration/8<<"s"<<std::endl;
+           std::cout<<duration/32<<"s"<<std::endl;
 
            /*
            ss_file_cs.str("");
@@ -689,7 +689,8 @@ void hamilton_matrix::set_NAC(std::string file_address)
    using namespace std;
    stringstream name_indenter;
    string filename;
-   int dgsize(this->m_tgsize_x-this->m_gsize_x);
+   double temp(0);
+   int dgsize(this->m_tgsize_x-this->m_small_gsize_x);
 
    ifstream input_file;
    for(int i=0;i!=m_n_states_neut;i++)
@@ -713,9 +714,15 @@ void hamilton_matrix::set_NAC(std::string file_address)
             input_file.open(filename.c_str());
             if(input_file.is_open())
             {
+               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
-                   input_file>>this->m_NAC[i*this->m_n_states_neut+j][k];
+                   this->m_NAC[i*this->m_n_states_neut+j][k]=temp;
+                   for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+                   {
+                      input_file>>temp;
+                   }
+
 
 //                   this->m_NAC[i*this->m_n_states_neut+j][k]*=5e6; /// !!!!!!REMOVE THIS LINE !!!!!
 
