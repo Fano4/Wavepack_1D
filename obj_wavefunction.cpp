@@ -205,16 +205,17 @@ void wavefunction::initialize(hamilton_matrix* H)
    {
       for(int j=0;j!=this->m_tgsize_x;j++)
       {
+         H_mat_gs[i*(this->m_tgsize_x)+j]=0;
          if(i==j)
          H_mat_gs[i*(this->m_tgsize_x)+i]=H->pot_neut(0,i);
          H_mat_gs[i*(this->m_tgsize_x)+j]+=H->kinetic_energy_matrix(i,j);
          cmatrix[i*(this->m_tgsize_x)+j]=std::complex<double>(H_mat_gs[i*(this->m_tgsize_x)+j],0);
-   //      std::cout<<H_mat_gs[i*(this->m_tgsize_x)+j]<<"   ";
+         std::cout<<H_mat_gs[i*(this->m_tgsize_x)+j]<<"   ";
       }
-      //std::cout<<std::endl;
+      std::cout<<std::endl;
    }
 
-  /* std::cout<<"PES OF THE GS "<<std::endl;
+/*   std::cout<<"PES OF THE GS "<<std::endl;
    for(int i=0;i!=this->m_tgsize_x;i++)
    {
       std::cout<<H->pot_neut(0,i)<<std::endl;

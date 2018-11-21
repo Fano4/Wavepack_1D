@@ -193,6 +193,7 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    {
       for(int j=0;j!=tgsize_x;j++)
       {
+         this->kinetic_energy[i*tgsize_x+j]=0;
          if(i==j+2)//(i,i-2)
          {
             this->kinetic_energy[i*tgsize_x+j]=(-1/(2*mass))*(1/(12*delta_x*delta_x))*(-1);
@@ -223,6 +224,7 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    {
       for(int j=0;j!=tgsize_x;j++)
       {
+         this->derivative_matrix[i*tgsize_x+j]=0;
          if(i==j+2)//(i,i-2)
          {
             this->derivative_matrix[i*tgsize_x+j]=(1/(12*delta_x))*(1);
@@ -623,9 +625,9 @@ void hamilton_matrix::set_PICE(double* pot_vec)
    int x(0);
    int i(0);
    int j(0);
-   for( x=0;x<this->m_gsize_x;x++)
+   for( x=0;x<this->m_small_gsize_x;x++)
    {
-      std::cout<<x<<" position "<<0.529*(this->m_xmin+x*(this->m_xmax-this->m_xmin)/this->m_gsize_x)<<"Angstrom"<<std::endl;
+      std::cout<<x<<" position "<<0.529*(this->m_xmin+x*(this->m_xmax-this->m_xmin)/this->m_small_gsize_x)<<"Angstrom"<<std::endl;
       for( i=0;i<nstneut;i++)
       {
          std::cout<<"stneut"<<i<<std::endl;
@@ -638,22 +640,7 @@ void hamilton_matrix::set_PICE(double* pot_vec)
             {
                for(l=0;l<ndist;l++)
                {
-                   if(x%ratio == 0 || x==0)
-                   {
-                       this->pice_data->fill_pice(&this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],x,i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
-//                      std::cout<<"probe 2 t = "<<double(end-begin)/CLOCKS_PER_SEC<<std::endl;
-//                       this->pice_data->fill_pice(&pice_x,&pice_y,&pice_z,x,i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
-//                       this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=sqrt(2)*pice_x;
-//                       this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=sqrt(2)*pice_y;
-//                      this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=sqrt(2)*pice_z;
-//                       std::cout<<i<<"-"<<j<<" : "<<this->k_modulus[k]<<","<<this->k_orientation[0][l]<<","<<this->k_orientation[1][l]<<" == "<<this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]<<std::endl;
-                   }
-                   else
-                   {
-                       this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1+dgsize_x];
-                       this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1+dgsize_x];
-                       this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1+dgsize_x];
-                   }
+                  this->pice_data->fill_pice(&this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],int(ratio*x),i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
 //                   std::cout<<this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<std::endl;
 //                   exit(EXIT_SUCCESS);
                    //std::cout<<"probe "<<x<<","<<i<<","<<j<<","<<k<<","<<l<<std::endl;
