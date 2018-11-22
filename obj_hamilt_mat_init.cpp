@@ -915,6 +915,7 @@ void hamilton_matrix::sphere_dist_gen(bool randiso,int n_phi)
    double phi(0);
    double Pi=acos(-1);
    int n_points_sphere((this->m_n_states_cont)/this->m_n_k);
+   srand(time(0));
 
    if(randiso)
    {
@@ -943,6 +944,7 @@ void hamilton_matrix::sphere_dist_gen(bool randiso,int n_phi)
          //DEBOGAGE
 //         std::cout<<this->k_orientation[0][i]<<"   "<<this->k_orientation[1][i]<<std::endl;
       }
+//      exit(EXIT_SUCCESS);
    }
    else
    {

@@ -283,15 +283,16 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
 void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_loop)
 {
    double *pot_vec=new double [3];
+   int ratio(0);
 
    for(int i=0;i!=num_of_loop;i++)
    {
       H->potential_vector(*time_index,pot_vec);
       H->set_pot_vec_mod(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2)));
+      ratio=floor(H->pot_vec_mod()/ H->pot_vec_thresh());
 
-      if( fabs(H->pot_vec_mod() - H->pot_vec_tm_mod()) >= H->pot_vec_thresh() && H->pot_vec_mod() >= H->pot_vec_thresh())
+      if( ratio != floor(H->pot_vec_tm_mod()/ H->pot_vec_thresh()))
       {
-//         std::cout<<"translating the coupling elements! "<<std::endl<<fabs(H->pot_vec_mod() - H->pot_vec_tm_mod())<<" >= "<<H->pot_vec_thresh()<<std::endl<<H->pot_vec_mod()<<" >= "<<H->pot_vec_thresh()<<std::endl;
           H->set_PICE(pot_vec);
           H->set_pot_vec_tm_mod(H->pot_vec_mod());
       }
