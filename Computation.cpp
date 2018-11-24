@@ -150,9 +150,10 @@ bool Runge_kutta(wavefunction *Psi0,hamilton_matrix *H, int time_index)
 //##########################################################################
 //
 //##########################################################################
-bool adam_bashforth_moulton(wavefunction *dPsim3, wavefunction *dPsim2,wavefunction *dPsim1,hamilton_matrix *H,wavefunction *Psim1,int time_index)
+bool adam_bashforth_moulton(wavefunction *dPsim4,wavefunction *dPsim3, wavefunction *dPsim2,wavefunction *dPsim1,hamilton_matrix *H,wavefunction *Psim1,int time_index)
 {
     wavefunction *temp=new wavefunction(Psim1->gsize_x(),Psim1->tgsize_x(),Psim1->n_states_neut(),Psim1->n_states_cat(),Psim1->n_states_cont());
+    wavefunction *dtemp=new wavefunction(Psim1->gsize_x(),Psim1->tgsize_x(),Psim1->n_states_neut(),Psim1->n_states_cat(),Psim1->n_states_cont());
 
     double vector[3];
     H->electric_field(time_index,vector);
@@ -160,7 +161,8 @@ bool adam_bashforth_moulton(wavefunction *dPsim3, wavefunction *dPsim2,wavefunct
     bool cat=bool(efield_magnitude >= H->efield_thresh());
     std::complex<double> ctemp(std::complex<double>(0,0));
 
-    const double am1(23./12.), am2(-4./3.), am3(5./12.);
+    const double am1(55./24.), am2(-59./24.), am3(37./24.),am4(-3./8.);
+    const double b0(251./720.), bm1(646./720.), bm2(-264./720.), bm3(106./720.),bm4(-19./720.);
 
     temp->set_wf(Psim1,cat);
     ctemp=std::complex<double>(am1*H->h(),0);
@@ -169,8 +171,26 @@ bool adam_bashforth_moulton(wavefunction *dPsim3, wavefunction *dPsim2,wavefunct
     temp->add_wf(&ctemp,dPsim2,cat);
     ctemp=std::complex<double>(am3*H->h(),0);
     temp->add_wf(&ctemp,dPsim3,cat);
+    ctemp=std::complex<double>(am4*H->h(),0);
+    temp->add_wf(&ctemp,dPsim4,cat);
 
+/*
+    t_deriv(temp,H,dtemp,time_index);
 
+    temp->set_wf(Psim1,cat);
+    ctemp=std::complex<double>(b0*H->h(),0);
+    temp->add_wf(&ctemp,dtemp,cat);
+    ctemp=std::complex<double>(bm1*H->h(),0);
+    temp->add_wf(&ctemp,dPsim1,cat);
+    ctemp=std::complex<double>(bm2*H->h(),0);
+    temp->add_wf(&ctemp,dPsim2,cat);
+    ctemp=std::complex<double>(bm3*H->h(),0);
+    temp->add_wf(&ctemp,dPsim3,cat);
+    ctemp=std::complex<double>(bm4*H->h(),0);
+    temp->add_wf(&ctemp,dPsim4,cat);
+*/
+
+    dPsim4->set_wf(dPsim3,cat);
     dPsim3->set_wf(dPsim2,cat);
     dPsim2->set_wf(dPsim1,cat);
     t_deriv(temp,H,dPsim1,time_index);
@@ -179,6 +199,7 @@ bool adam_bashforth_moulton(wavefunction *dPsim3, wavefunction *dPsim2,wavefunct
 
 
     delete temp;
+    delete dtemp;
     return 0;
 }
 //##########################################################################
@@ -325,6 +346,7 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
    wavefunction *dPsi=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
    wavefunction *dPsim1=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
    wavefunction *dPsim2=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
+   wavefunction *dPsim3=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
 
    for(int i=0;i!=num_of_loop;i++)
    {
@@ -340,16 +362,17 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
           H->set_PICE(pot_vec);
           H->set_pot_vec_tm_mod(H->pot_vec_mod());
       }
-      if(i <= 2)
+      if(i <= 3 || cat)
       {
          Runge_kutta(Psi,H,*time_index);
+         dPsim3->set_wf(dPsim2,cat);
          dPsim2->set_wf(dPsim1,cat);
          dPsim1->set_wf(dPsi,cat);
          t_deriv(Psi,H,dPsi,*time_index);
       }
       else
       {
-         adam_bashforth_moulton(dPsim2,dPsim1,dPsi,H,Psi,*time_index+1);
+         adam_bashforth_moulton(dPsim3,dPsim2,dPsim1,dPsi,H,Psi,*time_index+1);
       }
       *time_index=*time_index+1;
    }
@@ -357,5 +380,6 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
    delete dPsi;
    delete dPsim1;
    delete dPsim2;
+   delete dPsim3;
 }
 
