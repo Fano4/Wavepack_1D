@@ -38,18 +38,18 @@ continuum_root=${OUTPUT_DIR}/continuum_${1}_
 neut_wfu_root=${OUTPUT_DIR}/neut_wf_${1}_
 spectrum_root=${OUTPUT_DIR}/spectrum_${1}.txt
 mfpad_root=${OUTPUT_DIR}/mfpad_${1}.txt
-cs_root=${OUTPUT_DIR}/cs_${1}
+cs_root=${OUTPUT_DIR}/cs_${1}_
 dist_root=${OUTPUT_DIR}/sphere_dist.txt
 
 #Simulation parameters
 
 grid_size=512
-small_grid_size=64
-n_states_neut=4
+small_grid_size=128
+n_states_neut=10
 n_states_cat=1
-n_points_sphere=32
-n_k=16
-k_sample=12
+n_points_sphere=128
+n_k=56
+k_sample=35
 kmin=0.0001
 kmax=1.5
 xmin=$(awk 'BEGIN {print 0.8/0.529}')
