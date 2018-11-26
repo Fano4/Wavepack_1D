@@ -29,12 +29,12 @@ int main(int argc, char *argv [])
 
 
    //LOCATION OF THE INPUT FILES
-   string state_1_wf_address("/data1/home/stephan/wavepack_results_dir/wvpck_mfpad_probe/neut_test_pulse_2_wf_state_3.wvpck");
-   string state_2_wf_address("/data1/home/stephan/wavepack_results_dir/wvpck_mfpad_probe/neut_test_pulse_2_wf_state_4.wvpck");
-   string ionization_coupling_file("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_pice_data_newnorm.h5");//LiH_PICE_R_i_j.txt
-   string tdmfpad_address("/data1/home/stephan/wavepack_results_dir/wvpck_mfpad_probe/tdmfpad_sudden_st_3_4.txt");
-   string anisotropy_address("/data1/home/stephan/wavepack_results_dir/wvpck_mfpad_probe/anisotropy_sudden.txt");
-   string tdspec_address("/data1/home/stephan/wavepack_results_dir/wvpck_mfpad_probe/tdpes_sudden_st_3_4.txt");
+   string state_1_wf_address("/data1/home/stephan/wvpck_mfpad_probe/neut_test_pulse_2_wf_state_3.wvpck");
+   string state_2_wf_address("/data1/home/stephan/wvpck_mfpad_probe/neut_test_pulse_2_wf_state_4.wvpck");
+   string ionization_coupling_file("/data1/home/stephan/Wavepack_1D/wavepack_int_input/LiH_pice_data_newdyson.h5");//LiH_PICE_R_i_j.txt
+   string tdmfpad_address("/data1/home/stephan/wvpck_mfpad_probe/tdmfpad_sudden_st_3_4.txt");
+   string anisotropy_address("/data1/home/stephan/wvpck_mfpad_probe/anisotropy_sudden.txt");
+   string tdspec_address("/data1/home/stephan/wvpck_mfpad_probe/tdpes_sudden_st_3_4.txt");
 
    ifstream input;
    ofstream output;
@@ -43,10 +43,10 @@ int main(int argc, char *argv [])
 
    //DIMENSION OF THE R GRID AND OF THE CONTINUUM
    int grid_size(512);
-   int n_theta(15);
-   int n_phi(20);
-   int nk(30);
-   double kmin(0);
+   int n_theta(20);
+   int n_phi(40);
+   int nk(50);
+   double kmin(1e-4);
    double kmax(1.0);
    double kpp;
    double kp(sqrt(2.*2./27.211));
@@ -135,20 +135,22 @@ int main(int argc, char *argv [])
 
    
    int x(0);
-#pragma omp parallel for private(x)
+#pragma omp parallel for private(x,kpp)
    for( x=0;x<grid_size;x++)
    {
       std::cout<<"pice position "<<x<<"...";
       for(int i=0;i<n_points;i++)
       {
-         std::cout<<" angle "<<i<<"...";
+//         std::cout<<" angle "<<i<<"...";
          pice_data->fill_pice(&dipole_1_x[i][x],&dipole_1_y[i][x],&dipole_1_z[i][x],x,state_index_1,state_index_cat,thet[i],phi[i],kp,NULL);
          pice_data->fill_pice(&dipole_2_x[i][x],&dipole_2_y[i][x],&dipole_2_z[i][x],x,state_index_2,state_index_cat,thet[i],phi[i],kp,NULL);
-         for(int j=0;j!=nk;j++)
+         for(int j=0;j<nk;j++)
          {
-            kpp=kmin+i*(kmax-kmin)/nk;
+            kpp=kmin+j*(kmax-kmin)/nk;
             pice_data->fill_pice(&pesdipole_1_x[j][i][x],&pesdipole_1_y[j][i][x],&pesdipole_1_z[j][i][x],x,state_index_1,state_index_cat,thet[i],phi[i],kpp,NULL);
             pice_data->fill_pice(&pesdipole_2_x[j][i][x],&pesdipole_2_y[j][i][x],&pesdipole_2_z[j][i][x],x,state_index_2,state_index_cat,thet[i],phi[i],kpp,NULL);
+//          std::cout<<"x = "<<x<<"; i = "<<i<<"; j = "<<j<<std::endl
+//             <<"k = "<<kpp<<"; "<<pesdipole_1_z[j][i][x]<<" ; "<<pesdipole_2_z[j][i][x]<<std::endl;;
          }
       }
       std::cout<<"Done !"<<std::endl;
@@ -235,7 +237,9 @@ int main(int argc, char *argv [])
          {
             for(int j=0;j!=n_points;j++)
             {
-               tdpes[i][t]+=std::norm(wf_st_1[r][t]*pesdipole_1_z[i][j][r])+std::norm(wf_st_2[r][t]*pesdipole_2_z[i][j][r])+2*std::real(wf_st_1[r][t]*pesdipole_1_z[i][j][r]*std::conj(wf_st_2[r][t]*pesdipole_2_z[i][j][r]))*pow(kpp,2)*sin(thet[j])*2*pow(acos(-1),2)/(n_theta*n_phi);
+               std::cout<<"probe! i = "<<i<<" ; r = "<<r<<" ; j = "<<j
+                  <<std::endl<<std::norm(pesdipole_1_z[i][j][r])<<";"<<std::norm(pesdipole_2_z[i][j][r])<<";"<<std::norm(wf_st_1[r][t])<<","<<std::norm(wf_st_2[r][t])<<std::endl;
+               tdpes[i][t]+=(std::norm(wf_st_1[r][t]*pesdipole_1_z[i][j][r])+std::norm(wf_st_2[r][t]*pesdipole_2_z[i][j][r])+2*std::real(wf_st_1[r][t]*pesdipole_1_z[i][j][r]*std::conj(wf_st_2[r][t]*pesdipole_2_z[i][j][r])))*pow(kpp,2)*sin(thet[j])*2*pow(acos(-1),2)/(n_theta*n_phi);
             }
          }
          output3<<t*0.04<<"   "<<kpp<<"   "<<tdpes[i][t]<<std::endl;

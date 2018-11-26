@@ -10,7 +10,7 @@ fi
 #echo $(awk "BEGIN {print $1/0.02418884}")
 if [[ -z $2 ]]
 then
-   echo "Error. INPUT FILE LOCATION NOT SPECIFIED. exit"
+   echo "Error. INPUT DIR NOT SPECIFIED. exit"
    exit
 fi
 if [[ -z $3 ]]
@@ -19,8 +19,7 @@ then
    exit
 fi
 
-INPUT_DIR=/home/ulg/cpt/svdwild/LiH_wavepack_input
-INPUT_FILE=$2
+INPUT_DIR=$2
 OUTPUT_DIR=$3
 #OUTPUT_DIR=/home/ulg/cpt/svdwild/LiH_wvpck_output
 
@@ -65,12 +64,12 @@ pot_vec_thresh=0.005
 pump_strength=0.01
 pump_origin=$(awk 'BEGIN {print 5.0/0.02418884}')
 pump_sigma=$(awk 'BEGIN {print 1.1890505204/0.02418884}')
-pump_energy=$(awk 'BEGIN {print 6.0/27.211}')
+pump_energy=$(awk 'BEGIN {print 6.01136/27.211}')
 pump_CEP=0.0
 pprobe_delay=$(awk "BEGIN {print $1/0.02418884}")
 probe_strength=0.005
 probe_sigma=$(awk 'BEGIN {print 0.30800/0.02418884}')
-probe_energy=$(awk 'BEGIN {print 19.50050/27.211}')
+probe_energy=$(awk 'BEGIN {print 19.53692/27.211}')
 probe_CEP=0.0
 
 
@@ -116,5 +115,5 @@ ${probe_strength}
 ${probe_sigma}
 ${probe_energy}
 ${probe_CEP}
-">${INPUT_FILE}
+">${OUTPUT_DIR}/wvpck_input.in
 

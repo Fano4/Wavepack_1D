@@ -118,9 +118,9 @@ int main( int argc, char * argv [])
 
     input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&dist_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
 
-    int tgsize_x(gsize_x+10);
+    int tgsize_x(small_gsize_x+6);
     int n_times(int(total_time/h));
-    int dgsize(tgsize_x-gsize_x);
+    int dgsize(tgsize_x-small_gsize_x);
 
     wavefunction* Psi= new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);
     //hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,small_gsize_x,n_states_neut,n_states_cat,n_k,n_angles,kmin,kmax,xmin,xmax,mass,n_times,h,pump_strength,pump_origin,pump_sigma,pump_energy,pump_CEP,probe_strength,pprobe_delay,probe_sigma,probe_energy,probe_CEP,efield_thresh,pot_vec_thresh,ionization_coupling_file.c_str());
@@ -170,7 +170,7 @@ int main( int argc, char * argv [])
         output.close();
     }
 
-/*
+
     stringstream tempsstr;
     string filename;
     for(int i=0;i!=n_states_neut;i++)
@@ -181,8 +181,7 @@ int main( int argc, char * argv [])
        H->plot_integrated_cross_section(filename.c_str(),i,0);
     }
     
-    exit(EXIT_SUCCESS);
-*/
+
 /*    int i(10);
     int j(tgsize_x*1+12);
     int state_index_1;
@@ -299,7 +298,7 @@ int main( int argc, char * argv [])
           
           for(int k=dgsize;k!=tgsize_x;k++)
           {
-              wf_out<<time_index*h*0.02418884<<"   "<<xmin+(k-dgsize)*(xmax-xmin)/gsize_x<<"   "<<real(Psi->show_neut_psi(k,m))<<"   "<<imag(Psi->show_neut_psi(k,m))<<std::endl;
+              wf_out<<time_index*h*0.02418884<<"   "<<xmin+(k-dgsize)*(xmax-xmin)/small_gsize_x<<"   "<<real(Psi->show_neut_psi(k,m))<<"   "<<imag(Psi->show_neut_psi(k,m))<<std::endl;
           }wf_out<<std::endl;
           wf_out.close();
           

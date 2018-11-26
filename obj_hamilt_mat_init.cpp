@@ -46,7 +46,7 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    this->m_pot_vec_thresh=pot_vec_thresh;
    this->m_kmin=kmin;
    this->m_kmax=kmax;
-   double delta_x((xmax-xmin)/gsize_x);
+   double delta_x((xmax-xmin)/small_gsize_x);
    std::cout<<"Size of the pixel is "<<delta_x<<std::endl;
    //
    //initialize pulses parameters
@@ -193,6 +193,7 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    {
       for(int j=0;j!=tgsize_x;j++)
       {
+         this->kinetic_energy[i*tgsize_x+j]=0;
          if(i==j+2)//(i,i-2)
          {
             this->kinetic_energy[i*tgsize_x+j]=(-1/(2*mass))*(1/(12*delta_x*delta_x))*(-1);
@@ -223,6 +224,7 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    {
       for(int j=0;j!=tgsize_x;j++)
       {
+         this->derivative_matrix[i*tgsize_x+j]=0;
          if(i==j+2)//(i,i-2)
          {
             this->derivative_matrix[i*tgsize_x+j]=(1/(12*delta_x))*(1);
@@ -280,7 +282,7 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
    stringstream name_indenter;
    string filename;
    double var(0);
-   int dgsize (this->m_tgsize_x-this->m_gsize_x);
+   int dgsize (this->m_tgsize_x-this->m_small_gsize_x);
 
    ifstream input_file;
 
@@ -297,9 +299,15 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
       if(input_file.is_open())
       {
          input_file.seekg(0);
+
+         input_file>>var;
          for(int j=dgsize;j!=this->m_tgsize_x;j++)
          {
-            input_file>>this->m_pot_neut[this->m_tgsize_x*i+j];
+            this->m_pot_neut[this->m_tgsize_x*i+j]=var;
+            for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+            {
+               input_file>>var;
+            }
          }
          input_file.close();
          for(int j=1;j<=dgsize;j++)
@@ -326,7 +334,8 @@ void hamilton_matrix::set_pot_cat(std::string file_address)
    using namespace std;
    stringstream name_indenter;
    string filename;
-   int dgsize (this->m_tgsize_x-this->m_gsize_x);
+   double var(0);
+   int dgsize (this->m_tgsize_x-this->m_small_gsize_x);
 
    ifstream input_file;
 
@@ -343,9 +352,14 @@ void hamilton_matrix::set_pot_cat(std::string file_address)
 
       if(input_file.is_open())
       {
+         input_file>>var;
          for(int j=dgsize;j!=this->m_tgsize_x;j++)
          {
             input_file>>this->m_pot_cat[this->m_tgsize_x*i+j];
+            for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+            {
+               input_file>>var;
+            }
          }
          input_file.close();
          for(int j=1;j<=dgsize;j++)
@@ -370,7 +384,7 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
    stringstream name_indenter;
    string filename;
    double temp;
-   int dgsize(this->m_tgsize_x-this->m_gsize_x);
+   int dgsize(this->m_tgsize_x-this->m_small_gsize_x);
 
    ifstream input_file;
    for(int i=0;i!=this->m_n_states_neut;i++)
@@ -384,15 +398,20 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
+                input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
-                    input_file>>temp;
                     this->m_dmx_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmx_neut[j*this->m_n_states_neut+i][k] = this->m_dmx_neut[i*this->m_n_states_neut+j][k];
+                    for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+                    {
+                       input_file>>temp;
+                    }
                 }
                 for(int k=1;k<=dgsize;k++)
                 {
                     this->m_dmx_neut[i*this->m_n_states_neut+j][dgsize-k]=this->m_dmx_neut[i*this->m_n_states_neut+j][dgsize];
+                    this->m_dmx_neut[j*this->m_n_states_neut+i][dgsize-k]=this->m_dmx_neut[i*this->m_n_states_neut+j][dgsize-k];
                 }
                 input_file.close();
             }
@@ -409,16 +428,21 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
+               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
-                    input_file>>temp;
                     this->m_dmy_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmy_neut[j*this->m_n_states_neut+i][k]=this->m_dmy_neut[i*this->m_n_states_neut+j][k];
+                    for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+                    {
+                       input_file>>temp;
+                    }
                 }
                 input_file.close();
                 for(int k=1;k<=dgsize;k++)
                 {
                     this->m_dmy_neut[i*this->m_n_states_neut+j][dgsize-k]=this->m_dmy_neut[i*this->m_n_states_neut+j][dgsize];
+                    this->m_dmy_neut[j*this->m_n_states_neut+i][dgsize-k]=this->m_dmy_neut[i*this->m_n_states_neut+j][dgsize-k];
                 }
             }
             else
@@ -434,16 +458,21 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
+               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
-                    input_file>>temp;
                     this->m_dmz_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmz_neut[j*this->m_n_states_neut+i][k]=this->m_dmz_neut[i*this->m_n_states_neut+j][k];
+                    for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+                    {
+                       input_file>>temp;
+                    }
                 }
                 input_file.close();
                 for(int k=1;k<=dgsize;k++)
                 {
                     this->m_dmz_neut[i*this->m_n_states_neut+j][dgsize-k]=this->m_dmz_neut[i*this->m_n_states_neut+j][dgsize];
+                    this->m_dmz_neut[j*this->m_n_states_neut+i][dgsize-k]=this->m_dmz_neut[i*this->m_n_states_neut+j][dgsize-k];
                 }
             }
             else
@@ -462,7 +491,8 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
    using namespace std;
    stringstream name_indenter;
    string filename;
-   int dgsize(this->m_tgsize_x-this->m_gsize_x);
+   double temp(0);
+   int dgsize(this->m_tgsize_x-this->m_small_gsize_x);
 
    ifstream input_file;
    for(int i=0;i!=this->m_n_states_cat;i++)
@@ -476,14 +506,21 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
+               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
-                    input_file>>this->m_dmx_cat[i*this->m_n_states_cat+j][k];
+                    this->m_dmx_cat[i*this->m_n_states_cat+j][k]=temp;
+                    this->m_dmx_cat[j*this->m_n_states_cat+i][k]=temp;
+                    for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+                    {
+                       input_file>>temp;
+                    }
                 }
                 input_file.close();
                 for(int k=1;k<=dgsize;k++)
                 {
                     this->m_dmx_cat[i*this->m_n_states_neut+j][dgsize-k]=this->m_dmx_cat[i*this->m_n_states_neut+j][dgsize];
+                    this->m_dmx_cat[j*this->m_n_states_neut+i][dgsize-k]=this->m_dmx_cat[i*this->m_n_states_neut+j][dgsize-k];
                 }
             }
             else
@@ -499,14 +536,21 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
+               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
-                    input_file>>this->m_dmy_cat[i*this->m_n_states_cat+j][k];
+                    this->m_dmy_cat[i*this->m_n_states_cat+j][k]=temp;
+                    this->m_dmy_cat[j*this->m_n_states_cat+i][k]=temp;
+                    for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+                    {
+                       input_file>>temp;
+                    }
                 }
                 input_file.close();
                 for(int k=1;k<=dgsize;k++)
                 {
                     this->m_dmy_cat[i*this->m_n_states_neut+j][dgsize-k]=this->m_dmy_cat[i*this->m_n_states_neut+j][dgsize];
+                    this->m_dmy_cat[j*this->m_n_states_neut+i][dgsize-k]=this->m_dmy_cat[i*this->m_n_states_neut+j][dgsize-k];
                 }
             }
             else
@@ -522,13 +566,20 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
+               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
-                    input_file>>this->m_dmz_cat[i*this->m_n_states_cat+j][k];
+                    this->m_dmz_cat[i*this->m_n_states_cat+j][k]=temp;
+                    this->m_dmz_cat[j*this->m_n_states_cat+i][k]=temp;
+                    for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+                    {
+                       input_file>>temp;
+                    }
                 }
                 for(int k=1;k<=dgsize;k++)
                 {
                     this->m_dmz_cat[i*this->m_n_states_neut+j][dgsize-k]=this->m_dmz_cat[i*this->m_n_states_neut+j][dgsize];
+                    this->m_dmz_cat[j*this->m_n_states_neut+i][dgsize-k]=this->m_dmz_cat[i*this->m_n_states_neut+j][dgsize-k];
                 }
 
                 input_file.close();
@@ -556,7 +607,7 @@ void hamilton_matrix::set_PICE(double* pot_vec)
    //
    std::stringstream ss_file_cs;
    std::string s_file_cs;
-   int dgsize_x(this->m_tgsize_x-this->m_gsize_x);
+   int dgsize_x(this->m_tgsize_x-this->m_small_gsize_x);
 
    std::complex<double> pice_x;
    std::complex<double> pice_y;
@@ -574,9 +625,9 @@ void hamilton_matrix::set_PICE(double* pot_vec)
    int x(0);
    int i(0);
    int j(0);
-   for( x=0;x<this->m_gsize_x;x++)
+   for( x=0;x<this->m_small_gsize_x;x++)
    {
-      std::cout<<x<<" position "<<0.529*(this->m_xmin+x*(this->m_xmax-this->m_xmin)/this->m_gsize_x)<<"Angstrom"<<std::endl;
+      std::cout<<x<<" position "<<0.529*(this->m_xmin+x*(this->m_xmax-this->m_xmin)/this->m_small_gsize_x)<<"Angstrom"<<std::endl;
       for( i=0;i<nstneut;i++)
       {
          std::cout<<"stneut"<<i<<std::endl;
@@ -589,22 +640,7 @@ void hamilton_matrix::set_PICE(double* pot_vec)
             {
                for(l=0;l<ndist;l++)
                {
-                   if(x%ratio == 0 || x==0)
-                   {
-                       this->pice_data->fill_pice(&this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],x,i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
-//                      std::cout<<"probe 2 t = "<<double(end-begin)/CLOCKS_PER_SEC<<std::endl;
-//                       this->pice_data->fill_pice(&pice_x,&pice_y,&pice_z,x,i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
-//                       this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=sqrt(2)*pice_x;
-//                       this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=sqrt(2)*pice_y;
-//                      this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=sqrt(2)*pice_z;
-//                       std::cout<<i<<"-"<<j<<" : "<<this->k_modulus[k]<<","<<this->k_orientation[0][l]<<","<<this->k_orientation[1][l]<<" == "<<this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]<<std::endl;
-                   }
-                   else
-                   {
-                       this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1+dgsize_x];
-                       this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1+dgsize_x];
-                       this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x]=this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x-1+dgsize_x];
-                   }
+                  this->pice_data->fill_pice(&this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],int(ratio*x),i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
 //                   std::cout<<this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<std::endl;
 //                   exit(EXIT_SUCCESS);
                    //std::cout<<"probe "<<x<<","<<i<<","<<j<<","<<k<<","<<l<<std::endl;
@@ -612,7 +648,7 @@ void hamilton_matrix::set_PICE(double* pot_vec)
             }
             end = clock();
            duration=double(end-begin)/CLOCKS_PER_SEC;
-           std::cout<<duration/8<<"s"<<std::endl;
+           std::cout<<duration/32<<"s"<<std::endl;
 
            /*
            ss_file_cs.str("");
@@ -640,7 +676,8 @@ void hamilton_matrix::set_NAC(std::string file_address)
    using namespace std;
    stringstream name_indenter;
    string filename;
-   int dgsize(this->m_tgsize_x-this->m_gsize_x);
+   double temp(0);
+   int dgsize(this->m_tgsize_x-this->m_small_gsize_x);
 
    ifstream input_file;
    for(int i=0;i!=m_n_states_neut;i++)
@@ -664,9 +701,15 @@ void hamilton_matrix::set_NAC(std::string file_address)
             input_file.open(filename.c_str());
             if(input_file.is_open())
             {
+               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
-                   input_file>>this->m_NAC[i*this->m_n_states_neut+j][k];
+                   this->m_NAC[i*this->m_n_states_neut+j][k]=temp;
+                   for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+                   {
+                      input_file>>temp;
+                   }
+
 
 //                   this->m_NAC[i*this->m_n_states_neut+j][k]*=5e6; /// !!!!!!REMOVE THIS LINE !!!!!
 
@@ -872,6 +915,7 @@ void hamilton_matrix::sphere_dist_gen(bool randiso,int n_phi)
    double phi(0);
    double Pi=acos(-1);
    int n_points_sphere((this->m_n_states_cont)/this->m_n_k);
+   srand(time(0));
 
    if(randiso)
    {
@@ -900,6 +944,7 @@ void hamilton_matrix::sphere_dist_gen(bool randiso,int n_phi)
          //DEBOGAGE
 //         std::cout<<this->k_orientation[0][i]<<"   "<<this->k_orientation[1][i]<<std::endl;
       }
+//      exit(EXIT_SUCCESS);
    }
    else
    {

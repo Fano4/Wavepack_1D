@@ -772,7 +772,7 @@ void hamilton_matrix::plot_integrated_cross_section(std::string file_address,int
 
    using namespace std;
    std::complex<double> cs(0);
-   int dgsize(this->m_tgsize_x-this->m_gsize_x);
+   int dgsize(this->m_tgsize_x-this->m_small_gsize_x);
 
    ofstream cs_out;
 
@@ -795,7 +795,7 @@ void hamilton_matrix::plot_integrated_cross_section(std::string file_address,int
                cs+=pow(abs(this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2)*pow(this->k_modulus[k],2)*4*acos(-1)/this->m_n_angles;
           //  cs=this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+1][x];
             }
-            cs_out<<(this->m_xmin + (x-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x)*0.529<<"   "<<pow(this->k_modulus[0]+k*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k,2)*27.211/2<<"   "<<real(cs)<<"   "<<imag(cs)<<std::endl;
+            cs_out<<(this->m_xmin + (x-dgsize)*(this->m_xmax-this->m_xmin)/this->m_small_gsize_x)*0.529<<"   "<<pow(this->k_modulus[0]+k*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k,2)*27.211/2<<"   "<<real(cs)<<"   "<<imag(cs)<<std::endl;
          }cs_out<<std::endl;
       }
       cs_out.close();
@@ -812,7 +812,7 @@ void hamilton_matrix::plot_integrated_cross_section(std::string file_address,int
                cs+=pow(abs(this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2)*pow(this->k_modulus[k],2)*4*acos(-1)/this->m_n_angles;
           //  cs=this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+1][x];
             }
-            cs_out<<(this->m_xmin + (x-dgsize)*(this->m_xmax-this->m_xmin)/this->m_gsize_x)*0.529<<"   "<<pow(this->k_modulus[0]+k*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k,2)*27.211/2<<"   "<<real(cs)<<"   "<<imag(cs)<<std::endl;
+            cs_out<<(this->m_xmin + (x-dgsize)*(this->m_xmax-this->m_xmin)/this->m_small_gsize_x)*0.529<<"   "<<pow(this->k_modulus[0]+k*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k,2)*27.211/2<<"   "<<real(cs)<<"   "<<imag(cs)<<std::endl;
          }cs_out<<std::endl;
          cs_out.close();
    }

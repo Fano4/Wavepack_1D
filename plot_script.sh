@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# THIS SCRIPT PLOTS THE RESULTS OF WAVEPACK SIMULATIONS.
+# IT HAS TO BE RUN WITH THE NAME OF THE DIFFERENT WAVEPACK OUTPUT FILES 
+# ./plot_script pop_and_dip_output.log tdpes_output.txt tdmfpad_output.txt
+
+###################################
+#                                 #
+#        PLOT POPULATION          #
+#                                 #
+###################################
+
 if [[ -z $1 ]]
 then
    file=Output.log
@@ -111,3 +121,65 @@ MAFG
 
 gnuplot -p "$gnf"
 
+###################################
+#                                 #
+#          PLOT DIPOLE Z          #
+#                                 #
+###################################
+
+if [[ -z $1 ]]
+then
+   file1=Output.log
+else
+   file1=$1
+fi
+grep "Electric field (Z)" $file1 | sed "s/Electric field (Z)//" > gp_efield_z.txt
+grep "Total dipole" $file1 |awk '{print $5}'| sed "s/,/   /" > gp_dipole_z.txt
+grep "Time " $file1 | sed "s/Time //" > time.txt
+
+gnf=gnufile.gp
+lw1=10
+lw2=4
+lw3=10
+lw4=4
+color1=red
+color2=blue
+lt1=7
+lt2=1
+
+dt1=1
+dt2=1
+
+cat > $gnf << MAFG
+set terminal postscript enhanced color font "Times-Roman, 20 pts"
+set output "dipole_z.eps"
+set xlabel "time (fs) "
+set ylabel " dipole "
+set ylabel offset 1,0
+
+set style line 1 lt $lt1 lc rgb "${color1}" lw $lw1 dt $dt1 
+set style line 2 lt $lt2 lc rgb "${color2}" lw $lw2 dt $dt2
+set zrange[0:100]
+set yrange[-1:5.5]
+set xrange[0:100]
+set key right top
+set key outside
+
+plot '<paste time.txt gp_dipole_z.txt' u 1:2 w l ls 2 t "dipole Z "
+
+
+MAFG
+
+gnuplot -p "$gnf"
+
+###################################
+#                                 #
+#           PLOT TDPES            #
+#                                 #
+###################################
+
+###################################
+#                                 #
+#          PLOT TDMFPAD           #
+#                                 #
+###################################
