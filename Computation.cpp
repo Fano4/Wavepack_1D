@@ -343,10 +343,10 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
    double efield_magnitude(0);
    bool cat(0);
 
-   wavefunction *dPsi=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
-   wavefunction *dPsim1=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
-   wavefunction *dPsim2=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
-   wavefunction *dPsim3=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
+//   wavefunction *dPsi=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
+//   wavefunction *dPsim1=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
+//   wavefunction *dPsim2=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
+//   wavefunction *dPsim3=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
 
    for(int i=0;i!=num_of_loop;i++)
    {
@@ -362,24 +362,24 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
           H->set_PICE(pot_vec);
           H->set_pot_vec_tm_mod(H->pot_vec_mod());
       }
-      if(i <= 3 || cat)
+//      if(i <= 3 || cat)
       {
          Runge_kutta(Psi,H,*time_index);
-         dPsim3->set_wf(dPsim2,cat);
-         dPsim2->set_wf(dPsim1,cat);
-         dPsim1->set_wf(dPsi,cat);
-         t_deriv(Psi,H,dPsi,*time_index);
+//         dPsim3->set_wf(dPsim2,cat);
+//         dPsim2->set_wf(dPsim1,cat);
+//         dPsim1->set_wf(dPsi,cat);
+//         t_deriv(Psi,H,dPsi,*time_index);
       }
-      else
+/*      else
       {
          adam_bashforth_moulton(dPsim3,dPsim2,dPsim1,dPsi,H,Psi,*time_index+1);
-      }
+      }*/
       *time_index=*time_index+1;
    }
    delete [] pot_vec;
-   delete dPsi;
-   delete dPsim1;
-   delete dPsim2;
-   delete dPsim3;
+//   delete dPsi;
+//   delete dPsim1;
+//   delete dPsim2;
+//   delete dPsim3;
 }
 

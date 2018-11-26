@@ -309,17 +309,6 @@ int main( int argc, char * argv [])
          output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<read_file.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
          exit(EXIT_FAILURE);
        }*/
-       mfpad.open(mfpad_out_file.c_str(),ios_base::app);
-       for(int o=0;o!=n_angles;o++)
-       {
-          temp=0;
-          for(int r=0;r!=tgsize_x;r++)
-          {
-             temp+=std::norm(Psi->show_cat_psi(r,0,kp*n_angles+o));
-          }
-          mfpad<<time_index*h*0.02418884<<"   "<<H->k_spher_orient(0,o)<<"   "<<H->k_spher_orient(1,o)<<"   "<<temp<<std::endl;
-       }mfpad<<std::endl;
-       mfpad.close();
 
        spectrum.open(spectrum_out_file.c_str(),ios_base::app);
        if(!spectrum.is_open())
@@ -358,6 +347,21 @@ int main( int argc, char * argv [])
 
        Psi->save_wf(s_savefile.c_str());
     }
+
+       mfpad.open(mfpad_out_file.c_str(),ios_base::app);
+       for(kp=0;kp!=n_k;kp++)
+       {
+          for(int o=0;o!=n_angles;o++)
+          {
+             temp=0;
+             for(int r=0;r!=tgsize_x;r++)
+             {
+                temp+=std::norm(Psi->show_cat_psi(r,0,kp*n_angles+o));
+             }
+             mfpad<<H->k_mod_val(kp)<<"   "<<H->k_spher_orient(0,o)<<"   "<<H->k_spher_orient(1,o)<<"   "<<temp<<std::endl;
+          }mfpad<<std::endl;
+       }
+       mfpad.close();
 
     delete Psi;
    // delete dPsi;
