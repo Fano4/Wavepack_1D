@@ -326,6 +326,7 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
          dPsi->set_cat_psi(state_index,state_index_cont,grid_index,std::complex<double>(0,-1)*sum);
       }
    }
+   delete [] vector;
     return 0;
 }
 //##########################################################################

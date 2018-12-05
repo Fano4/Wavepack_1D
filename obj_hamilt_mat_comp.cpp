@@ -241,6 +241,8 @@ double hamilton_matrix::energy(wavefunction* Psi,double time_index)
 
    //Psi->norm(this);
 
+   delete dPsi;
+   delete [] dipvec;
    return real(ec);
 
 

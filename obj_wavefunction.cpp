@@ -29,6 +29,7 @@ wavefunction::~wavefunction()
       delete [] this->m_cat_part;
    delete [] this->m_dipole_neut;
    delete [] this->m_dipole_cat;
+
 }
 //##########################################################################
 //
@@ -288,6 +289,7 @@ void wavefunction::set_dipole(hamilton_matrix *H)
    this->m_dipole_neut[0]=real(vector[0]);
    this->m_dipole_neut[1]=real(vector[1]);
    this->m_dipole_neut[2]=real(vector[2]);
+   delete [] vector;
 }
 //##########################################################################
 //
