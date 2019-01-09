@@ -137,6 +137,7 @@ class hamilton_matrix {
       double potential_vector(double time_index,double* vector);
       double kinetic_energy_matrix(int i,int j);
       double pot_neut(int state_index,int grid_index);
+      double pot_cat(int state_index,int grid_index);
       double energy(wavefunction* Psi,double time_index);
       void rescale_pot(double min_pot);
       void show_indexes(int index1,int index2,int *state_index_1,int *grid_index_1,int *state_index_cont_1,int *state_index_2,int *grid_index_2,int *state_index_cont_2);

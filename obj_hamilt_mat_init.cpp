@@ -304,7 +304,7 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
          for(int j=dgsize;j!=this->m_tgsize_x;j++)
          {
             this->m_pot_neut[this->m_tgsize_x*i+j]=var;
-            for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+            for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
             {
                input_file>>var;
             }
@@ -356,7 +356,7 @@ void hamilton_matrix::set_pot_cat(std::string file_address)
          for(int j=dgsize;j!=this->m_tgsize_x;j++)
          {
             input_file>>this->m_pot_cat[this->m_tgsize_x*i+j];
-            for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x;t++)
+            for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
             {
                input_file>>var;
             }
@@ -743,6 +743,13 @@ double hamilton_matrix::pot_neut(int state_index,int grid_index)
 {
 //   std::cout<<"probe pot print "<<state_index*(this->m_tgsize_x)+grid_index<<std::endl;
    return this->m_pot_neut[state_index*(this->m_tgsize_x)+grid_index];
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::pot_cat(int state_index,int grid_index)
+{
+   return this->m_pot_cat[state_index*(this->m_tgsize_x)+grid_index];
 }
 //##########################################################################
 //

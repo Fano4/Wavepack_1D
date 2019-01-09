@@ -9,16 +9,6 @@ int main( int argc, char * argv [])
     int init_time_index(0);
     int nproc(0);
 
-/*
-    std::cout<<"TESTING SPHERICAL HARMONICS"<<std::endl;
-
-    double *legendre_val=new double[gsl_sf_legendre_array_n(3)];
-    double *legendre_der_val=new double[gsl_sf_legendre_array_n(3)];
-    gsl_sf_legendre_deriv_alt_array_e(GSL_SF_LEGENDRE_SPHARM,3,0.849279,-1,legendre_val,legendre_der_val);
-    std::cout<<legendre_der_val[gsl_sf_legendre_array_index(3,2)]<<" = "<<associated_legendre_der(3,2,0.849279)<<std::endl;
-
-    exit(EXIT_SUCCESS);
-*/
     if(argc<3)
     {
        std::cout<<"Error: too few arguments for calling Wavepack. I need the location of the input file and the number of processes used. EXIT"<<std::endl;
@@ -208,18 +198,23 @@ int main( int argc, char * argv [])
 //    H->set_phase(phase_file.c_str());
 //    H->print_dipole_neut();
 
-/*    ofstream test;
-    test.open("test.txt");
+    ofstream test;
+    test.open("pes.txt");
     for(int i=0;i!=tgsize_x;i++)
     {
        for(int n=0;n!=n_states_neut;n++)
        {
           test<<H->pot_neut(n,i)<<"    ";
-       }test<<std::endl;
+       }
+       for(int n=0;n!=n_states_cat;n++)
+       {
+          test<<H->pot_cat(n,i)<<"    ";
+       }
+       test<<std::endl;
     }
        test.close();
        exit(EXIT_SUCCESS);
-       */
+       
     if(time_index == 0)
     {
         Psi->initialize(H);
