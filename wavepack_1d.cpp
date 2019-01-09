@@ -197,7 +197,7 @@ int main( int argc, char * argv [])
 //    exit(EXIT_SUCCESS);
 //    H->set_phase(phase_file.c_str());
 //    H->print_dipole_neut();
-
+/*
     ofstream test;
     test.open("pes.txt");
     for(int i=0;i!=tgsize_x;i++)
@@ -214,7 +214,7 @@ int main( int argc, char * argv [])
     }
        test.close();
        exit(EXIT_SUCCESS);
-       
+ */      
     if(time_index == 0)
     {
         Psi->initialize(H);
