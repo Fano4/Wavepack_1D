@@ -51,11 +51,11 @@ int main( int argc, char * argv [])
     string s_wf;
     string dist_file;
     ofstream output;
-//    ofstream read;
+    ofstream read;
     ofstream wf_out;
     ofstream spectrum;
     ofstream mfpad;
-    //string elec_wavepack_file="LiH_elec_wvpck.txt";
+    string elec_wavepack_file="/data1/home/stephan/wvpck_recollision_IR_10fs/LiH_elec_wvpck.txt";
     //PARAMETERS OF THE SIMULATION
     int gsize_x;
     int small_gsize_x;
@@ -145,8 +145,9 @@ int main( int argc, char * argv [])
     }
     else
     {
-       if(n_states_cat != 0)
+       if(n_states_cat != 0 && n_angles != 0)
        {
+          H->sphere_dist_read(dist_file);
           H->sphere_dist_save(dist_file);
           H->set_PICE();
        }
@@ -226,14 +227,14 @@ int main( int argc, char * argv [])
         std::cout<<"Wave function restarted from checkpoint file!"<<std::endl;
     }
 
-//     read.open(read_file.c_str());
+     read.open(read_file.c_str());
 //    std::cout<<"Initial state:"<<std::endl;
 //    for(int i=0;i!=tgsize_x;i++)
 //    {
 //        std::cout<<"probe "<<i<<std::endl;
 //       read<<H->pot_neut(0,i)<<","<<Psi->show_neut_psi(i,0).real()<<","<<Psi->show_neut_psi(i,0).imag()<<std::endl;
 //    }
-//    read.close();
+    read.close();
     std::cout<<"##################"<<std::endl;
 
     if(time_index == 0)
@@ -298,12 +299,12 @@ int main( int argc, char * argv [])
           wf_out.close();
           
        }
-//read.open(read_file.c_str(),ios_base::app);
-       /*if(!read.is_open())
+       read.open(read_file.c_str(),ios_base::app);
+       if(!read.is_open())
        {
          output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<read_file.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
          exit(EXIT_FAILURE);
-       }*/
+       }
 
        spectrum.open(spectrum_out_file.c_str(),ios_base::app);
        if(!spectrum.is_open())
@@ -320,7 +321,7 @@ int main( int argc, char * argv [])
              {
                 for(int r=0;r!=tgsize_x;r++)
                 {
-      //             read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<std::endl;
+                   read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<std::endl;
                    temp+=std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
                 }
              }
@@ -328,7 +329,7 @@ int main( int argc, char * argv [])
           spectrum<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"   "<<temp<<std::endl;
        }//std::cout<<std::endl;
           spectrum<<std::endl;
-    //   read.close();
+       read.close();
        spectrum.close();
        
        for(int m=0;m!=n_states_cat;m++)

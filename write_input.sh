@@ -38,13 +38,13 @@ neut_wfu_root=${OUTPUT_DIR}/neut_wf_${1}_
 spectrum_root=${OUTPUT_DIR}/spectrum_${1}.txt
 mfpad_root=${OUTPUT_DIR}/mfpad_${1}.txt
 cs_root=${OUTPUT_DIR}/cs_${1}_
-dist_root=${OUTPUT_DIR}/sphere_dist.txt
+dist_root=${INPUT_DIR}/sphere_dist.txt
 
 #Simulation parameters
 
 grid_size=512
 small_grid_size=128
-n_states_neut=10
+n_states_neut=19
 n_states_cat=1
 n_points_sphere=128
 n_k=56
@@ -61,10 +61,10 @@ pot_vec_thresh=0.005
 
 #Pump and probe parameters
 
-pump_strength=0.01
-pump_origin=$(awk 'BEGIN {print 5.0/0.02418884}')
-pump_sigma=$(awk 'BEGIN {print 0.5945252602016133/0.02418884}') #$(awk 'BEGIN {print 1.1890505204/0.02418884}')
-pump_energy=$(awk 'BEGIN {print 6.01136/27.211}')
+pump_strength=0.025
+pump_origin=$(awk 'BEGIN {print 15.0/0.02418884}')
+pump_sigma=$(awk 'BEGIN {print 4.0/0.02418884}') #$(awk 'BEGIN {print 1.1890505204/0.02418884}')
+pump_energy=$(awk 'BEGIN {print 1.5/27.211}')
 pump_CEP=0.0
 pprobe_delay=$(awk "BEGIN {print $1/0.02418884}")
 probe_strength=0.00 #0.005

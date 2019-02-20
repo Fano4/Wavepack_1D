@@ -235,6 +235,7 @@ void wavefunction::initialize(hamilton_matrix* H)
       std::cout<<d[i]<<std::endl;
    }
    std::cout<<"#############################"<<std::endl;
+
    for(int i=0;i!=this->m_tgsize_x;i++)
    {
       this->set_neut_psi(0,i,cmatrix[i*(this->m_tgsize_x)]);
