@@ -93,6 +93,12 @@ class hamilton_matrix {
       double m_pump_CEP;
       double m_probe_CEP;
 
+      //PICE STORAGE ARRAYS
+      std::complex<double> ***m_PICE_sto_x;
+      std::complex<double> ***m_PICE_sto_y;
+      std::complex<double> ***m_PICE_sto_z;
+      int *pice_time_mapping;
+
       //TIME VARIABLE SETTINGS
       int m_n_times;
       double m_h;
@@ -163,5 +169,6 @@ class hamilton_matrix {
       double k_spher_orient(bool component, int index) const;
       void sphere_dist_read(std::string dist_file);
       void sphere_dist_save(std::string dist_file);
+      void set_pice_mapping();
 };
 
