@@ -116,7 +116,7 @@ int main( int argc, char * argv [])
     //hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,small_gsize_x,n_states_neut,n_states_cat,n_k,n_angles,kmin,kmax,xmin,xmax,mass,n_times,h,pump_strength,pump_origin,pump_sigma,pump_energy,pump_CEP,probe_strength,pprobe_delay,probe_sigma,probe_energy,probe_CEP,efield_thresh,pot_vec_thresh,ionization_coupling_file.c_str());
     hamilton_matrix* H=new hamilton_matrix(gsize_x,tgsize_x,small_gsize_x,n_states_neut,n_states_cat,n_k,n_angles,kmin,kmax,xmin,xmax,mass,n_times,h,pump_strength,probe_strength,pump_origin,pprobe_delay,pump_sigma,probe_sigma,pump_energy,probe_energy,pump_CEP,probe_CEP,efield_thresh,pot_vec_thresh,ionization_coupling_file.c_str());
 
-
+    H->set_pice_mapping();
 
     H->set_pot_neut(neutral_pes.c_str());
     H->set_pot_cat(cation_pes.c_str());

@@ -1110,6 +1110,7 @@ void hamilton_matrix::set_pice_mapping()
    }
 
    this->mapping_size=reduced_ratio_list.size();
+   std::cout<<"MUST GENERATE "<<this->mapping_size<<" TRANSLATED PICE ARRAYS"<<std::endl;
    this->pot_vec_reduced_mapping=new double*[this->mapping_size];
 
    for(int i=0;i!=this->mapping_size;i++)
