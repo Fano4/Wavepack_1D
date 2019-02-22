@@ -352,17 +352,17 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
    for(int i=0;i!=num_of_loop;i++)
    {
       H->potential_vector(*time_index,pot_vec);
-      H->set_pot_vec_mod(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2)));
-      ratio=floor(H->pot_vec_mod()/ H->pot_vec_thresh());
+ //     H->set_pot_vec_mod(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2)));
+//      ratio=floor(H->pot_vec_mod()/ H->pot_vec_thresh());
       H->electric_field(*time_index,vector);
       efield_magnitude=(sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2]));
       cat=bool(efield_magnitude >= H->efield_thresh());
 
-      if( ratio != floor(H->pot_vec_tm_mod()/ H->pot_vec_thresh()))
+/*      if( ratio != floor(H->pot_vec_tm_mod()/ H->pot_vec_thresh()))
       {
           H->set_PICE(pot_vec);
           H->set_pot_vec_tm_mod(H->pot_vec_mod());
-      }
+      }*/
 //      if(i <= 3 || cat)
       {
          Runge_kutta(Psi,H,*time_index);
