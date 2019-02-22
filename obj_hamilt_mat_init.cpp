@@ -132,6 +132,7 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    this->pice_data=new pice_set(pice_data_loc); //Initialize a pice dataset object
 
    this->m_dk_vec=new double[this->m_n_states_cont];
+   /*//PICE INITIALIZATION IS NOW DONE IN THE METHOD SET_PICE_MAPPING
    this->m_PICE_x=new std::complex<double> *[n_states_neut*n_states_cat*this->m_n_states_cont];
    std::cout<<" ...";
    for(int i=0;i!=n_states_neut*n_states_cat*this->m_n_states_cont;i++)
@@ -152,6 +153,7 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    {
       this->m_PICE_z[i]=new std::complex<double>[tgsize_x];
    }
+   */
    std::cout<<" ...";
    std::cout<<"PICE arrays initialized!"<<std::endl;
    std::cout<<"initializing momentum vectors arrays...";
@@ -272,9 +274,12 @@ hamilton_matrix::~hamilton_matrix()
    delete [] this->m_dmx_cat;
    delete [] this->m_dmy_cat;
    delete [] this->m_dmz_cat;
-   delete [] this->m_PICE_x;
-   delete [] this->m_PICE_y;
-   delete [] this->m_PICE_z;
+   if(this->m_PICE_sto_x != NULL)
+       delete [] this->m_PICE_sto_x;
+   if(this->m_PICE_sto_y != NULL)
+       delete [] this->m_PICE_sto_y;
+   if(this->m_PICE_sto_z != NULL)
+       delete [] this->m_PICE_sto_z;
    delete [] this->m_NAC;
    delete [] this->kinetic_energy;
 }
@@ -1067,15 +1072,17 @@ void hamilton_matrix::set_pice_mapping()
    std::vector<double> reduced_potvec_list_y;
    std::vector<double> reduced_potvec_list_z;
 
-   reduced_ratio_list.pushback(0);
-   reduced_potvec_list.pushback(0.0);
+   reduced_ratio_list.push_back(0);
+   reduced_potvec_list_x.push_back(0.0);
+   reduced_potvec_list_y.push_back(0.0);
+   reduced_potvec_list_z.push_back(0.0);
 
    for(int t=0;t!=this->m_n_times;t++)
    {
       test=1;
       potential_vector(t,vector);
       mod=(vector[2]/fabs(vector[2]))*sqrt(pow(vector[0],2)+pow(vector[1],2)+pow(vector[2],2));
-      ratio=(mod/fabs(mod))*floor(fabs(mod)/H->pot_vec_thresh());
+      ratio=(mod/fabs(mod))*floor(fabs(mod)/this->pot_vec_thresh());
       ratio_list[t]=ratio;
       for(int i=0;i!=reduced_ratio_list.size();i++)
       {
@@ -1084,10 +1091,10 @@ void hamilton_matrix::set_pice_mapping()
       }
       if(test)
       {
-         reduced_ratio_list.pushback(ratio_list[t]);
-         reduced_potvec_list_x.pushback(vector[0]);
-         reduced_potvec_list_y.pushback(vector[1]);
-         reduced_potvec_list_z.pushback(vector[2]);
+         reduced_ratio_list.push_back(ratio_list[t]);
+         reduced_potvec_list_x.push_back(vector[0]);
+         reduced_potvec_list_y.push_back(vector[1]);
+         reduced_potvec_list_z.push_back(vector[2]);
          this->pice_time_mapping[t]=reduced_ratio_list.size()-1;
       }
       else
@@ -1119,15 +1126,15 @@ void hamilton_matrix::set_pice_mapping()
 
    for(int i=0;i!=reduced_ratio_list.size();i++)
    {
-      this->m_PICE_sto_x[i]=new *std::complex<double>[n_states_neut*n_states_cat*this->m_n_states_cont];
-      this->m_PICE_sto_y[i]=new *std::complex<double>[n_states_neut*n_states_cat*this->m_n_states_cont];
-      this->m_PICE_sto_z[i]=new *std::complex<double>[n_states_neut*n_states_cat*this->m_n_states_cont];
+      this->m_PICE_sto_x[i]=new std::complex<double>*[this->m_n_states_neut*this->m_n_states_cat*this->m_n_states_cont];
+      this->m_PICE_sto_y[i]=new std::complex<double>*[this->m_n_states_neut*this->m_n_states_cat*this->m_n_states_cont];
+      this->m_PICE_sto_z[i]=new std::complex<double>*[this->m_n_states_neut*this->m_n_states_cat*this->m_n_states_cont];
 
-      for(int t=0;t!=n_states_neut*n_states_cat*this->m_n_states_cont;t++)
+      for(int t=0;t!=this->m_n_states_neut*this->m_n_states_cat*this->m_n_states_cont;t++)
       {
-         this->m_PICE_sto_x[i][t]=new std::complex<double>[tgsize_x];
-         this->m_PICE_sto_y[i][t]=new std::complex<double>[tgsize_x];
-         this->m_PICE_sto_z[i][t]=new std::complex<double>[tgsize_x];
+         this->m_PICE_sto_x[i][t]=new std::complex<double>[this->m_tgsize_x];
+         this->m_PICE_sto_y[i][t]=new std::complex<double>[this->m_tgsize_x];
+         this->m_PICE_sto_z[i][t]=new std::complex<double>[this->m_tgsize_x];
       }
    }
    delete [] ratio_list;

@@ -131,17 +131,17 @@ std::complex<double> hamilton_matrix::hamilt_element(double time_index,int i, in
       {
       //   std::cout<<"In hamiltonian, asking for element "<<state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2<<std::endl;
          return std::complex<double>((
-                  -std::conj(this->m_PICE_sto_x[this->pice_time_mapping[time_index]][state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1])*elec_field[0]
-                  -std::conj(this->m_PICE_sto_y[this->pice_time_mapping[time_index]][state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1])*elec_field[1]
-                  -std::conj(this->m_PICE_sto_z[this->pice_time_mapping[time_index]][state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1])*elec_field[2])
+                  -std::conj(this->m_PICE_sto_x[this->pice_time_mapping[int(floor(time_index))]][state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1])*elec_field[0]
+                  -std::conj(this->m_PICE_sto_y[this->pice_time_mapping[int(floor(time_index))]][state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1])*elec_field[1]
+                  -std::conj(this->m_PICE_sto_z[this->pice_time_mapping[int(floor(time_index))]][state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1])*elec_field[2])
                *sqrt(this->dk(state_index_cont_2)));//PICE dipole interaction
       }
       else if(grid_index_1==grid_index_2) // C-N
       {
          return std::complex<double>((
-                  -(this->m_PICE_sto_x[this->pice_time_mapping[time_index]][state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+state_index_cont_1][grid_index_1])*elec_field[0]
-                  -(this->m_PICE_sto_y[this->pice_time_mapping[time_index]][state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+state_index_cont_1][grid_index_1])*elec_field[1]
-                  -(this->m_PICE_sto_z[this->pice_time_mapping[time_index]][state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+state_index_cont_1][grid_index_1])*elec_field[2])
+                  -(this->m_PICE_sto_x[this->pice_time_mapping[int(floor(time_index))]][state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+state_index_cont_1][grid_index_1])*elec_field[0]
+                  -(this->m_PICE_sto_y[this->pice_time_mapping[int(floor(time_index))]][state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+state_index_cont_1][grid_index_1])*elec_field[1]
+                  -(this->m_PICE_sto_z[this->pice_time_mapping[int(floor(time_index))]][state_index_2*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_1*(this->m_n_states_cont)+state_index_cont_1][grid_index_1])*elec_field[2])
                *sqrt(this->dk(state_index_cont_1)));//PICE dipole interaction
       }
       else
@@ -794,7 +794,7 @@ void hamilton_matrix::plot_integrated_cross_section(std::string file_address,int
             for(int i=0;i!=this->m_n_angles;i++)
             {
 //            std::cout<<neut_state<<","<<k<<","<<i<<std::endl<<this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<","<<this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<","<<this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<std::endl;
-               cs+=pow(abs(this->m_PICE_z[0][neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2)*pow(this->k_modulus[k],2)*4*acos(-1)/this->m_n_angles;
+               cs+=pow(abs(this->m_PICE_sto_z[0][neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2)*pow(this->k_modulus[k],2)*4*acos(-1)/this->m_n_angles;
           //  cs=this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+1][x];
             }
             cs_out<<(this->m_xmin + (x-dgsize)*(this->m_xmax-this->m_xmin)/this->m_small_gsize_x)*0.529<<"   "<<pow(this->k_modulus[0]+k*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k,2)*27.211/2<<"   "<<real(cs)<<"   "<<imag(cs)<<std::endl;
@@ -811,7 +811,7 @@ void hamilton_matrix::plot_integrated_cross_section(std::string file_address,int
             for(int i=0;i!=this->m_n_angles;i++)
             {
 //            std::cout<<neut_state<<","<<k<<","<<i<<std::endl<<this->m_PICE_x[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<","<<this->m_PICE_y[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<","<<this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]<<std::endl;
-               cs+=pow(abs(this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2)*pow(this->k_modulus[k],2)*4*acos(-1)/this->m_n_angles;
+               cs+=pow(abs(this->m_PICE_sto_z[0][neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+i][x]),2)*pow(this->k_modulus[k],2)*4*acos(-1)/this->m_n_angles;
           //  cs=this->m_PICE_z[neut_state*this->m_n_states_cat*this->m_n_states_cont+cat_state*this->m_n_states_cont+k*this->m_n_angles+1][x];
             }
             cs_out<<(this->m_xmin + (x-dgsize)*(this->m_xmax-this->m_xmin)/this->m_small_gsize_x)*0.529<<"   "<<pow(this->k_modulus[0]+k*(this->k_modulus[this->m_n_k-1]-this->k_modulus[0])/this->m_n_k,2)*27.211/2<<"   "<<real(cs)<<"   "<<imag(cs)<<std::endl;

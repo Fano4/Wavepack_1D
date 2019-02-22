@@ -42,7 +42,7 @@ int main( int argc, char * argv [])
     string neutral_nac;
     string ionization_coupling_file;//LiH_PICE_R_i_j.txt
     string out_file;
-//    string read_file;
+    string read_file;
     string wf_out_file;
     string spectrum_out_file;
     string mfpad_out_file;
@@ -321,7 +321,7 @@ int main( int argc, char * argv [])
              {
                 for(int r=0;r!=tgsize_x;r++)
                 {
-        i//           read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<std::endl;
+        //           read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<std::endl;
                    temp+=std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
                 }
              }
