@@ -97,7 +97,9 @@ class hamilton_matrix {
       std::complex<double> ***m_PICE_sto_x;
       std::complex<double> ***m_PICE_sto_y;
       std::complex<double> ***m_PICE_sto_z;
+      double **pot_vec_reduced_mapping;
       int *pice_time_mapping;
+      int mapping_size;
 
       //TIME VARIABLE SETTINGS
       int m_n_times;
@@ -111,9 +113,9 @@ class hamilton_matrix {
       double **m_dmx_cat;
       double **m_dmy_cat;
       double **m_dmz_cat;
-      std::complex<double> **m_PICE_x;
-      std::complex<double> **m_PICE_y;
-      std::complex<double> **m_PICE_z;
+//      std::complex<double> **m_PICE_x;
+//      std::complex<double> **m_PICE_y;
+//      std::complex<double> **m_PICE_z;
       double **k_orientation;
       double *k_modulus;
       double **m_NAC;
@@ -134,7 +136,8 @@ class hamilton_matrix {
       void set_dm_cat(std::string file_address);
       double show_dm_neut(int state_index_1,int state_index_2,int grid_index,int component);
       double show_dm_cat(int state_index_1,int state_index_2,int grid_index,int component);
-      void set_PICE(double *pot_vec=NULL);
+//      void set_PICE(double *pot_vec=NULL);
+      void set_PICE();
       void set_NAC(std::string file_address);
       std::complex<double> hamilt_element(double time_index,int i,int j);
       double h();

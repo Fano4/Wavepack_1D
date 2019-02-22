@@ -606,14 +606,12 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
 //
 //##########################################################################
 
-void hamilton_matrix::set_PICE(double* pot_vec)
+void hamilton_matrix::set_PICE()
 {
    const int nstneut=this->m_n_states_neut;
    const int nstcat=this->m_n_states_cat;
    const int nk=this->m_n_k;
    const int ndist=this->m_n_angles;
-   //std::cout<<"probe"<<std::endl;
-   //
    std::stringstream ss_file_cs;
    std::string s_file_cs;
    int dgsize_x(this->m_tgsize_x-this->m_small_gsize_x);
@@ -622,6 +620,7 @@ void hamilton_matrix::set_PICE(double* pot_vec)
    std::complex<double> pice_y;
    std::complex<double> pice_z;
 
+   double *pot_vec=new double[3];
    using namespace std;
    double duration;
    clock_t begin;
@@ -634,6 +633,39 @@ void hamilton_matrix::set_PICE(double* pot_vec)
    int x(0);
    int i(0);
    int j(0);
+   for(int t=0;t!=this->mapping_size;t++)
+   {
+      pot_vec[0]=this->pot_vec_reduced_mapping[t][0];
+      pot_vec[1]=this->pot_vec_reduced_mapping[t][1];
+      pot_vec[2]=this->pot_vec_reduced_mapping[t][2];
+
+       for( x=0;x<this->m_small_gsize_x;x++)
+       {
+          std::cout<<x<<" position "<<0.529*(this->m_xmin+x*(this->m_xmax-this->m_xmin)/this->m_small_gsize_x)<<"Angstrom"<<std::endl;
+          for( i=0;i<nstneut;i++)
+          {
+             std::cout<<"stneut"<<i<<std::endl;
+             for( j=0;j<nstcat;j++)
+             { 
+                 std::cout<<"stcat"<<j<<std::endl;
+                 begin = clock();
+                 #pragma omp parallel for private(k,l) shared(x,i,j,nk,ndist,nstcat,dgsize_x,pot_vec,ratio)
+                 for(k=0;k<nk;k++)
+                 {
+                     for(l=0;l<ndist;l++)
+                     {
+                        this->pice_data->fill_pice(&this->m_PICE_sto_x[t][i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_sto_y[t][i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_sto_z[t][i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],int(ratio*x),i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
+                     }
+                  }
+                  end = clock();
+                  duration=double(end-begin)/CLOCKS_PER_SEC;
+                  std::cout<<duration/32<<"s"<<std::endl;
+
+             }
+          }
+       }
+   }
+      /*
    for( x=0;x<this->m_small_gsize_x;x++)
    {
       std::cout<<x<<" position "<<0.529*(this->m_xmin+x*(this->m_xmax-this->m_xmin)/this->m_small_gsize_x)<<"Angstrom"<<std::endl;
@@ -650,32 +682,16 @@ void hamilton_matrix::set_PICE(double* pot_vec)
                for(l=0;l<ndist;l++)
                {
                   this->pice_data->fill_pice(&this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],&this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x+dgsize_x],int(ratio*x),i,j,this->k_orientation[0][l],this->k_orientation[1][l],this->k_modulus[k],pot_vec);
-//                   std::cout<<this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<std::endl;
-//                   exit(EXIT_SUCCESS);
-                   //std::cout<<"probe "<<x<<","<<i<<","<<j<<","<<k<<","<<l<<std::endl;
                }
             }
             end = clock();
            duration=double(end-begin)/CLOCKS_PER_SEC;
            std::cout<<duration/32<<"s"<<std::endl;
 
-           /*
-           ss_file_cs.str("");
-           ss_file_cs<<"cs_";
-           ss_file_cs<<i<<"_"<<j<<".txt";
-           s_file_cs=ss_file_cs.str();
-           std::cout<<"Printing CS"<<std::endl;
-           this->plot_integrated_cross_section(s_file_cs.c_str(),i,j,x+dgsize_x);
-           */
          }
       }
-
-//      int i=18;
-//      int j=0;
-//      int k=2;
-//      int l=1;
-//      std::cout<<this->m_PICE_x[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_y[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<","<<this->m_PICE_z[i*nstcat*nk*ndist+j*nk*ndist+k*ndist+l][x]<<std::endl;
    }
+   */
 }
 //##########################################################################
 //
@@ -1040,23 +1056,79 @@ double hamilton_matrix::k_spher_orient(bool component, int index) const
 //##########################################################################
 void hamilton_matrix::set_pice_mapping()
 {
+//!!!!!!!!!!!!!!WORKS ONLY FOR ELECTRIC FIELD POLARIZED ALONG Z !!!!!!!!!!!!!!!
    double vector[3];
    double mod(0);
    int ratio(0);
+   bool test(1);
    int *ratio_list=new int[this->m_n_times];
+   std::vector<int> reduced_ratio_list;
+   std::vector<double> reduced_potvec_list_x;
+   std::vector<double> reduced_potvec_list_y;
+   std::vector<double> reduced_potvec_list_z;
+
+   reduced_ratio_list.pushback(0);
+   reduced_potvec_list.pushback(0.0);
 
    for(int t=0;t!=this->m_n_times;t++)
    {
+      test=1;
       potential_vector(t,vector);
-      mod=sqrt(pow(vector[0],2)+pow(vector[1],2)+pow(vector[2],2));
-      ratio=floor(mod/H->pot_vec_thresh());
-       
+      mod=(vector[2]/fabs(vector[2]))*sqrt(pow(vector[0],2)+pow(vector[1],2)+pow(vector[2],2));
+      ratio=(mod/fabs(mod))*floor(fabs(mod)/H->pot_vec_thresh());
+      ratio_list[t]=ratio;
+      for(int i=0;i!=reduced_ratio_list.size();i++)
+      {
+         if(ratio_list[t]==reduced_ratio_list[i])
+            test*=0;
+      }
+      if(test)
+      {
+         reduced_ratio_list.pushback(ratio_list[t]);
+         reduced_potvec_list_x.pushback(vector[0]);
+         reduced_potvec_list_y.pushback(vector[1]);
+         reduced_potvec_list_z.pushback(vector[2]);
+         this->pice_time_mapping[t]=reduced_ratio_list.size()-1;
+      }
+      else
+      {
+         for(int i=0;i!=reduced_ratio_list.size();i++)
+         {
+            if(ratio_list[t]==reduced_ratio_list[i])
+            {
+               this->pice_time_mapping[t]=i;
+            }
+         }
+      }
    }
-   this->m_PICE_sto_x=new std::complex<double> *[n_states_neut*n_states_cat*this->m_n_states_cont];
-   std::cout<<" ...";
-   for(int i=0;i!=n_states_neut*n_states_cat*this->m_n_states_cont;i++)
+
+   this->mapping_size=reduced_ratio_list.size();
+   this->pot_vec_reduced_mapping=new double*[this->mapping_size];
+
+   for(int i=0;i!=this->mapping_size;i++)
    {
-      this->m_PICE_x[i]=new std::complex<double>[tgsize_x];
+      this->pot_vec_reduced_mapping[i]=new double[3];
+      this->pot_vec_reduced_mapping[i][0]=reduced_potvec_list_x[i];
+      this->pot_vec_reduced_mapping[i][1]=reduced_potvec_list_y[i];
+      this->pot_vec_reduced_mapping[i][2]=reduced_potvec_list_z[i];
+   }
+
+   this->m_PICE_sto_x=new std::complex<double> **[reduced_ratio_list.size()];
+   this->m_PICE_sto_y=new std::complex<double> **[reduced_ratio_list.size()];
+   this->m_PICE_sto_z=new std::complex<double> **[reduced_ratio_list.size()];
+
+   for(int i=0;i!=reduced_ratio_list.size();i++)
+   {
+      this->m_PICE_sto_x[i]=new *std::complex<double>[n_states_neut*n_states_cat*this->m_n_states_cont];
+      this->m_PICE_sto_y[i]=new *std::complex<double>[n_states_neut*n_states_cat*this->m_n_states_cont];
+      this->m_PICE_sto_z[i]=new *std::complex<double>[n_states_neut*n_states_cat*this->m_n_states_cont];
+
+      for(int t=0;t!=n_states_neut*n_states_cat*this->m_n_states_cont;t++)
+      {
+         this->m_PICE_sto_x[i][t]=new std::complex<double>[tgsize_x];
+         this->m_PICE_sto_y[i][t]=new std::complex<double>[tgsize_x];
+         this->m_PICE_sto_z[i][t]=new std::complex<double>[tgsize_x];
+      }
    }
    delete [] ratio_list;
 }
