@@ -173,5 +173,6 @@ class hamilton_matrix {
       void sphere_dist_read(std::string dist_file);
       void sphere_dist_save(std::string dist_file);
       void set_pice_mapping();
+      void hamilton_matrix::PI_rate(int time_index,double** ionization_rate,wavefunction* Psi)
 };
 

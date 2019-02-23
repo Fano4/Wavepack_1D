@@ -822,4 +822,36 @@ void hamilton_matrix::plot_integrated_cross_section(std::string file_address,int
 //##########################################################################
 //
 //##########################################################################
+void hamilton_matrix::PI_rate(int time_index,double** ionization_rate,wavefunction* Psi)
+{
+
+   double* elec_field=new double[3];
+
+   for(int i=0;i!=this->m_n_states_neut;i++)
+   {
+      for(int j=0;j!=this->m_n_states_cat;j++)
+      {
+         ionization_rate[i][j]=0;
+
+         for(int k=0;k!=this->m_n_states_cont;k++)
+         {
+            for(int r=0;r!=this->m_tgsize_x;r++)
+            {
+               ionization_rate[i][j]-=2*std::imag(
+                     std::conj(
+                                 this->m_PICE_sto_x[this->pice_time_mapping[int(floor(time_index))]][state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1]*elec_field[0]
+                                 this->m_PICE_sto_y[this->pice_time_mapping[int(floor(time_index))]][state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1]*elec_field[1]
+                                 this->m_PICE_sto_z[this->pice_time_mapping[int(floor(time_index))]][state_index_1*(this->m_n_states_cat)*(this->m_n_states_cont)+state_index_2*(this->m_n_states_cont)+state_index_cont_2][grid_index_1]*elec_field[2]
+                              )
+               *std::conj(Psi->show_cat_psi(r,j,k))*Psi->show_neut_psi(r,i));
+
+            }
+         }
+      }
+   }
+      delete [] elec_field;
+}
+//##########################################################################
+//
+//##########################################################################
 //END OF HAMILTON MATRIX OBJECT COMPUTATION
