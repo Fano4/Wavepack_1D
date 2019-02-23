@@ -46,6 +46,7 @@ int main( int argc, char * argv [])
     string wf_out_file;
     string spectrum_out_file;
     string mfpad_out_file;
+    string ionization_rate_file("/data1/home/stephan/Wavepack_1D/test_ionization_rates.txt");
     string pi_cs_file;
     stringstream ss_wf;
     string s_wf;
@@ -123,6 +124,13 @@ int main( int argc, char * argv [])
     H->set_dm_neut(neutral_dipole.c_str());
     H->set_dm_cat(cation_dipole.c_str());
     H->set_NAC(neutral_nac);
+
+    //SET UP ARRAYS FOR OUTPUTING IONIZATION/RECOMBINATION RATE
+    double**ionization_rate=new double*[n_states_neut];
+    for(int i=0;i!=n_states_neut;i++)
+    {
+       ionization_rate[i]=new double[n_states_cat];
+    }
 
     if(time_index != 0)
     {
@@ -358,6 +366,18 @@ int main( int argc, char * argv [])
           }mfpad<<std::endl;
        }
        mfpad.close();
+
+       H->PI_rate(time_index,ionization_rate,Psi);
+       read.open(ionization_rate_file.c_str(),ios_base::app);
+       read<<time_index*h*0.02418884<<" ";
+       for(int i=0;i!=n_states_neut;i++)
+       {
+          for(int j=0;j!=n_states_cat;j++)
+          {
+             read<<ionization_rate[i][j]<<" ";
+          }
+       }read<<std::endl;
+       read.close();
 
     delete Psi;
    // delete dPsi;
