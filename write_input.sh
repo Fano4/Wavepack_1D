@@ -38,6 +38,7 @@ neut_wfu_root=${OUTPUT_DIR}/neut_wf_${1}_
 spectrum_root=${OUTPUT_DIR}/spectrum_${1}.txt
 mfpad_root=${OUTPUT_DIR}/mfpad_${1}.txt
 cs_root=${OUTPUT_DIR}/cs_${1}_
+ionization_rate_root=${OUTPUT_DIR}/ionization_rate_${1}.txt
 dist_root=${INPUT_DIR}/sphere_dist.txt
 
 #Simulation parameters
@@ -88,6 +89,7 @@ ${neut_wfu_root}
 ${spectrum_root}
 ${mfpad_root}
 ${cs_root}
+${ionization_rate_root}
 ${dist_root}
 ${grid_size}
 ${small_grid_size}

@@ -107,7 +107,7 @@ int main( int argc, char * argv [])
    double respectrum(0);
    double imspectrum(0);
 
-    input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&dist_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
+    input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&ionization_rate_file,&dist_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
 
     int tgsize_x(small_gsize_x+6);
     int n_times(int(total_time/h));
@@ -235,6 +235,8 @@ int main( int argc, char * argv [])
         std::cout<<"Wave function restarted from checkpoint file!"<<std::endl;
     }
 
+       read.open(ionization_rate_file.c_str());
+       read.close();
 //     read.open(read_file.c_str());
 //    std::cout<<"Initial state:"<<std::endl;
 //    for(int i=0;i!=tgsize_x;i++)
