@@ -840,12 +840,12 @@ void hamilton_matrix::PI_rate(int time_index,double** ionization_rate,wavefuncti
             for(int r=0;r!=this->m_tgsize_x;r++)
             {
                ionization_rate[i][j]-=2*std::imag(
-                     std::conj(
+                              (
                                  (this->m_PICE_sto_x[this->pice_time_mapping[int(floor(time_index))]][i*(this->m_n_states_cat)*(this->m_n_states_cont)+j*(this->m_n_states_cont)+k][r]*elec_field[0]
                                  +this->m_PICE_sto_y[this->pice_time_mapping[int(floor(time_index))]][i*(this->m_n_states_cat)*(this->m_n_states_cont)+j*(this->m_n_states_cont)+k][r]*elec_field[1]
                                  +this->m_PICE_sto_z[this->pice_time_mapping[int(floor(time_index))]][i*(this->m_n_states_cat)*(this->m_n_states_cont)+j*(this->m_n_states_cont)+k][r]*elec_field[2])
                               )
-               *std::conj(Psi->show_cat_psi(r,j,k))*Psi->show_neut_psi(r,i));
+               *(Psi->show_cat_psi(r,j,k))*std::conj(Psi->show_neut_psi(r,i)));
 
             }
          }
