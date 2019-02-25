@@ -828,7 +828,8 @@ void hamilton_matrix::PI_rate(int time_index,double** ionization_rate,wavefuncti
 
    double* elec_field=new double[3];
 
-   
+   this->electric_field(time_index,elec_field);
+
    for(int i=0;i!=this->m_n_states_neut;i++)
    {
       for(int j=0;j!=this->m_n_states_cat;j++)
