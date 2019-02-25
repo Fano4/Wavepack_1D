@@ -351,6 +351,23 @@ int main( int argc, char * argv [])
        output<<"Norm of the system "<<setprecision(15)<<norm<<std::endl;
        output.close();
 
+       H->PI_rate(time_index,ionization_rate,Psi);
+       read.open(ionization_rate_file.c_str(),ios_base::app);
+       if(!read.is_open())
+       {
+         output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<ionization_rate_file.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
+         exit(EXIT_FAILURE);
+       }
+       read<<time_index*h*0.02418884<<" ";
+       for(int i=0;i!=n_states_neut;i++)
+       {
+          for(int j=0;j!=n_states_cat;j++)
+          {
+             read<<ionization_rate[i][j]<<" ";
+          }
+       }read<<std::endl;
+       read.close();
+
        Psi->save_wf(s_savefile.c_str());
     }
 
@@ -369,17 +386,6 @@ int main( int argc, char * argv [])
        }
        mfpad.close();
 
-       H->PI_rate(time_index,ionization_rate,Psi);
-       read.open(ionization_rate_file.c_str(),ios_base::app);
-       read<<time_index*h*0.02418884<<" ";
-       for(int i=0;i!=n_states_neut;i++)
-       {
-          for(int j=0;j!=n_states_cat;j++)
-          {
-             read<<ionization_rate[i][j]<<" ";
-          }
-       }read<<std::endl;
-       read.close();
 
     delete Psi;
    // delete dPsi;
