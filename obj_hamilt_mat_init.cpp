@@ -1081,8 +1081,19 @@ void hamilton_matrix::set_pice_mapping()
    {
       test=1;
       potential_vector(t,vector);
-      mod=(vector[2]/fabs(vector[2]))*sqrt(pow(vector[0],2)+pow(vector[1],2)+pow(vector[2],2));
-      ratio=(mod/fabs(mod))*floor(fabs(mod)/this->pot_vec_thresh());
+      if(fabs(vector[2]) >= 1e-10)
+      {
+         mod=(vector[2]/fabs(vector[2]))*sqrt(pow(vector[0],2)+pow(vector[1],2)+pow(vector[2],2));
+         ratio=(mod/fabs(mod))*floor(fabs(mod)/this->pot_vec_thresh());
+      }
+      else
+      {
+         mod=0;
+         ratio=0;
+      }
+
+//      std::cout<<t<<","<<mod<<","<<ratio<<std::endl;
+
       ratio_list[t]=ratio;
       for(int i=0;i!=reduced_ratio_list.size();i++)
       {
