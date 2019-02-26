@@ -76,8 +76,7 @@ probe_CEP=0.0
 
 #Write the input using the parameters defined above
 
-echo "
-${neut_potential_root}
+echo "${neut_potential_root}
 ${cat_potential_root}
 ${neut_dipole_root}
 ${cat_dipole_root}
@@ -119,3 +118,54 @@ ${probe_energy}
 ${probe_CEP}
 ">${OUTPUT_DIR}/wvpck_input.in
 
+##################
+# NOW WE WRITE A SLURM SUBMISSION SCRIPT IF REQUIRED 
+#################
+
+echo " DO YOU HAVE TO GENERATE A NEW SLURM SCRIPT ? y/n" 
+   read answer
+   if [[ "${answer}" = 'y' || "${answer}" = 'n' ]]
+   then
+      if [[ "${answer}" = 'n' ]]
+      then
+         exit
+      fi
+   else
+   while [[ "${answer}" != 'y' && "${answer}" != 'n' ]]
+   do
+      echo "Please answer by y or n. DO YOU HAVE TO GENERATE A NEW SLURM SCRIPT ?"
+      read answer
+   done
+fi
+echo "job name?" 
+read job_name
+
+echo "#!/bin/bash
+#SUBMISSION SCRIPT
+#
+#SBATCH --job-name=${job_name}
+#SBATCH --time=1-12:00:00
+#
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=32
+#SBATCH --mem-per-cpu=512 #MB
+#SBATCH --partition=defq
+#
+#SBATCH --mail-user=svdwildenberg@uliege.be
+#SBATCH --mail-type=ALL
+
+nproc=32
+export OMP_NUM_THREADS=32
+export MKL_NUM_THREADS=32
+
+
+submit_dir=\$(pwd)
+input_loc=/home/ulg/cpt/svdwild/LiH_wavepack_input
+input_file=\${submit_dir}/wvpck_input.in
+error_dir=\${submit_dir}/error.txt
+wavepack_loc=/CECI/home/ulg/cpt/svdwild/Wavepack_1D/wavepack_1d.exe
+
+#srun \${wavepack_loc} \${input_file} \${nproc} \${submit_dir}/restart.svwvpck 121850
+srun \${wavepack_loc} \${input_file} \${nproc} 
+
+">${OUTPUT_DIR}/slurm_input.sh
