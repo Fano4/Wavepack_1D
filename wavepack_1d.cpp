@@ -46,7 +46,7 @@ int main( int argc, char * argv [])
     string wf_out_file;
     string spectrum_out_file;
     string mfpad_out_file;
-    string ionization_rate_file("/data1/home/stephan/Wavepack_1D/test_ionization_rates.txt");
+    string ionization_rate_file;
     string pi_cs_file;
     stringstream ss_wf;
     string s_wf;
@@ -125,6 +125,22 @@ int main( int argc, char * argv [])
     H->set_dm_cat(cation_dipole.c_str());
     H->set_NAC(neutral_nac);
 
+    /*
+    for(int i=0;i!=tgsize_x;i++)
+    {
+       std::cout<<xmin+(i-dgsize)*(xmax-xmin)/small_gsize_x<<"    ";
+       for(int n=0;n!=n_states_neut;n++)
+       {
+          std::cout<<H->pot_neut(n,i)<<"    ";
+       }
+       for(int n=0;n!=n_states_cat;n++)
+       {
+          std::cout<<H->pot_cat(n,i)<<"    ";
+       }
+       std::cout<<std::endl;
+    }
+    exit(EXIT_SUCCESS);
+    */
     //SET UP ARRAYS FOR OUTPUTING IONIZATION/RECOMBINATION RATE
     double**ionization_rate=new double*[n_states_neut];
     for(int i=0;i!=n_states_neut;i++)

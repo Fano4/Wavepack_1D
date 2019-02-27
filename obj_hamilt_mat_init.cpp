@@ -314,9 +314,9 @@ void hamilton_matrix::set_pot_neut(std::string file_address)
       {
          input_file.seekg(0);
 
-         input_file>>var;
          for(int j=dgsize;j!=this->m_tgsize_x;j++)
          {
+            input_file>>var;
             this->m_pot_neut[this->m_tgsize_x*i+j]=var;
             for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
             {
@@ -412,9 +412,9 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
-                input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
+                    input_file>>temp;
                     this->m_dmx_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmx_neut[j*this->m_n_states_neut+i][k] = this->m_dmx_neut[i*this->m_n_states_neut+j][k];
                     for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
@@ -442,9 +442,9 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
-               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
+                    input_file>>temp;
                     this->m_dmy_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmy_neut[j*this->m_n_states_neut+i][k]=this->m_dmy_neut[i*this->m_n_states_neut+j][k];
                     for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
@@ -472,9 +472,9 @@ void hamilton_matrix::set_dm_neut(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
-               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
+                    input_file>>temp;
                     this->m_dmz_neut[i*this->m_n_states_neut+j][k]=temp;
                     this->m_dmz_neut[j*this->m_n_states_neut+i][k]=this->m_dmz_neut[i*this->m_n_states_neut+j][k];
                     for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
@@ -520,9 +520,9 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
-               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
+                    input_file>>temp;
                     this->m_dmx_cat[i*this->m_n_states_cat+j][k]=temp;
                     this->m_dmx_cat[j*this->m_n_states_cat+i][k]=temp;
                     for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
@@ -550,9 +550,9 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
-               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
+                    input_file>>temp;
                     this->m_dmy_cat[i*this->m_n_states_cat+j][k]=temp;
                     this->m_dmy_cat[j*this->m_n_states_cat+i][k]=temp;
                     for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
@@ -580,9 +580,9 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
             if(input_file.is_open())
             {
                input_file.seekg(0);
-               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
+                    input_file>>temp;
                     this->m_dmz_cat[i*this->m_n_states_cat+j][k]=temp;
                     this->m_dmz_cat[j*this->m_n_states_cat+i][k]=temp;
                     for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
@@ -731,9 +731,9 @@ void hamilton_matrix::set_NAC(std::string file_address)
             input_file.open(filename.c_str());
             if(input_file.is_open())
             {
-               input_file>>temp;
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
+                   input_file>>temp;
                    this->m_NAC[i*this->m_n_states_neut+j][k]=temp;
                    for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
                    {
