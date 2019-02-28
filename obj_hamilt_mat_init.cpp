@@ -366,7 +366,6 @@ void hamilton_matrix::set_pot_cat(std::string file_address)
 
       if(input_file.is_open())
       {
-         input_file>>var;
          for(int j=dgsize;j!=this->m_tgsize_x;j++)
          {
             input_file>>this->m_pot_cat[this->m_tgsize_x*i+j];
