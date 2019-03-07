@@ -250,6 +250,7 @@ int main( int argc, char * argv [])
         Psi->load_wf(restart_file_loc.c_str());
         std::cout<<"Wave function restarted from checkpoint file!"<<std::endl;
     }
+       Psi->diagonalize_Hamilton(H);
 
        read.open(ionization_rate_file.c_str());
        read.close();

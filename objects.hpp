@@ -22,6 +22,7 @@ class wavefunction {
       int n_states_cat();
       int n_states_cont();
       void initialize(hamilton_matrix* H);
+      void diagonalize_Hamilton(hamilton_matrix* H);
       void set_norm(double value);
       double norm(hamilton_matrix *H);
       void set_dipole(hamilton_matrix *H);
@@ -145,6 +146,7 @@ class hamilton_matrix {
       double electric_field(double time_index,double* vector);
       double potential_vector(double time_index,double* vector);
       double kinetic_energy_matrix(int i,int j);
+      double show_derivative_matrix(int i,int j);
       double pot_neut(int state_index,int grid_index);
       double pot_cat(int state_index,int grid_index);
       double energy(wavefunction* Psi,double time_index);
@@ -174,5 +176,6 @@ class hamilton_matrix {
       void sphere_dist_save(std::string dist_file);
       void set_pice_mapping();
       void PI_rate(int time_index,double** ionization_rate,wavefunction* Psi);
+      double mass();
 };
 

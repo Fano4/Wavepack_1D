@@ -857,4 +857,18 @@ void hamilton_matrix::PI_rate(int time_index,double** ionization_rate,wavefuncti
 //##########################################################################
 //
 //##########################################################################
+double hamilton_matrix::mass()
+{
+   return this->m_mass;
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::show_derivative_matrix(int grid_index_1,int grid_index_2)
+{
+   return this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2];
+}
+//##########################################################################
+//
+//##########################################################################
 //END OF HAMILTON MATRIX OBJECT COMPUTATION
