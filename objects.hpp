@@ -22,7 +22,7 @@ class wavefunction {
       int n_states_cat();
       int n_states_cont();
       void initialize(hamilton_matrix* H);
-      void diagonalize_Hamilton(hamilton_matrix* H);
+      void diagonalize_Hamilton(hamilton_matrix* H,wavefunction** eigenstates);
       void set_norm(double value);
       double norm(hamilton_matrix *H);
       void set_dipole(hamilton_matrix *H);
@@ -36,6 +36,7 @@ class wavefunction {
       double state_pop(bool species,int state,hamilton_matrix* H=NULL);
       void save_wf(std::string file_loc);
       bool load_wf(std::string file_loc);
+      void projection_eigenstates(wavefunction *projected_state,wavefunction **eigenstates,hamilton_matrix *H);
    private:
       int m_gsize_x;
       int m_tgsize_x;

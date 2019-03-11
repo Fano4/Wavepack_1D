@@ -124,6 +124,7 @@ int main( int argc, char * argv [])
     H->set_dm_neut(neutral_dipole.c_str());
     H->set_dm_cat(cation_dipole.c_str());
     H->set_NAC(neutral_nac);
+    
 
     /*
     for(int i=0;i!=tgsize_x;i++)
@@ -250,7 +251,26 @@ int main( int argc, char * argv [])
         Psi->load_wf(restart_file_loc.c_str());
         std::cout<<"Wave function restarted from checkpoint file!"<<std::endl;
     }
-       Psi->diagonalize_Hamilton(H);
+
+       wavefunction **eigenstates=new wavefunction*[tgsize_x*n_states_neut]; 
+       wavefunction *proj_state=new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);  
+
+       for(int n=0;n!=tgsize_x*n_states_neut;n++)
+       {
+          eigenstates[n]=new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);
+       }
+
+       Psi->diagonalize_Hamilton(H,eigenstates);
+       Psi->projection_eigenstates(proj_state,eigenstates,H);
+
+       for(int n=0;n!=n_states_neut;n++)
+       {
+          for( int g=0;g!=tgsize_x;g++)
+          {
+             std::cout<<real(proj_state->show_neut_psi(g,n))<<"  "<<imag(proj_state->show_neut_psi(g,n))<<std::endl;
+          }
+       }
+       exit(EXIT_SUCCESS);
 
        read.open(ionization_rate_file.c_str());
        read.close();

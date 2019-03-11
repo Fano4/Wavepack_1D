@@ -186,7 +186,7 @@ int wavefunction::n_states_cont()
 //##########################################################################
 //
 //##########################################################################
-void wavefunction::diagonalize_Hamilton(hamilton_matrix* H)
+void wavefunction::diagonalize_Hamilton(hamilton_matrix* H,wavefunction** eigenstates)
 {
    double *H_mat_gs=new double[(this->m_tgsize_x)*(this->m_tgsize_x)*this->m_n_states_neut*this->m_n_states_neut];
    double *d=new double[(this->m_tgsize_x)*(this->m_n_states_neut)];
@@ -258,27 +258,33 @@ void wavefunction::diagonalize_Hamilton(hamilton_matrix* H)
 
    ofstream eigen_output;
    stringstream ss_eigout;
-   string s_eigout;
+//   string s_eigout;
+   string s_eigout("/data1/home/stephan/Wavepack_1D/eigenvec_test/big_eigenmatrix.txt");
    std::cout<<this->m_tgsize_x<<"*"<<this->m_n_states_neut<<"="<<this->m_tgsize_x*this->m_n_states_neut<<std::endl;
+
+//   eigen_output.open(s_eigout.c_str());
+   //!!!!! PUT THE N LOOP BACK OUT HERE!!!
 
    for(int n=0 ; n!=this->m_tgsize_x*this->m_n_states_neut;n++)
    {
-
       for(int m=0;m!=this->m_n_states_neut;m++)
       {
-          std::cout<<"writing eigenvector "<<n<<std::endl;
-          ss_eigout.str("");
-          ss_eigout<<"/data1/home/stephan/Wavepack_1D/eigenvec_test/eigenvec_"<<n<<"_"<<m<<".txt";
-          s_eigout=ss_eigout.str();
-          eigen_output.open(s_eigout.c_str());
+          //std::cout<<"writing eigenvector "<<n<<std::endl;
+          //ss_eigout.str("");
+          //ss_eigout<<"/data1/home/stephan/Wavepack_1D/eigenvec_test/eigenvec_"<<n<<"_"<<m<<".txt";
+          //s_eigout=ss_eigout.str();
+//          eigen_output.open(s_eigout.c_str());
          for(int i=0;i!=this->m_tgsize_x;i++)
          {
-            eigen_output<<real(cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+i*this->m_tgsize_x*this->m_n_states_neut+n])<<std::endl;
-         }
+              eigenstates[n]->set_psi_elwise(m*this->m_tgsize_x+i,cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+i*this->m_tgsize_x*this->m_n_states_neut+n]);
+//            eigen_output<<real(cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+i*this->m_tgsize_x*this->m_n_states_neut+n])<<std::endl;
+//            eigen_output<<real(cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+i*this->m_tgsize_x*this->m_n_states_neut+n])<<",";
+         }//eigen_output<<std::endl;
          //eigen_output<<std::endl;
-         eigen_output.close();
+//         eigen_output.close();
       }
    }
+  // eigen_output.close();
    /*for(int m=1;m!=this->m_n_states_neut;m++)
    {
       for(int i=0;i!=this->m_gsize_x;i++)
@@ -287,7 +293,6 @@ void wavefunction::diagonalize_Hamilton(hamilton_matrix* H)
       }
    }*/
 
-   exit(EXIT_SUCCESS);
 
    delete [] H_mat_gs;
    std::cout<<"Wavefunction Initialized ! "<<std::endl;
@@ -360,6 +365,16 @@ void wavefunction::initialize(hamilton_matrix* H)
 
    delete [] H_mat_gs;
    std::cout<<"Wavefunction Initialized ! "<<std::endl;
+}
+//##########################################################################
+//
+//##########################################################################
+void wavefunction::projection_eigenstates(wavefunction *projected_state,wavefunction **eigenstates,hamilton_matrix *H)
+{
+   for(int m=0;m!=this->m_tgsize_x*this->m_n_states_neut;m++)
+   {
+      projected_state->set_psi_elwise(m,this->dot_prod(eigenstates[m],H));
+   }
 }
 //##########################################################################
 //
@@ -479,19 +494,19 @@ void wavefunction::set_psi_elwise(int i,std::complex<double> val)
       grid_index_1 = 0;
       state_index_cont_1 = -1;
    }
-   else if(i < (this->n_states_neut())*(this->gsize_x()))
+   else if(i < (this->n_states_neut())*(this->tgsize_x()))
    {
-      grid_index_1 = int(i%this->gsize_x());
-      state_index_1 = int((i-grid_index_1)/this->gsize_x());
+      grid_index_1 = int(i%this->tgsize_x());
+      state_index_1 = int((i-grid_index_1)/this->tgsize_x());
       state_index_cont_1 = -1;
    }
    else
    {
-      grid_index_1=int((i-this->n_states_neut()*this->gsize_x())%this->gsize_x());
-      state_index_cont_1=int(((i-this->n_states_neut()*this->gsize_x()-grid_index_1))/(this->gsize_x()))%this->n_states_cont();
-      state_index_1=int(((i-this->n_states_neut()*this->gsize_x()-grid_index_1-(this->gsize_x())*state_index_cont_1))/(this->gsize_x()*this->n_states_cont()));
+      grid_index_1=int((i-this->n_states_neut()*this->tgsize_x())%this->tgsize_x());
+      state_index_cont_1=int(((i-this->n_states_neut()*this->tgsize_x()-grid_index_1))/(this->tgsize_x()))%this->n_states_cont();
+      state_index_1=int(((i-this->n_states_neut()*this->tgsize_x()-grid_index_1-(this->tgsize_x())*state_index_cont_1))/(this->tgsize_x()*this->n_states_cont()));
    }
-   std::cout<<grid_index_1<<","<<state_index_cont_1<<","<<state_index_1<<std::endl;
+//   std::cout<<grid_index_1<<","<<state_index_cont_1<<","<<state_index_1<<std::endl;
 
    if(state_index_cont_1 == -1)
       this->set_neut_psi(state_index_1,grid_index_1,val);
