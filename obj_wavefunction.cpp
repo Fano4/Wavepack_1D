@@ -186,7 +186,7 @@ int wavefunction::n_states_cont()
 //##########################################################################
 //
 //##########################################################################
-void wavefunction::diagonalize_Hamilton(hamilton_matrix* H,wavefunction** eigenstates)
+void wavefunction::diagonalize_Hamilton(hamilton_matrix* H,double* eigenval,wavefunction** eigenstates)
 {
    double *H_mat_gs=new double[(this->m_tgsize_x)*(this->m_tgsize_x)*this->m_n_states_neut*this->m_n_states_neut];
    double *d=new double[(this->m_tgsize_x)*(this->m_n_states_neut)];
@@ -253,6 +253,7 @@ void wavefunction::diagonalize_Hamilton(hamilton_matrix* H,wavefunction** eigens
    for(int i=0;i!=this->m_tgsize_x*(this->m_n_states_neut);i++)
    {
       std::cout<<d[i]<<std::endl;
+      eigenval[i]=d[i];
    }
    std::cout<<"#############################"<<std::endl;
 

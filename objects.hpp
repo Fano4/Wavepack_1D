@@ -22,7 +22,7 @@ class wavefunction {
       int n_states_cat();
       int n_states_cont();
       void initialize(hamilton_matrix* H);
-      void diagonalize_Hamilton(hamilton_matrix* H,wavefunction** eigenstates);
+      void diagonalize_Hamilton(hamilton_matrix* H,double* eigenval,wavefunction** eigenstates);
       void set_norm(double value);
       double norm(hamilton_matrix *H);
       void set_dipole(hamilton_matrix *H);

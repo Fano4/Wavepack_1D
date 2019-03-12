@@ -158,12 +158,12 @@ int main( int argc, char * argv [])
           {
              H->potential_vector(time_index,init_pot_vec);
              H->sphere_dist_read(dist_file);
-             H->set_PICE();
+//             H->set_PICE();
           }
           else
           {
              H->sphere_dist_read(dist_file);
-             H->set_PICE();
+//             H->set_PICE();
           }
           delete [] init_pot_vec;
        }
@@ -174,7 +174,7 @@ int main( int argc, char * argv [])
        {
           H->sphere_dist_read(dist_file);
           H->sphere_dist_save(dist_file);
-          H->set_PICE();
+//          H->set_PICE();
        }
         output.open(out_file.c_str());
         output<<"Output from Wavepack_1D, developped by Stephan van den Wildenberg (Theoretical Physical Chemistry, University of Liege)"<<std::endl<<"File generated on "<<date_str<<std::endl;
@@ -260,14 +260,15 @@ int main( int argc, char * argv [])
           eigenstates[n]=new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);
        }
 
-       Psi->diagonalize_Hamilton(H,eigenstates);
+       double*eigenval=new double[tgsize_x*n_states_neut];
+       Psi->diagonalize_Hamilton(H,eigenval,eigenstates);
        Psi->projection_eigenstates(proj_state,eigenstates,H);
 
        for(int n=0;n!=n_states_neut;n++)
        {
           for( int g=0;g!=tgsize_x;g++)
           {
-             std::cout<<real(proj_state->show_neut_psi(g,n))<<"  "<<imag(proj_state->show_neut_psi(g,n))<<std::endl;
+             std::cout<<eigenval[n*tgsize_x+g]<<"  "<<real(proj_state->show_neut_psi(g,n))<<"  "<<imag(proj_state->show_neut_psi(g,n))<<"  "<<pow(abs(proj_state->show_neut_psi(g,n)),2)<<std::endl;
           }
        }
        exit(EXIT_SUCCESS);
