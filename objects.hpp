@@ -178,5 +178,6 @@ class hamilton_matrix {
       void set_pice_mapping();
       void PI_rate(int time_index,double** ionization_rate,wavefunction* Psi);
       double mass();
+      void change_basis_dipole(wavefunction **change_basis,double *dipole_new_basis);
 };
 

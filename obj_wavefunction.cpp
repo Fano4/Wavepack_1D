@@ -296,7 +296,7 @@ void wavefunction::diagonalize_Hamilton(hamilton_matrix* H,double* eigenval,wave
 
 
    delete [] H_mat_gs;
-   std::cout<<"Wavefunction Initialized ! "<<std::endl;
+   std::cout<<" Diagonalized field free Hamiltonian "<<std::endl;
 }
 //##########################################################################
 //

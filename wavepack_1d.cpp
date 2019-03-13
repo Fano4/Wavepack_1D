@@ -260,7 +260,8 @@ int main( int argc, char * argv [])
           eigenstates[n]=new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);
        }
 
-       double*eigenval=new double[tgsize_x*n_states_neut];
+       double *eigenval=new double[tgsize_x*n_states_neut];
+       double *dipole_mat=new double[tgsize_x*n_states_neut*tgsize_x*n_states_neut];
        Psi->diagonalize_Hamilton(H,eigenval,eigenstates);
        Psi->projection_eigenstates(proj_state,eigenstates,H);
 
@@ -271,6 +272,19 @@ int main( int argc, char * argv [])
              std::cout<<eigenval[n*tgsize_x+g]<<"  "<<real(proj_state->show_neut_psi(g,n))<<"  "<<imag(proj_state->show_neut_psi(g,n))<<"  "<<pow(abs(proj_state->show_neut_psi(g,n)),2)<<std::endl;
           }
        }
+
+       H->change_basis_dipole(eigenstates,dipole_mat);
+       ofstream dipole_output;
+       dipole_output.open("/data1/home/stephan/Wavepack_1D/dipole_mat_eigenbasis.txt");
+       for(int n=0;n!=tgsize_x*n_states_neut;n++)
+       {
+          for(int k=0;k!=tgsize_x*n_states_neut;k++)
+          {
+             dipole_output<<dipole_mat[n*tgsize_x*n_states_neut+k]<<"  ";
+          }dipole_output<<endl;
+       }
+
+       dipole_output.close();
        exit(EXIT_SUCCESS);
 
        read.open(ionization_rate_file.c_str());

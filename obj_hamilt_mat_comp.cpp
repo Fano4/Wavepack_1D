@@ -871,4 +871,42 @@ double hamilton_matrix::show_derivative_matrix(int grid_index_1,int grid_index_2
 //##########################################################################
 //
 //##########################################################################
+void hamilton_matrix::change_basis_dipole(wavefunction **change_basis,double *dipole_new_basis)
+{
+   double *S=new double[this->m_n_states_neut*this->m_n_states_neut*this->m_tgsize_x*this->m_tgsize_x];
+   double *A=new double[this->m_n_states_neut*this->m_n_states_neut*this->m_tgsize_x*this->m_tgsize_x];
+   double *C=new double[this->m_n_states_neut*this->m_n_states_neut*this->m_tgsize_x*this->m_tgsize_x];
+
+   std::cout<<"probe dipole"<<std::endl;
+   for(int m=0;m!=this->m_n_states_neut;m++)
+   {
+      for(int n=0;n!=this->m_n_states_neut;n++)
+      {
+         for(int i=0;i!=this->m_tgsize_x;i++)
+         {
+            for(int j=0;j!=this->m_tgsize_x;j++)
+            {
+               S[m*this->m_n_states_neut*this->m_tgsize_x*this->m_tgsize_x+i*this->m_n_states_neut*this->m_tgsize_x+n*this->m_tgsize_x+j]=real(change_basis[m*this->m_tgsize_x+i]->show_neut_psi(j,n));
+            }
+               A[m*this->m_n_states_neut*this->m_tgsize_x*this->m_tgsize_x+i*this->m_n_states_neut*this->m_tgsize_x+n*this->m_tgsize_x+i]=this->show_dm_neut(m,n,i,2);
+         }
+      }
+   }
+   std::cout<<"probe dipole"<<std::endl;
+   //A*D
+   cblas_dgemm (CblasRowMajor, CblasTrans,CblasNoTrans, this->m_n_states_neut*this->m_tgsize_x, this->m_n_states_neut*this->m_tgsize_x, this->m_n_states_neut*this->m_tgsize_x,1, A, this->m_n_states_neut*this->m_tgsize_x, S, this->m_n_states_neut*this->m_tgsize_x, 0,C,this->m_n_states_neut*this->m_tgsize_x);
+   std::cout<<"probe dipole"<<std::endl;
+   //DT*(A*D)
+   cblas_dgemm (CblasRowMajor, CblasNoTrans,CblasNoTrans, this->m_n_states_neut*this->m_tgsize_x, this->m_n_states_neut*this->m_tgsize_x, this->m_n_states_neut*this->m_tgsize_x,1, S, this->m_n_states_neut*this->m_tgsize_x, C, this->m_n_states_neut*this->m_tgsize_x, 0,dipole_new_basis,this->m_n_states_neut*this->m_tgsize_x);
+
+   std::cout<<"probe dipole"<<std::endl;
+
+   delete [] S;
+   delete [] A;
+
+
+}
+//##########################################################################
+//
+//##########################################################################
 //END OF HAMILTON MATRIX OBJECT COMPUTATION
