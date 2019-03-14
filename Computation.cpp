@@ -350,7 +350,7 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
       H->electric_field(*time_index,vector);
       efield_magnitude=(sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2]));
 
-      if(efield_magnitudei >= H->efield_thresh())
+      if(efield_magnitude >= H->efield_thresh())
       {
          analytic=0;
       }
@@ -371,7 +371,7 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
    else
    {
       Psi->projection_eigenstates(H,1);
-      Psi->analytic_propagation(H,num_of_loop)
+      Psi->analytic_propagation(H,num_of_loop);
       Psi->projection_eigenstates(H,-1);
    }
    delete [] pot_vec;

@@ -257,14 +257,17 @@ void wavefunction::initialize(hamilton_matrix* H)
 //##########################################################################
 void wavefunction::projection_eigenstates(hamilton_matrix *H,int direction)
 {
+   std::complex<double> ctemp;
    if(direction==1) // THIS IS FOR PROJECTION OF WAVEFUNCTION ON EIGENSTATE BASIS SET
    {
       wavefunction *projection_eigenstate=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+      wavefunction *temp=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
       for(int n=0;n!=this->m_n_states_neut;n++)
       {
          for(int g=0;g!=this->m_tgsize_x;g++)
          {
-            projection_eigenstate->set_neut_psi(n,g,this->dot_prod(H->eigenstate[n*this->m_tgsize_x+g],H));
+            H->eigenstate(g,n,-1,temp);
+            projection_eigenstate->set_neut_psi(n,g,this->dot_prod(temp,H));
          }
       }
       for(int n=0;n!=this->m_n_states_cat;n++)
@@ -273,11 +276,13 @@ void wavefunction::projection_eigenstates(hamilton_matrix *H,int direction)
          {
             for(int g=0;g!=this->m_tgsize_x;g++)
             {
-               projection_eigenstate->set_cat_psi(n,k,g,this->dot_prod(H->eigenstate[this->m_n_states_neut*this->m_tgsize_x+n*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+g],H));
+               H->eigenstate(g,n,k,temp);
+               projection_eigenstate->set_cat_psi(n,k,g,this->dot_prod(temp,H));
             }
          }
       }
       this->set_wf(projection_eigenstate,1);
+      delete temp;
       delete projection_eigenstate;
    }
    else if(direction==-1)
@@ -291,7 +296,8 @@ void wavefunction::projection_eigenstates(hamilton_matrix *H,int direction)
          for(int g=0;g!=this->m_tgsize_x;g++)
          {
             H->eigenstate(g,n,-1,temp);
-            projection_position->add_wf(this->show_neut_psi(g,n),temp);
+            ctemp=this->show_neut_psi(g,n);
+            projection_position->add_wf(&ctemp,temp);
          }
       }
 
@@ -302,7 +308,8 @@ void wavefunction::projection_eigenstates(hamilton_matrix *H,int direction)
             for(int g=0;g!=this->m_tgsize_x;g++)
             {
                 H->eigenstate(g,n,k,temp);
-                projection_position->add_wf(this->show_cat_psi(g,n,k),temp);
+                ctemp=this->show_cat_psi(g,n,k);
+                projection_position->add_wf(&ctemp,temp);
             }
          }
       }

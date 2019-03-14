@@ -266,7 +266,7 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    this->m_eigenstate=new wavefunction* [this->m_tgsize_x*this->m_n_states_neut+this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont];
    for(int i=0;i!=this->m_tgsize_x*this->m_n_states_neut+this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont;i++)
    {
-      this->m_eigenstate[i]=new wavefunctions(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+      this->m_eigenstate[i]=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
    }
 
    std::cout<<"Eigenvectors and eigenvalues arrays initialized!"<<std::endl;
@@ -1165,7 +1165,7 @@ void hamilton_matrix::set_pice_mapping()
 //##########################################################################
 //
 //##########################################################################
-void hamiltonian::diagonalize_Hamilton()
+void hamilton_matrix::diagonalize_Hamilton()
 {
    
    //FIRST, DIAGONALIZE THE NEUTRAL PARTITION OF THE HAMILTONIAN.
@@ -1238,11 +1238,11 @@ void hamiltonian::diagonalize_Hamilton()
       {
          for(int i=0;i!=this->m_tgsize_x;i++)
          {
-              this->m_eigenstate[n]->set_neut_psi(m,g,cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+i*this->m_tgsize_x*this->m_n_states_neut+n]);
+              this->m_eigenstate[n]->set_neut_psi(m,i,cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+i*this->m_tgsize_x*this->m_n_states_neut+n]);
          }
       }
    }
-   delete [] H_mat_gs;
+   delete [] H_mat_neut;
    delete [] d;
    delete [] e;
    delete [] tau;
@@ -1253,10 +1253,10 @@ void hamiltonian::diagonalize_Hamilton()
    // ARE THE SAME FOR ALL PHOTOELECTRON STATES
    
    double *H_mat_cat=new double[(this->m_tgsize_x)*(this->m_tgsize_x)*this->m_n_states_cat*this->m_n_states_cat];
-   double *d=new double[(this->m_tgsize_x)*(this->m_n_states_cat)];
-   double *e=new double [(this->m_tgsize_x)*(this->m_n_states_cat)-1];
-   std::complex<double> *tau=new std::complex<double> [(this->m_tgsize_x)*(this->m_n_states_cat)-1];
-   std::complex<double> *cmatrix=new std::complex<double> [(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_cat)*(this->m_n_states_cat)];
+   d=new double[(this->m_tgsize_x)*(this->m_n_states_cat)];
+   e=new double [(this->m_tgsize_x)*(this->m_n_states_cat)-1];
+   tau=new std::complex<double> [(this->m_tgsize_x)*(this->m_n_states_cat)-1];
+   cmatrix=new std::complex<double> [(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_cat)*(this->m_n_states_cat)];
 
    for(int m=0;m!=this->m_n_states_cat;m++)
    {
@@ -1271,10 +1271,10 @@ void hamiltonian::diagonalize_Hamilton()
                {
                   if(i==j)
                   {
-                     H_mat_cat[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_cat)+i*(this->m_tgsize_x)*this->m_n_states_cat+n*(this->m_tgsize_x)+i]=H->pot_cat(m,i);
+                     H_mat_cat[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_cat)+i*(this->m_tgsize_x)*this->m_n_states_cat+n*(this->m_tgsize_x)+i]=this->pot_cat(m,i);
                   }
 
-                  H_mat_cat[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_cat)+i*(this->m_tgsize_x)*this->m_n_states_cat+n*(this->m_tgsize_x)+j]+=H->kinetic_energy_matrix(i,j);
+                  H_mat_cat[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_cat)+i*(this->m_tgsize_x)*this->m_n_states_cat+n*(this->m_tgsize_x)+j]+=this->kinetic_energy_matrix(i,j);
                }
             }
          }
@@ -1292,7 +1292,7 @@ void hamiltonian::diagonalize_Hamilton()
       {
          for(int i=0;i!=this->m_tgsize_x;i++)
          {
-            this->m_eigenval_cat[n*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+i]=0.5*pow(this->k_modulus[(k-k%(this->m_n_states_cont/this->m_n_k))/(this->m_n_states_cont/this->m_n_k)],2)+d[n*this->m_tgsize_x+i];
+            this->m_eigenvalue_cat[n*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+i]=0.5*pow(this->k_modulus[(k-k%(this->m_n_states_cont/this->m_n_k))/(this->m_n_states_cont/this->m_n_k)],2)+d[n*this->m_tgsize_x+i];
             for(int m=0;m!=this->m_n_states_cat;m++)
             {
                for(int j=0;j!=this->m_tgsize_x;j++)

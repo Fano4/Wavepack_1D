@@ -254,7 +254,7 @@ int main( int argc, char * argv [])
 
 
        H->diagonalize_Hamilton();
-       Psi->projection_eigenstates(1);
+      // Psi->projection_eigenstates(1);
 /*
        for(int n=0;n!=n_states_neut;n++)
        {

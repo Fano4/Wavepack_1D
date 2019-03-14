@@ -164,7 +164,7 @@ class hamilton_matrix {
       void set_phase(std::string file_address);
       void print_dipole_neut();
       void dk_vec(double *array);
-      double show_nac(int state_index_1,int state_index_2,int grid_index_1,int grid_index_2,int state_index_cont_1=-1,);
+      double show_nac(int state_index_1,int state_index_2,int grid_index_1,int grid_index_2,int state_index_cont_1=-1);
 //      void spherical_extract_from_cube(int neut_state,int cat_state,int r_index,int component,double *Recube,double *Imcube,double *pot_vec);
       void sphere_dist_gen(bool randiso=1,int n_phi=0);
 //      bool cube_reader(std::string MO_cube_loc,double *cube_array,bool extract_dimensions=0);
@@ -183,7 +183,9 @@ class hamilton_matrix {
       void PI_rate(int time_index,double** ionization_rate,wavefunction* Psi);
       double mass();
       void change_basis_dipole(wavefunction **change_basis,double *dipole_new_basis);
+      void eigenstate(int grid_index,int state_index,int state_index_cont,wavefunction* psi );
       double eigenvalue_neut(int state_index,int grid_index);
       double eigenvalue_cat(int state_index,int state_index_cont,int grid_index);
+      void diagonalize_Hamilton();
 };
 
