@@ -339,48 +339,41 @@ bool t_deriv(wavefunction *Psi,hamilton_matrix *H,wavefunction *dPsi,double time
 void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_loop)
 {
    double *pot_vec=new double [3];
-   int ratio(0);
    double vector[3];
+   int temp_time_index(*time_index);
    double efield_magnitude(0);
-   bool cat(0);
+   bool analytic=1;
 
-//   wavefunction *dPsi=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
-//   wavefunction *dPsim1=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
-//   wavefunction *dPsim2=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
-//   wavefunction *dPsim3=new wavefunction(Psi->gsize_x(),Psi->tgsize_x(),Psi->n_states_neut(),Psi->n_states_cat(),Psi->n_states_cont());
 
    for(int i=0;i!=num_of_loop;i++)
    {
-      H->potential_vector(*time_index,pot_vec);
- //     H->set_pot_vec_mod(sqrt(pow(pot_vec[0],2)+pow(pot_vec[1],2)+pow(pot_vec[2],2)));
-//      ratio=floor(H->pot_vec_mod()/ H->pot_vec_thresh());
       H->electric_field(*time_index,vector);
       efield_magnitude=(sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2]));
-      cat=bool(efield_magnitude >= H->efield_thresh());
 
-/*      if( ratio != floor(H->pot_vec_tm_mod()/ H->pot_vec_thresh()))
+      if(efield_magnitudei >= H->efield_thresh())
       {
-          H->set_PICE(pot_vec);
-          H->set_pot_vec_tm_mod(H->pot_vec_mod());
-      }*/
-//      if(i <= 3 || cat)
-      {
-         Runge_kutta(Psi,H,*time_index);
-//         dPsim3->set_wf(dPsim2,cat);
-//         dPsim2->set_wf(dPsim1,cat);
-//         dPsim1->set_wf(dPsi,cat);
-//         t_deriv(Psi,H,dPsi,*time_index);
+         analytic=0;
       }
-/*      else
+      temp_time_index=temp_time_index+1;
+   }
+
+   if(!analytic)
+   {
+      for(int i=0;i!=num_of_loop;i++)
       {
-         adam_bashforth_moulton(dPsim3,dPsim2,dPsim1,dPsi,H,Psi,*time_index+1);
-      }*/
-      *time_index=*time_index+1;
+         H->potential_vector(*time_index,pot_vec);
+         H->electric_field(*time_index,vector);
+         efield_magnitude=(sqrt(vector[0]*vector[0]+vector[1]*vector[1]+vector[2]*vector[2]));
+         Runge_kutta(Psi,H,*time_index);
+         *time_index=*time_index+1;
+      }
+   }
+   else
+   {
+      Psi->projection_eigenstates(H,1);
+      Psi->analytic_propagation(H,num_of_loop)
+      Psi->projection_eigenstates(H,-1);
    }
    delete [] pot_vec;
-//   delete dPsi;
-//   delete dPsim1;
-//   delete dPsim2;
-//   delete dPsim3;
 }
 

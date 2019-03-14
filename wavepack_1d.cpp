@@ -252,19 +252,10 @@ int main( int argc, char * argv [])
         std::cout<<"Wave function restarted from checkpoint file!"<<std::endl;
     }
 
-       wavefunction **eigenstates=new wavefunction*[tgsize_x*n_states_neut]; 
-       wavefunction *proj_state=new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);  
 
-       for(int n=0;n!=tgsize_x*n_states_neut;n++)
-       {
-          eigenstates[n]=new wavefunction(gsize_x,tgsize_x, n_states_neut,n_states_cat,n_angles*n_k);
-       }
-
-       double *eigenval=new double[tgsize_x*n_states_neut];
-       double *dipole_mat=new double[tgsize_x*n_states_neut*tgsize_x*n_states_neut];
-       Psi->diagonalize_Hamilton(H,eigenval,eigenstates);
-       Psi->projection_eigenstates(proj_state,eigenstates,H);
-
+       H->diagonalize_Hamilton();
+       Psi->projection_eigenstates(1);
+/*
        for(int n=0;n!=n_states_neut;n++)
        {
           for( int g=0;g!=tgsize_x;g++)
@@ -272,7 +263,6 @@ int main( int argc, char * argv [])
              std::cout<<eigenval[n*tgsize_x+g]<<"  "<<real(proj_state->show_neut_psi(g,n))<<"  "<<imag(proj_state->show_neut_psi(g,n))<<"  "<<pow(abs(proj_state->show_neut_psi(g,n)),2)<<std::endl;
           }
        }
-
        H->change_basis_dipole(eigenstates,dipole_mat);
        ofstream dipole_output;
        dipole_output.open("/data1/home/stephan/Wavepack_1D/dipole_mat_eigenbasis.txt");
@@ -286,7 +276,7 @@ int main( int argc, char * argv [])
 
        dipole_output.close();
        exit(EXIT_SUCCESS);
-
+*/
        read.open(ionization_rate_file.c_str());
        read.close();
 //     read.open(read_file.c_str());

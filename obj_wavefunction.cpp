@@ -186,121 +186,6 @@ int wavefunction::n_states_cont()
 //##########################################################################
 //
 //##########################################################################
-void wavefunction::diagonalize_Hamilton(hamilton_matrix* H,double* eigenval,wavefunction** eigenstates)
-{
-   double *H_mat_gs=new double[(this->m_tgsize_x)*(this->m_tgsize_x)*this->m_n_states_neut*this->m_n_states_neut];
-   double *d=new double[(this->m_tgsize_x)*(this->m_n_states_neut)];
-   double *e=new double [(this->m_tgsize_x)*(this->m_n_states_neut)-1];
-   std::complex<double> *tau=new std::complex<double> [(this->m_tgsize_x)*(this->m_n_states_neut)-1];
-   std::complex<double> *cmatrix=new std::complex<double> [(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)*(this->m_n_states_neut)];
-
-   using namespace std;
-
-   for(int m=0;m!=this->m_n_states_neut;m++)
-   {
-      for(int n=0;n!=this->m_n_states_neut;n++)
-      {
-         for(int i=0;i!=this->m_tgsize_x;i++)
-         {
-            for(int j=0;j!=this->m_tgsize_x;j++)
-            {
-               H_mat_gs[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j]=0;
-               if(m==n)
-               {
-                  if(i==j)
-                  {
-                     H_mat_gs[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+i]=H->pot_neut(m,i);
-                  }
-
-                  H_mat_gs[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j]+=H->kinetic_energy_matrix(i,j);
-               }
-               if(m<n)
-               {
-                  if(H->show_nac(m,n,i,j)!=0)
-                     H_mat_gs[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j]+=
-                        -(H->show_nac(m,n,i,j)
-                        *H->show_derivative_matrix(i,j)
-                        )/((H->mass()));//*(fabs(this->m_pot_neut[m*this->m_tgsize_x+i]-this->m_pot_neut[n*this->m_tgsize_x+i])))
-               }
-               else
-               {
-                   if(H->show_nac(m,n,i,j)!=0)
-                      H_mat_gs[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j]+=
-                      (H->show_nac(m,n,i,j)
-                         *H->show_derivative_matrix(i,j)
-                         )/((H->mass()));//*(fabs(this->m_pot_neut[m*this->m_tgsize_x+j]-this->m_pot_neut[n*this->m_tgsize_x+j])))
-               }
-               cmatrix[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j]=std::complex<double>(H_mat_gs[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j],0);
-            }
-         }
-      }
-   }
-
-/*   std::cout<<"PES OF THE GS "<<std::endl;
-   for(int i=0;i!=this->m_tgsize_x;i++)
-   {
-      std::cout<<H->pot_neut(0,i)<<std::endl;
-   }*/
-
-   
-   std::cout<<"#############################"<<std::endl;
-
-   std::cout<<"LAPACKE zhetrd returns "<<LAPACKE_zhetrd(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_neut),cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut),d,e,tau)<<std::endl;
-   std::cout<<"LAPACKE zungtr returns "<<LAPACKE_zungtr(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_neut),cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut),tau)<<std::endl;
-   std::cout<<"LAPACKE zstedc returns "<<LAPACKE_zstedc(LAPACK_ROW_MAJOR,'V',(this->m_tgsize_x)*(this->m_n_states_neut),d,e,cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut))<<std::endl<<std::endl;
-
-   std::cout<<"EIGENVALUES OF THE NEUTRAL HAMILTONIAN"<<std::endl;
-   for(int i=0;i!=this->m_tgsize_x*(this->m_n_states_neut);i++)
-   {
-      std::cout<<d[i]<<std::endl;
-      eigenval[i]=d[i];
-   }
-   std::cout<<"#############################"<<std::endl;
-
-   ofstream eigen_output;
-   stringstream ss_eigout;
-//   string s_eigout;
-   string s_eigout("/data1/home/stephan/Wavepack_1D/eigenvec_test/big_eigenmatrix.txt");
-   std::cout<<this->m_tgsize_x<<"*"<<this->m_n_states_neut<<"="<<this->m_tgsize_x*this->m_n_states_neut<<std::endl;
-
-//   eigen_output.open(s_eigout.c_str());
-   //!!!!! PUT THE N LOOP BACK OUT HERE!!!
-
-   for(int n=0 ; n!=this->m_tgsize_x*this->m_n_states_neut;n++)
-   {
-      for(int m=0;m!=this->m_n_states_neut;m++)
-      {
-          //std::cout<<"writing eigenvector "<<n<<std::endl;
-          //ss_eigout.str("");
-          //ss_eigout<<"/data1/home/stephan/Wavepack_1D/eigenvec_test/eigenvec_"<<n<<"_"<<m<<".txt";
-          //s_eigout=ss_eigout.str();
-//          eigen_output.open(s_eigout.c_str());
-         for(int i=0;i!=this->m_tgsize_x;i++)
-         {
-              eigenstates[n]->set_psi_elwise(m*this->m_tgsize_x+i,cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+i*this->m_tgsize_x*this->m_n_states_neut+n]);
-//            eigen_output<<real(cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+i*this->m_tgsize_x*this->m_n_states_neut+n])<<std::endl;
-//            eigen_output<<real(cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+i*this->m_tgsize_x*this->m_n_states_neut+n])<<",";
-         }//eigen_output<<std::endl;
-         //eigen_output<<std::endl;
-//         eigen_output.close();
-      }
-   }
-  // eigen_output.close();
-   /*for(int m=1;m!=this->m_n_states_neut;m++)
-   {
-      for(int i=0;i!=this->m_gsize_x;i++)
-      {
-         this->set_neut_psi(m,i,0);
-      }
-   }*/
-
-
-   delete [] H_mat_gs;
-   std::cout<<" Diagonalized field free Hamiltonian "<<std::endl;
-}
-//##########################################################################
-//
-//##########################################################################
 void wavefunction::initialize(hamilton_matrix* H)
 {
    double *H_mat_gs=new double[(this->m_tgsize_x)*(this->m_tgsize_x)];
@@ -370,12 +255,67 @@ void wavefunction::initialize(hamilton_matrix* H)
 //##########################################################################
 //
 //##########################################################################
-void wavefunction::projection_eigenstates(wavefunction *projected_state,wavefunction **eigenstates,hamilton_matrix *H)
+void wavefunction::projection_eigenstates(hamilton_matrix *H,int direction)
 {
-   for(int m=0;m!=this->m_tgsize_x*this->m_n_states_neut;m++)
+   if(direction==1) // THIS IS FOR PROJECTION OF WAVEFUNCTION ON EIGENSTATE BASIS SET
    {
-      projected_state->set_psi_elwise(m,this->dot_prod(eigenstates[m],H));
+      wavefunction *projection_eigenstate=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+      for(int n=0;n!=this->m_n_states_neut;n++)
+      {
+         for(int g=0;g!=this->m_tgsize_x;g++)
+         {
+            projection_eigenstate->set_neut_psi(n,g,this->dot_prod(H->eigenstate[n*this->m_tgsize_x+g],H));
+         }
+      }
+      for(int n=0;n!=this->m_n_states_cat;n++)
+      {
+         for(int k=0;k!=this->m_n_states_cont;k++)
+         {
+            for(int g=0;g!=this->m_tgsize_x;g++)
+            {
+               projection_eigenstate->set_cat_psi(n,k,g,this->dot_prod(H->eigenstate[this->m_n_states_neut*this->m_tgsize_x+n*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+g],H));
+            }
+         }
+      }
+      this->set_wf(projection_eigenstate,1);
+      delete projection_eigenstate;
    }
+   else if(direction==-1)
+   {
+
+      wavefunction *projection_position=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+      wavefunction *temp=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+
+      for(int n=0;n!=this->m_n_states_neut;n++)
+      {
+         for(int g=0;g!=this->m_tgsize_x;g++)
+         {
+            H->eigenstate(g,n,-1,temp);
+            projection_position->add_wf(this->show_neut_psi(g,n),temp);
+         }
+      }
+
+      for(int n=0;n!=this->m_n_states_cat;n++)
+      {
+         for(int k=0;k!=this->m_n_states_cont;k++)
+         {
+            for(int g=0;g!=this->m_tgsize_x;g++)
+            {
+                H->eigenstate(g,n,k,temp);
+                projection_position->add_wf(this->show_cat_psi(g,n,k),temp);
+            }
+         }
+      }
+      this->set_wf(projection_position,1);
+      delete temp;
+      delete projection_position;
+   }
+   else
+   {
+      std::cout<<"ERROR. PROJECTION DIRECTION NOT SPECIFIED CORRECTLY. EXIT"<<std::endl;
+      exit(EXIT_SUCCESS);
+   }
+
 }
 //##########################################################################
 //
@@ -678,6 +618,36 @@ bool wavefunction::load_wf(std::string file_loc)
        loadstream.close();
     }
     return 1;
+}
+//##########################################################################
+//
+//##########################################################################
+void wavefunction::analytic_propagation(hamilton_matrix *H,int timestep_number)
+{
+   wavefunction *new_state=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+
+   //NEUTRAL PART
+   for( int n = 0;n != this->m_n_states_neut;n++ )
+   {
+      for(int g=0;g!=this->m_tgsize_x;g++)
+      {
+         new_state->set_neut_psi(n,g,this->m_neut_part[n*this->m_tgsize_x+g]*exp(std::complex<double>(0,-H->eigenvalue_neut(n,g)*timestep_number*H->h())));
+      }
+   }
+   //CATION PART
+   for(int n = 0;n != this->m_n_states_cat;n++ )
+   {
+      for(int k=0;k!=this->m_n_states_cont;k++)
+      {
+         for(int g=0;g!=this->m_tgsize_x;g++)
+         {
+            new_state->set_cat_psi(n,k,g,this->m_cat_part[n*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+g ]*exp(-H->eigenvalue_cat(n,k,g)*timestep_number*H->h()));
+         }
+      }
+   }
+   this->set_wf(new_state);
+   delete new_state;
+
 }
 //##########################################################################
 //

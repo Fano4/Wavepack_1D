@@ -717,12 +717,17 @@ void hamilton_matrix::dk_vec(double *array)
 //##########################################################################
 //
 //##########################################################################
-double hamilton_matrix::show_nac(int state_index_1,int state_index_2,int grid_index_1,int grid_index_2)
+double hamilton_matrix::show_nac(int state_index_1,int state_index_2,int grid_index_1,int grid_index_2,int state_index_cont_1)
 {
-   if(state_index_1<state_index_2)
-      return this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2];
+   if(state_index_cont_1==0)
+   {
+      if(state_index_1<state_index_2)
+         return this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2];
+      else
+         return this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_2]*this->derivative_matrix[grid_index_2*this->m_tgsize_x+grid_index_1];
+   }
    else
-      return this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_2]*this->derivative_matrix[grid_index_2*this->m_tgsize_x+grid_index_1];
+      return 0;
 }
 //##########################################################################
 //
@@ -905,6 +910,34 @@ void hamilton_matrix::change_basis_dipole(wavefunction **change_basis,double *di
    delete [] A;
 
 
+}
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::eigenstate(int grid_index,int state_index,int state_index_cont,wavefunction* psi )
+{
+   if(state_index_cont==-1)
+   {
+      psi->set_wf(this->m_eigenstate[state_index*this->m_tgsize_x+grid_index],1);
+   }
+   else
+   {
+      psi->set_wf(this->m_eigenstate[this->m_n_states_neut*this->m_tgsize_x+state_index*this->m_n_states_cont*this->m_tgsize_x+state_index_cont*this->m_tgsize_x+grid_index],1);
+   }
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::eigenvalue_neut(int state_index,int grid_index)
+{
+   return this->m_eigenvalue_neut[state_index*this->m_tgsize_x+grid_index];
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::eigenvalue_cat(int state_index,int state_index_cont,int grid_index)
+{
+   return this->m_eigenvalue_cat[state_index*this->m_tgsize_x*this->m_n_states_cont+state_index_cont*this->m_tgsize_x+grid_index];
 }
 //##########################################################################
 //
