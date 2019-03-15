@@ -263,9 +263,10 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
 
    this->m_eigenvalue_neut=new double [this->m_tgsize_x*this->m_n_states_neut];
    this->m_eigenvalue_cat=new double [this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont];
-   this->m_eigenstate=new wavefunction* [this->m_tgsize_x*this->m_n_states_neut+this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont];
-   for(int i=0;i!=this->m_tgsize_x*this->m_n_states_neut+this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont;i++)
+   this->m_eigenstate=new wavefunction* [this->m_tgsize_x*this->m_n_states_neut+this->m_tgsize_x*this->m_n_states_cat];
+   for(int i=0;i!=this->m_tgsize_x*this->m_n_states_neut+this->m_tgsize_x*this->m_n_states_cat;i++)
    {
+      std::cout<<i<<"...";
       this->m_eigenstate[i]=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
    }
 
@@ -1224,9 +1225,9 @@ void hamilton_matrix::diagonalize_Hamilton()
 
    std::cout<<"DIAGONALIZING NEUTRAL HAMILTONIAN...";
 
-   std::cout<<"LAPACKE zhetrd returns "<<LAPACKE_zhetrd(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_neut),cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut),d,e,tau)<<std::endl;
-   std::cout<<"LAPACKE zungtr returns "<<LAPACKE_zungtr(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_neut),cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut),tau)<<std::endl;
-   std::cout<<"LAPACKE zstedc returns "<<LAPACKE_zstedc(LAPACK_ROW_MAJOR,'V',(this->m_tgsize_x)*(this->m_n_states_neut),d,e,cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut))<<std::endl<<std::endl;
+   std::cout<<"LAPACKE zhetrd returns "<<LAPACKE_zhetrd(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_neut),cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut),d,e,tau)<<"...";
+   std::cout<<"LAPACKE zungtr returns "<<LAPACKE_zungtr(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_neut),cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut),tau)<<"...";
+   std::cout<<"LAPACKE zstedc returns "<<LAPACKE_zstedc(LAPACK_ROW_MAJOR,'V',(this->m_tgsize_x)*(this->m_n_states_neut),d,e,cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut))<<"...";
 
    std::cout<<"DONE!"<<std::endl;
 
@@ -1281,9 +1282,9 @@ void hamilton_matrix::diagonalize_Hamilton()
       }
    }
    std::cout<<"DIAGONALIZING CATION HAMILTONIAN...";
-   std::cout<<"LAPACKE zhetrd returns "<<LAPACKE_zhetrd(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_cat),cmatrix,(this->m_tgsize_x)*(this->m_n_states_cat),d,e,tau)<<std::endl;
-   std::cout<<"LAPACKE zungtr returns "<<LAPACKE_zungtr(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_cat),cmatrix,(this->m_tgsize_x)*(this->m_n_states_cat),tau)<<std::endl;
-   std::cout<<"LAPACKE zstedc returns "<<LAPACKE_zstedc(LAPACK_ROW_MAJOR,'V',(this->m_tgsize_x)*(this->m_n_states_cat),d,e,cmatrix,(this->m_tgsize_x)*(this->m_n_states_cat))<<std::endl<<std::endl;
+   std::cout<<"LAPACKE zhetrd returns "<<LAPACKE_zhetrd(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_cat),cmatrix,(this->m_tgsize_x)*(this->m_n_states_cat),d,e,tau)<<"...";
+   std::cout<<"LAPACKE zungtr returns "<<LAPACKE_zungtr(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_cat),cmatrix,(this->m_tgsize_x)*(this->m_n_states_cat),tau)<<"...";
+   std::cout<<"LAPACKE zstedc returns "<<LAPACKE_zstedc(LAPACK_ROW_MAJOR,'V',(this->m_tgsize_x)*(this->m_n_states_cat),d,e,cmatrix,(this->m_tgsize_x)*(this->m_n_states_cat))<<"...";
    std::cout<<"DONE!"<<std::endl;
 
    for(int k=0;k!=this->m_n_states_cont;k++)
@@ -1297,7 +1298,7 @@ void hamilton_matrix::diagonalize_Hamilton()
             {
                for(int j=0;j!=this->m_tgsize_x;j++)
                {
-                 this->m_eigenstate[this->m_tgsize_x*this->m_n_states_neut+n*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+i]->set_cat_psi(m,k,j,cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+j*this->m_tgsize_x*this->m_n_states_neut+n*this->m_tgsize_x+i]);
+                 this->m_eigenstate[this->m_tgsize_x*this->m_n_states_neut+n*this->m_tgsize_x+i]->set_cat_psi(m,k,j,cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+j*this->m_tgsize_x*this->m_n_states_neut+n*this->m_tgsize_x+i]);
                }
             }
          }

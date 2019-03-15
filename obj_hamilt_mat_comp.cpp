@@ -922,7 +922,39 @@ void hamilton_matrix::eigenstate(int grid_index,int state_index,int state_index_
    }
    else
    {
-      psi->set_wf(this->m_eigenstate[this->m_n_states_neut*this->m_tgsize_x+state_index*this->m_n_states_cont*this->m_tgsize_x+state_index_cont*this->m_tgsize_x+grid_index],1);
+      psi->set_wf(this->m_eigenstate[this->m_n_states_neut*this->m_tgsize_x+state_index*this->m_tgsize_x+grid_index],1);
+   }
+}
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::eigenstates_matrix(int cation,double * matrix )
+{
+   if(!cation)
+   {
+      for(int m=0;m!=this->m_n_states_neut*this->m_tgsize_x;m++)
+      {
+         for(int n=0;n!=this->m_n_states_neut;n++)
+         {
+            for(int g=0;g!=this->m_tgsize_x;g++)
+            {
+               matrix[m*this->m_n_states_neut*this->m_tgsize_x+n*this->m_tgsize_x+g]=real(this->m_eigenstate[m]->show_neut_psi(g,n));
+            }
+         }
+      }
+   }
+   else
+   {
+      for(int m=0;m!=this->m_n_states_cat*this->m_tgsize_x;m++)
+      {
+         for(int n=0;n!=this->m_n_states_cat;n++)
+         {
+            for(int g=0;g!=this->m_tgsize_x;g++)
+            {
+               matrix[m*this->m_n_states_cat*this->m_tgsize_x+n*this->m_tgsize_x+g]=real(this->m_eigenstate[this->m_n_states_neut*this->m_tgsize_x+m]->show_cat_psi(g,n,0));
+            }
+         }
+      }
    }
 }
 //##########################################################################

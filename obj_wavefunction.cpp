@@ -258,70 +258,145 @@ void wavefunction::initialize(hamilton_matrix* H)
 void wavefunction::projection_eigenstates(hamilton_matrix *H,int direction)
 {
    std::complex<double> ctemp;
+   double *reprojected_neut=new double[this->m_n_states_neut*this->m_tgsize_x];
+   double *improjected_neut=new double[this->m_n_states_neut*this->m_tgsize_x];
+   double *repartial_neut=new double[this->m_n_states_neut*this->m_tgsize_x];
+   double *impartial_neut=new double[this->m_n_states_neut*this->m_tgsize_x];
+   double *repartial_cat=new double[this->m_n_states_cat*this->m_tgsize_x];
+   double *impartial_cat=new double[this->m_n_states_cat*this->m_tgsize_x];
+   double *reprojected_cat=new double[this->m_n_states_cat*this->m_tgsize_x];
+   double *improjected_cat=new double[this->m_n_states_cat*this->m_tgsize_x];
+
+   double *eigenmat_neut=new double[this->m_n_states_neut*this->m_n_states_neut*this->m_tgsize_x*this->m_tgsize_x];
+   double *eigenmat_cat=new double[this->m_n_states_cat*this->m_n_states_cat*this->m_tgsize_x*this->m_tgsize_x];
+
+
    if(direction==1) // THIS IS FOR PROJECTION OF WAVEFUNCTION ON EIGENSTATE BASIS SET
    {
-      wavefunction *projection_eigenstate=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
-      wavefunction *temp=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+//      std::cout<<"probe_neut"<<std::endl;
+      wavefunction *proj_eigenstate=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+
+      H->eigenstates_matrix(0,eigenmat_neut);
       for(int n=0;n!=this->m_n_states_neut;n++)
       {
          for(int g=0;g!=this->m_tgsize_x;g++)
          {
-            H->eigenstate(g,n,-1,temp);
-            projection_eigenstate->set_neut_psi(n,g,this->dot_prod(temp,H));
+            repartial_neut[n*this->m_tgsize_x+g]=real(this->m_neut_part[n*this->m_tgsize_x+g]);
+            impartial_neut[n*this->m_tgsize_x+g]=imag(this->m_neut_part[n*this->m_tgsize_x+g]);
          }
       }
-      for(int n=0;n!=this->m_n_states_cat;n++)
+
+   
+      cblas_dgemv(CblasRowMajor,CblasNoTrans,this->m_n_states_neut*this->m_tgsize_x,this->m_n_states_neut*this->m_tgsize_x,1,eigenmat_neut,this->m_n_states_neut*this->m_tgsize_x,repartial_neut,1,0,reprojected_neut,1);
+      cblas_dgemv(CblasRowMajor,CblasNoTrans,this->m_n_states_neut*this->m_tgsize_x,this->m_n_states_neut*this->m_tgsize_x,1,eigenmat_neut,this->m_n_states_neut*this->m_tgsize_x,impartial_neut,1,0,improjected_neut,1);
+
+      for(int n=0;n!=this->m_n_states_neut;n++)
       {
-         for(int k=0;k!=this->m_n_states_cont;k++)
+         for(int g=0;g!=this->m_tgsize_x;g++)
          {
-            for(int g=0;g!=this->m_tgsize_x;g++)
+            proj_eigenstate->set_neut_psi(n,g,std::complex<double>(reprojected_neut[n*this->m_tgsize_x+g],improjected_neut[n*this->m_tgsize_x+g]));
+         }
+      }
+//      std::cout<<"probe_cat"<<std::endl;
+//#pragma omp parallel for
+      H->eigenstates_matrix(1,eigenmat_cat);
+      for(int k=0;k!=this->m_n_states_cont;k++)
+      {
+         for(int n=0;n<this->m_n_states_cat;n++)
+         {
+            for(int g=0;g<this->m_tgsize_x;g++)
             {
-               H->eigenstate(g,n,k,temp);
-               projection_eigenstate->set_cat_psi(n,k,g,this->dot_prod(temp,H));
+               repartial_cat[n*this->m_tgsize_x+g]=real(this->m_cat_part[n*this->m_tgsize_x*this->m_n_states_cont+k*this->m_tgsize_x+g]);
+               impartial_cat[n*this->m_tgsize_x+g]=imag(this->m_cat_part[n*this->m_tgsize_x*this->m_n_states_cont+k*this->m_tgsize_x+g]);
+            }
+         }
+         cblas_dgemv(CblasRowMajor,CblasNoTrans,this->m_n_states_cat*this->m_tgsize_x,this->m_n_states_cat*this->m_tgsize_x,1,eigenmat_cat,this->m_n_states_cat*this->m_tgsize_x,repartial_cat,1,0,reprojected_cat,1);
+         cblas_dgemv(CblasRowMajor,CblasNoTrans,this->m_n_states_cat*this->m_tgsize_x,this->m_n_states_cat*this->m_tgsize_x,1,eigenmat_cat,this->m_n_states_cat*this->m_tgsize_x,impartial_cat,1,0,improjected_cat,1);
+         for(int n=0;n<this->m_n_states_cat;n++)
+         {
+            for(int g=0;g<this->m_tgsize_x;g++)
+            {
+               //std::cout<<n<<","<<k<<","<<g<<std::endl;
+               //H->eigenstate(g,n,k,temp);
+               proj_eigenstate->set_cat_psi(n,k,g,std::complex<double>(reprojected_cat[n*this->m_tgsize_x+g],improjected_cat[n*this->m_tgsize_x+g]));
             }
          }
       }
-      this->set_wf(projection_eigenstate,1);
-      delete temp;
-      delete projection_eigenstate;
+//      std::cout<<"probe_end"<<std::endl;
+      this->set_wf(proj_eigenstate,1);
+   delete proj_eigenstate;
+
    }
+   
    else if(direction==-1)
    {
 
-      wavefunction *projection_position=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
-      wavefunction *temp=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+      wavefunction *proj_position=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+
+      H->eigenstates_matrix(0,eigenmat_neut);
 
       for(int n=0;n!=this->m_n_states_neut;n++)
       {
          for(int g=0;g!=this->m_tgsize_x;g++)
          {
-            H->eigenstate(g,n,-1,temp);
-            ctemp=this->show_neut_psi(g,n);
-            projection_position->add_wf(&ctemp,temp);
+            repartial_neut[n*this->m_tgsize_x+g]=real(this->m_neut_part[n*this->m_tgsize_x+g]);
+            impartial_neut[n*this->m_tgsize_x+g]=imag(this->m_neut_part[n*this->m_tgsize_x+g]);
          }
       }
 
-      for(int n=0;n!=this->m_n_states_cat;n++)
+      cblas_dgemv(CblasRowMajor,CblasTrans,this->m_n_states_neut*this->m_tgsize_x,this->m_n_states_neut*this->m_tgsize_x,1,eigenmat_neut,this->m_n_states_neut*this->m_tgsize_x,repartial_neut,1,0,reprojected_neut,1);
+      cblas_dgemv(CblasRowMajor,CblasTrans,this->m_n_states_neut*this->m_tgsize_x,this->m_n_states_neut*this->m_tgsize_x,1,eigenmat_neut,this->m_n_states_neut*this->m_tgsize_x,impartial_neut,1,0,improjected_neut,1);
+      for(int n=0;n!=this->m_n_states_neut;n++)
       {
-         for(int k=0;k!=this->m_n_states_cont;k++)
+         for(int g=0;g!=this->m_tgsize_x;g++)
          {
-            for(int g=0;g!=this->m_tgsize_x;g++)
+            proj_position->set_neut_psi(n,g,std::complex<double>(reprojected_neut[n*this->m_tgsize_x+g],improjected_neut[n*this->m_tgsize_x+g]));
+         }
+      }
+
+      H->eigenstates_matrix(1,eigenmat_cat);
+      for(int k=0;k!=this->m_n_states_cont;k++)
+      {
+         for(int n=0;n<this->m_n_states_cat;n++)
+         {
+            for(int g=0;g<this->m_tgsize_x;g++)
             {
-                H->eigenstate(g,n,k,temp);
-                ctemp=this->show_cat_psi(g,n,k);
-                projection_position->add_wf(&ctemp,temp);
+               repartial_cat[n*this->m_tgsize_x+g]=real(this->m_cat_part[n*this->m_tgsize_x*this->m_n_states_cont+k*this->m_tgsize_x+g]);
+               impartial_cat[n*this->m_tgsize_x+g]=imag(this->m_cat_part[n*this->m_tgsize_x*this->m_n_states_cont+k*this->m_tgsize_x+g]);
+            }
+         }
+         cblas_dgemv(CblasRowMajor,CblasTrans,this->m_n_states_cat*this->m_tgsize_x,this->m_n_states_cat*this->m_tgsize_x,1,eigenmat_cat,this->m_n_states_cat*this->m_tgsize_x,repartial_cat,1,0,reprojected_cat,1);
+         cblas_dgemv(CblasRowMajor,CblasTrans,this->m_n_states_cat*this->m_tgsize_x,this->m_n_states_cat*this->m_tgsize_x,1,eigenmat_cat,this->m_n_states_cat*this->m_tgsize_x,impartial_cat,1,0,improjected_cat,1);
+         for(int n=0;n<this->m_n_states_cat;n++)
+         {
+            for(int g=0;g<this->m_tgsize_x;g++)
+            {
+               //std::cout<<n<<","<<k<<","<<g<<std::endl;
+               //H->eigenstate(g,n,k,temp);
+               proj_position->set_cat_psi(n,k,g,std::complex<double>(reprojected_cat[n*this->m_tgsize_x+g],improjected_cat[n*this->m_tgsize_x+g]));
             }
          }
       }
-      this->set_wf(projection_position,1);
-      delete temp;
-      delete projection_position;
+
+      this->set_wf(proj_position,1);
+      delete proj_position;
    }
    else
    {
       std::cout<<"ERROR. PROJECTION DIRECTION NOT SPECIFIED CORRECTLY. EXIT"<<std::endl;
       exit(EXIT_SUCCESS);
    }
+
+   delete  reprojected_neut;
+   delete  improjected_neut;
+   delete  reprojected_cat;
+   delete  improjected_cat;
+   delete  repartial_cat;
+   delete  impartial_cat;
+   delete  repartial_neut;
+   delete  impartial_neut;
+   delete  eigenmat_neut;
+   delete  eigenmat_cat;
 
 }
 //##########################################################################
@@ -653,6 +728,7 @@ void wavefunction::analytic_propagation(hamilton_matrix *H,int timestep_number)
       }
    }
    this->set_wf(new_state);
+
    delete new_state;
 
 }

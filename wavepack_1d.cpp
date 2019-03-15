@@ -158,12 +158,12 @@ int main( int argc, char * argv [])
           {
              H->potential_vector(time_index,init_pot_vec);
              H->sphere_dist_read(dist_file);
-//             H->set_PICE();
+             H->set_PICE();
           }
           else
           {
              H->sphere_dist_read(dist_file);
-//             H->set_PICE();
+             H->set_PICE();
           }
           delete [] init_pot_vec;
        }
@@ -174,7 +174,7 @@ int main( int argc, char * argv [])
        {
           H->sphere_dist_read(dist_file);
           H->sphere_dist_save(dist_file);
-//          H->set_PICE();
+          H->set_PICE();
        }
         output.open(out_file.c_str());
         output<<"Output from Wavepack_1D, developped by Stephan van den Wildenberg (Theoretical Physical Chemistry, University of Liege)"<<std::endl<<"File generated on "<<date_str<<std::endl;
@@ -311,9 +311,15 @@ int main( int argc, char * argv [])
     }
 
 
+    bool test(0);
     while(time_index <= n_times)
     {
-       propagate(Psi,H,&time_index,25);
+       if( test )
+       {
+           propagate(Psi,H,&time_index,25);
+       }
+       test=1;
+
        H->electric_field(time_index,efield);
        Psi->set_dipole(H);
        output.open(out_file.c_str(),ios_base::app);

@@ -184,6 +184,7 @@ class hamilton_matrix {
       double mass();
       void change_basis_dipole(wavefunction **change_basis,double *dipole_new_basis);
       void eigenstate(int grid_index,int state_index,int state_index_cont,wavefunction* psi );
+      void eigenstates_matrix(int cat,double* matrix);
       double eigenvalue_neut(int state_index,int grid_index);
       double eigenvalue_cat(int state_index,int state_index_cont,int grid_index);
       void diagonalize_Hamilton();

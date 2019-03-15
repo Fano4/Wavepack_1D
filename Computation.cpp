@@ -356,6 +356,7 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
       }
       temp_time_index=temp_time_index+1;
    }
+   std::cout<<"probe"<<std::endl;
 
    if(!analytic)
    {
@@ -373,6 +374,7 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
       Psi->projection_eigenstates(H,1);
       Psi->analytic_propagation(H,num_of_loop);
       Psi->projection_eigenstates(H,-1);
+      *time_index=*time_index+num_of_loop;
    }
    delete [] pot_vec;
 }
