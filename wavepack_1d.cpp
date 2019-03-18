@@ -158,12 +158,12 @@ int main( int argc, char * argv [])
           {
              H->potential_vector(time_index,init_pot_vec);
              H->sphere_dist_read(dist_file);
-             H->set_PICE();
+//             H->set_PICE();
           }
           else
           {
              H->sphere_dist_read(dist_file);
-             H->set_PICE();
+//             H->set_PICE();
           }
           delete [] init_pot_vec;
        }
@@ -174,7 +174,7 @@ int main( int argc, char * argv [])
        {
           H->sphere_dist_read(dist_file);
           H->sphere_dist_save(dist_file);
-          H->set_PICE();
+//          H->set_PICE();
        }
         output.open(out_file.c_str());
         output<<"Output from Wavepack_1D, developped by Stephan van den Wildenberg (Theoretical Physical Chemistry, University of Liege)"<<std::endl<<"File generated on "<<date_str<<std::endl;
@@ -288,6 +288,7 @@ int main( int argc, char * argv [])
              std::cout<<eigenval[n*tgsize_x+g]<<"  "<<real(proj_state->show_neut_psi(g,n))<<"  "<<imag(proj_state->show_neut_psi(g,n))<<"  "<<pow(abs(proj_state->show_neut_psi(g,n)),2)<<std::endl;
           }
        }*/
+       /*
        double *dipole_mat=new double[n_states_neut*tgsize_x*tgsize_x*n_states_neut];
        H->change_basis_dipole(dipole_mat);
        ofstream dipole_output;
@@ -302,7 +303,7 @@ int main( int argc, char * argv [])
 
        dipole_output.close();
        exit(EXIT_SUCCESS);
-
+*/
        read.open(ionization_rate_file.c_str());
        read.close();
 //     read.open(read_file.c_str());

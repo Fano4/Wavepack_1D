@@ -300,7 +300,7 @@ void wavefunction::projection_eigenstates(hamilton_matrix *H,int direction)
 //      std::cout<<"probe_cat"<<std::endl;
 //#pragma omp parallel for
       H->eigenstates_matrix(1,eigenmat_cat);
-      for(int k=0;k!=this->m_n_states_cont;k++)
+      for(int k=0;k<this->m_n_states_cont;k++)
       {
          for(int n=0;n<this->m_n_states_cat;n++)
          {
@@ -723,7 +723,7 @@ void wavefunction::analytic_propagation(hamilton_matrix *H,int timestep_number)
       {
          for(int g=0;g!=this->m_tgsize_x;g++)
          {
-            new_state->set_cat_psi(n,k,g,this->m_cat_part[n*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+g ]*exp(-H->eigenvalue_cat(n,k,g)*timestep_number*H->h()));
+            new_state->set_cat_psi(n,k,g,this->m_cat_part[n*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+g ]*exp(std::complex<double>(0,-H->eigenvalue_cat(n,k,g)*timestep_number*H->h())));
          }
       }
    }
