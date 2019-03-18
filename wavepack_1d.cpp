@@ -258,7 +258,7 @@ int main( int argc, char * argv [])
        double *eigenmat=new double[n_states_neut*tgsize_x*tgsize_x*n_states_neut];
        H->eigenstates_matrix(0,eigenmat);
        ofstream eigenout;
-       eigenout.open("/data1/home/stephan/test_diago_hamilt/big_eigenmatrix_correct.txt");
+       eigenout.open("/data1/home/stephan/test_diago_hamilt/big_eigenmatrix_512.txt");
        for(int n=0;n!=n_states_neut*tgsize_x;n++)
        {
           for(int m=0;m!=n_states_neut*tgsize_x;m++)
@@ -268,7 +268,7 @@ int main( int argc, char * argv [])
           }eigenout<<std::endl;
        }
        eigenout.close();
-       eigenout.open("/data1/home/stephan/test_diago_hamilt/eigenvalues_correct.txt");
+       eigenout.open("/data1/home/stephan/test_diago_hamilt/eigenvalues_512.txt");
        for(int n=0;n!=n_states_neut;n++)
        {
           for(int g=0;g!=tgsize_x;g++)
@@ -277,8 +277,9 @@ int main( int argc, char * argv [])
           }
        }
        eigenout.close();
+       */
       // Psi->projection_eigenstates(1);
-      */
+      
 /*
        for(int n=0;n!=n_states_neut;n++)
        {
@@ -286,21 +287,22 @@ int main( int argc, char * argv [])
           {
              std::cout<<eigenval[n*tgsize_x+g]<<"  "<<real(proj_state->show_neut_psi(g,n))<<"  "<<imag(proj_state->show_neut_psi(g,n))<<"  "<<pow(abs(proj_state->show_neut_psi(g,n)),2)<<std::endl;
           }
-       }
-       H->change_basis_dipole(eigenstates,dipole_mat);
+       }*/
+       double *dipole_mat=new double[n_states_neut*tgsize_x*tgsize_x*n_states_neut];
+       H->change_basis_dipole(dipole_mat);
        ofstream dipole_output;
-       dipole_output.open("/data1/home/stephan/Wavepack_1D/dipole_mat_eigenbasis.txt");
+       dipole_output.open("/data1/home/stephan/test_diago_hamilt/dipole_mat_eigenbasis_256.txt");
        for(int n=0;n!=tgsize_x*n_states_neut;n++)
        {
           for(int k=0;k!=tgsize_x*n_states_neut;k++)
           {
-             dipole_output<<dipole_mat[n*tgsize_x*n_states_neut+k]<<"  ";
+             dipole_output<<dipole_mat[n*tgsize_x*n_states_neut+k]<<",";
           }dipole_output<<endl;
        }
 
        dipole_output.close();
        exit(EXIT_SUCCESS);
-*/
+
        read.open(ionization_rate_file.c_str());
        read.close();
 //     read.open(read_file.c_str());
