@@ -238,9 +238,7 @@ void wavefunction::initialize(hamilton_matrix* H)
 
    for(int i=0;i!=this->m_tgsize_x;i++)
    {
-      //this->set_neut_psi(0,i,cmatrix[i*(this->m_tgsize_x)]);
-      this->set_neut_psi(2,i,(1/sqrt(2))*cmatrix[i*(this->m_tgsize_x)]);
-      this->set_neut_psi(3,i,(-1/sqrt(2))*cmatrix[i*(this->m_tgsize_x)]);
+      this->set_neut_psi(0,i,cmatrix[i*(this->m_tgsize_x)]);
    }
    /*for(int m=1;m!=this->m_n_states_neut;m++)
    {

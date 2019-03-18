@@ -356,7 +356,7 @@ void propagate(wavefunction *Psi, hamilton_matrix *H,int* time_index,int num_of_
       }
       temp_time_index=temp_time_index+1;
    }
-   std::cout<<"probe"<<std::endl;
+//   std::cout<<"probe"<<std::endl;
 
    if(!analytic)
    {

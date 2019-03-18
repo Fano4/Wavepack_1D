@@ -254,6 +254,7 @@ int main( int argc, char * argv [])
 
 
        H->diagonalize_Hamilton();
+/*
        double *eigenmat=new double[n_states_neut*tgsize_x*tgsize_x*n_states_neut];
        H->eigenstates_matrix(0,eigenmat);
        ofstream eigenout;
@@ -277,6 +278,7 @@ int main( int argc, char * argv [])
        }
        eigenout.close();
       // Psi->projection_eigenstates(1);
+      */
 /*
        for(int n=0;n!=n_states_neut;n++)
        {
