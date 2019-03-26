@@ -260,10 +260,13 @@ void wavefunction::projection_eigenstates(hamilton_matrix *H,int direction)
    std::complex<double> ctemp;
    double *reprojected_neut=new double[this->m_n_states_neut*this->m_tgsize_x];
    double *improjected_neut=new double[this->m_n_states_neut*this->m_tgsize_x];
+
    double *repartial_neut=new double[this->m_n_states_neut*this->m_tgsize_x];
    double *impartial_neut=new double[this->m_n_states_neut*this->m_tgsize_x];
+
    double *repartial_cat=new double[this->m_n_states_cat*this->m_tgsize_x];
    double *impartial_cat=new double[this->m_n_states_cat*this->m_tgsize_x];
+
    double *reprojected_cat=new double[this->m_n_states_cat*this->m_tgsize_x];
    double *improjected_cat=new double[this->m_n_states_cat*this->m_tgsize_x];
 

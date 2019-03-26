@@ -971,5 +971,23 @@ double hamilton_matrix::eigenvalue_cat(int state_index,int state_index_cont,int 
 }
 //##########################################################################
 //
+// !!!! TEMPORARY FUNCTION. IT WILL ONLY WORK IN THIS CASE !!!
+//
+//THIS INTEGRATES THE PROBABILITY OF BEING IN THE DISSOCIATION CONTINUUM FOR EVERY
+//VIBRONIC EIGENSTATE OF THE MOLECULE.
+//##########################################################################
+/*
+void hamilton_matrix::partition_scattering_states() 
+{
+   int *scat_states=new int [this->m_n_states_neut*this->m_tgsize_x];
+   for(int i=0;i!=21;i++)
+   {
+      scat_states[i]=1;
+   }
+   scat_states[143]=1;scat_states[148]=1;scat_states[153]=1;scat_states[158]=1;scat_states[163]=1;scat_states[168]=1;scat_states[173]=1;scat_states[178]=1;scat_states[184]=1;scat_states[189]=1;scat_states[194]=1;scat_states[199]=1;scat_states[203]=1;scat_states[209]=1;scat_states[214]=1;scat_states[220]=1;scat_states[225]=1;scat_states[230]=1;scat_states[235]=1;scat_states[240]=1;scat_states[245]=1;scat_states[249]=1;scat_states[252]=1;scat_states[384]=1;scat_states[389]=1;scat_states[393]=1;scat_states[397];scat_states[401]=1;scat_states[406]=1;scat_states[410]=1;scat_states[414]=1;scat_states[417]=1;scat_states[422]=1;scat_states[425]=1;scat_states[428]=1;scat_states[432]=1;scat_states[435]=1;scat_states[438];scat_states[441]=1;scat_states[444]=1;scat_states[447]=1;scat_states[451]=1;scat_states[454]=1;scat_states[457]=1;scat_states[459]=1;scat_states[462]=1;scat_states[463]=1;scat_states[465]=1;scat_states[468]=1;scat_states[470]=1;scat_states[472]=1;scat_states[474]=1;scat_states[476]=1;scat_states[477]=1;scat_states[509];scat_states[512];scat_states[515];scat_states[517];scat_states[520];scat_states[522];scat_states[532];scat_states[534];scat_states[538];scat_states[556];scat_states[560];scat_states[567];scat_states[575];scat_states[578];scat_states[583];
+}
+*/
+//##########################################################################
+//
 //##########################################################################
 //END OF HAMILTON MATRIX OBJECT COMPUTATION
