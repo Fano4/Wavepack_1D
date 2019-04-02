@@ -303,6 +303,7 @@ void wavefunction::projection_eigenstates(hamilton_matrix *H,int direction)
 //      std::cout<<"probe_cat"<<std::endl;
 //#pragma omp parallel for
       H->eigenstates_matrix(1,eigenmat_cat);
+      //The eigenmat_cat only represents the eigenvectors of the cation PEC => m_tgsize_x*m_n_states_cat
       for(int k=0;k<this->m_n_states_cont;k++)
       {
          for(int n=0;n<this->m_n_states_cat;n++)

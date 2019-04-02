@@ -1300,7 +1300,7 @@ void hamilton_matrix::diagonalize_Hamilton()
                {
                   for(int j=0;j!=this->m_tgsize_x;j++)
                   {
-                    this->m_eigenstate[this->m_tgsize_x*this->m_n_states_neut+n*this->m_tgsize_x+i]->set_cat_psi(m,k,j,cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+j*this->m_tgsize_x*this->m_n_states_neut+n*this->m_tgsize_x+i]);
+                    this->m_eigenstate[this->m_tgsize_x*this->m_n_states_neut+n*this->m_tgsize_x+i]->set_cat_psi(m,k,j,cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_cat+j*this->m_tgsize_x*this->m_n_states_cat+n*this->m_tgsize_x+i]);
                   }
                }
             }
