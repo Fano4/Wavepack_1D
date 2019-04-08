@@ -38,6 +38,7 @@ class wavefunction {
       bool load_wf(std::string file_loc);
       void projection_eigenstates(hamilton_matrix *H,int direction);
       void analytic_propagation(hamilton_matrix *H,int timestep_number);
+      void photoelectron_density(hamilton_matrix *H,double *cube_density,int nx,int ny,int nz,double xmin,double xmax,double ymin,double ymax,double zmin,double zmax,double time_index);
    private:
       int m_gsize_x;
       int m_tgsize_x;
@@ -188,5 +189,8 @@ class hamilton_matrix {
       double eigenvalue_neut(int state_index,int grid_index);
       double eigenvalue_cat(int state_index,int state_index_cont,int grid_index);
       void diagonalize_Hamilton();
+      int pice_data_n_occ();
+      double pice_data_mo_value(double x,double y,double z,int mo_index,int grid_index);
+      std::complex<double> pice_data_mo_ft_value(double k,double thet,double phi,int mo_index,int grid_index);
 };
 

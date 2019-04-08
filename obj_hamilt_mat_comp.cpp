@@ -971,6 +971,38 @@ double hamilton_matrix::eigenvalue_cat(int state_index,int state_index_cont,int 
 }
 //##########################################################################
 //
+//##########################################################################
+int hamilton_matrix::pice_data_n_occ()
+{
+   return this->pice_data->n_occ();
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::pice_data_mo_value(double x,double y,double z,int mo_index,int grid_index)
+{
+   int dgsize(this->m_tgsize_x-this->m_small_gsize_x);
+   int ratio=(this->m_gsize_x/this->m_small_gsize_x);
+
+   if(grid_index<dgsize)
+      return 0;
+   else
+      return this->pice_data->mo_value(x,y,z,mo_index,ratio*(grid_index-dgsize));
+}
+//##########################################################################
+//
+//##########################################################################
+std::complex<double> hamilton_matrix::pice_data_mo_ft_value(double k,double thet,double phi,int mo_index,int grid_index)
+{
+   int dgsize(this->m_tgsize_x-this->m_small_gsize_x);
+   int ratio=(this->m_gsize_x/this->m_small_gsize_x);
+   if(grid_index<dgsize)
+      return 0;
+   else
+      return this->pice_data->mo_ft_value(k,thet,phi,mo_index,ratio*(grid_index-dgsize));
+}
+//##########################################################################
+//
 // !!!! TEMPORARY FUNCTION. IT WILL ONLY WORK IN THIS CASE !!!
 //
 //THIS INTEGRATES THE PROBABILITY OF BEING IN THE DISSOCIATION CONTINUUM FOR EVERY

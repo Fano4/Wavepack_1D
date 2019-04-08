@@ -743,28 +743,29 @@ void wavefunction::photoelectron_density(hamilton_matrix *H,double *cube_density
 {
 
    std::complex<double> photoelectron_wavefunction; 
+   std::complex<double> eikr;
    double x(0);
    double y(0); 
    double z(0);
    double kx(0);
    double ky(0);
    double kz(0);
-   double k(0);
+   double kp(0);
    double thet(0);
    double phi(0);
    double *pot_vec=new double [3];
-   std::complex<double> basis_function_val(std::complex<double>(0,0));
+   std::complex<double> basis_func_val(std::complex<double>(0,0));
    std::complex<double> orthog(std::complex<double>(0,0));
 
    H->potential_vector(time_index,pot_vec);
 
-   for(int m=0;m!=nx,m++)
+   for(int m=0;m!=nx;m++)
    {
       x=xmin+m*(xmax-xmin)/nx;
-      for(int n=0;n!=ny,n++)
+      for(int n=0;n!=ny;n++)
       {
          y=ymin+n*(ymax-ymin)/ny;
-         for(int o=0;o!=nz,o++)
+         for(int o=0;o!=nz;o++)
          {
             z=zmin+o*(zmax-zmin)/nz;
             for(int i = 0;i != this->m_n_states_cat;i++ )
@@ -806,11 +807,11 @@ void wavefunction::photoelectron_density(hamilton_matrix *H,double *cube_density
                   for(int g=0;g!=this->m_tgsize_x;g++)
                   {
                      orthog=std::complex<double>(0,0);
-                     for(int mm=0;mm!=H->pice_data->n_occ();mm++)
+                     for(int mm=0;mm!=H->pice_data_n_occ();mm++)
                      {
-                        orthog+=H->pice_data->mo_value(x,y,z,mm,g)*H->pice_data->mo_ft_value(kp,thet,phi,mm,g);
+                        orthog+=H->pice_data_mo_value(x,y,z,mm,g)*H->pice_data_mo_ft_value(kp,thet,phi,mm,g);
                      }
-                     basis_function_val=eikr-orthog;/*exp(-ikr)-SUM_i^MO[CDyson_i*MO_i]*/
+                     basis_func_val=eikr-orthog;/*exp(-ikr)-SUM_i^MO[CDyson_i*MO_i]*/
                      photoelectron_wavefunction+=this->m_cat_part[i*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+g]*basis_func_val;
                   }
                }
