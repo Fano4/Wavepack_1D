@@ -7,16 +7,24 @@
 wavefunction::wavefunction(int gsize_x,int tgsize_x,int n_states_neut,int n_states_cat,int n_states_cont)
 {
 
-   this->m_gsize_x=gsize_x;
-   this->m_tgsize_x=tgsize_x;
-   this->m_n_states_neut=n_states_neut;
-   this->m_n_states_cat=n_states_cat;
-   this->m_n_states_cont=n_states_cont;
-   this->m_neut_part=new std::complex<double>[tgsize_x*n_states_neut];
-   if(n_states_cat!=0 && n_states_cont != 0)
-      this->m_cat_part=new std::complex<double>[tgsize_x*n_states_cat*n_states_cont];
-   this->m_dipole_neut=new double[3];
-   this->m_dipole_cat=new double[3];
+   try
+   {
+      this->m_gsize_x=gsize_x;
+      this->m_tgsize_x=tgsize_x;
+      this->m_n_states_neut=n_states_neut;
+      this->m_n_states_cat=n_states_cat;
+      this->m_n_states_cont=n_states_cont;
+      this->m_neut_part=new std::complex<double>[tgsize_x*n_states_neut];
+      if(n_states_cat!=0 && n_states_cont != 0)
+         this->m_cat_part=new std::complex<double>[tgsize_x*n_states_cat*n_states_cont];
+      this->m_dipole_neut=new double[3];
+      this->m_dipole_cat=new double[3];
+   }
+   catch(std::exception const& e)
+   {
+      std::cout<<" ERROR IN WAVE FUNCTION INITIATOR! : "<< e.what() <<std::endl;
+      exit(EXIT_FAILURE);
+   }
 }
 //##########################################################################
 //
@@ -93,7 +101,7 @@ void wavefunction::set_cat_psi(int state_cat_index,int state_cont_index,int grid
 //##########################################################################
 std::complex<double> wavefunction::show_neut_psi(int grid_index,int state_index)
 {
-   if(this->m_neut_part==NULL)
+/*   if(this->m_neut_part==NULL)
    {
       std::cout<<"FATAL ERROR: TRYING TO SHOW UNINITIALIZED WAVE FUNCTION VECTOR. EXIT"<<std::endl;
       std::exit(EXIT_FAILURE);
@@ -108,8 +116,8 @@ std::complex<double> wavefunction::show_neut_psi(int grid_index,int state_index)
       std::cout<<"FATAL ERROR: TRYING TO SHOW AN ELECTRONIC STATE INDEX OUT OF RANGE (NEUTRAL)."<<std::endl<<"STATE "<<state_index<<std::endl<<"EXIT"<<std::endl;
       std::exit(EXIT_FAILURE);
 
-   }
-   else
+   }*/ //DEBUG
+   //else
    {
       //std::cout<<"probe show neut psi index"<<state_index*this->m_tgsize_x+grid_index<<std::endl;//DEBOGAGE
       return this->m_neut_part[state_index*this->m_tgsize_x+grid_index];
@@ -122,7 +130,7 @@ std::complex<double> wavefunction::show_neut_psi(int grid_index,int state_index)
 //set the cation part of the wavefunction
 std::complex<double> wavefunction::show_cat_psi(int grid_index,int state_cat_index,int state_cont_index)
 {
-   if(this->m_cat_part==NULL)
+/*   if(this->m_cat_part==NULL)
    {
       std::cout<<"FATAL ERROR: TRYING TO SHOW UNINITIALIZED WAVE FUNCTION VECTOR. EXIT"<<std::endl;
       std::exit(EXIT_FAILURE);
@@ -142,7 +150,7 @@ std::complex<double> wavefunction::show_cat_psi(int grid_index,int state_cat_ind
       std::cout<<"FATAL ERROR: TRYING TO SHOW AN CONTINUUM STATE INDEX OUT OF RANGE. EXIT"<<std::endl;
       std::exit(EXIT_FAILURE);
    }
-   else
+   else*/ // DEBUG
    return this->m_cat_part[state_cat_index*this->m_n_states_cont*this->m_tgsize_x+state_cont_index*this->m_tgsize_x+grid_index];
    //The direct dimension of the cation part is the grid size.
    //The second dimension is the electronic state index.
@@ -467,16 +475,27 @@ void wavefunction::show_dipole(double* vector,bool species)
 void wavefunction::set_wf(wavefunction* x,bool cat)
 {
    std::complex<double>* x_neut = new std::complex<double>[this->m_n_states_neut*this->m_tgsize_x];
+   int i(0);
    if(cat)
    {
       std::complex<double>* x_cat = new std::complex<double>[this->m_n_states_cat*this->m_n_states_cont*this->m_tgsize_x];
       x->wf_vec(x_neut,x_cat);
-      cblas_zcopy(this->m_n_states_cat*this->m_n_states_cont*this->m_tgsize_x,x_cat,1,this->m_cat_part,1);
+#pragma omp parallel for private(i)
+      for(i=0;i<this->m_n_states_cat*this->m_n_states_cont*this->m_tgsize_x;i++)
+      {
+         this->m_cat_part[i]=x_cat[i];
+      }
+//      cblas_zcopy(this->m_n_states_cat*this->m_n_states_cont*this->m_tgsize_x,x_cat,1,this->m_cat_part,1);
       delete [] x_cat;
    }
    else
       x->wf_vec(x_neut,NULL);
-   cblas_zcopy(this->m_n_states_neut*this->m_tgsize_x,x_neut,1,this->m_neut_part,1);
+#pragma omp parallel for private(i)
+   for(i=0;i<this->m_n_states_neut*this->m_tgsize_x;i++)
+   {
+      this->m_neut_part[i]=x_neut[i];
+   }
+//   cblas_zcopy(this->m_n_states_neut*this->m_tgsize_x,x_neut,1,this->m_neut_part,1);
 
    delete [] x_neut;
 }
@@ -485,6 +504,7 @@ void wavefunction::set_wf(wavefunction* x,bool cat)
 //##########################################################################
 void wavefunction::add_wf(std::complex<double>* a,wavefunction* y,bool cat)
 {
+   int i(0);
    if( y != NULL)
    {
       std::complex<double>* x_neut = new std::complex<double>[this->m_n_states_neut*this->m_tgsize_x];
@@ -492,12 +512,22 @@ void wavefunction::add_wf(std::complex<double>* a,wavefunction* y,bool cat)
       {
          std::complex<double>* x_cat = new std::complex<double>[this->m_n_states_cat*this->m_n_states_cont*this->m_tgsize_x];
          y->wf_vec(x_neut,x_cat);
-         cblas_zaxpy(this->m_n_states_cat*this->m_n_states_cont*this->m_tgsize_x,a,x_cat,1,this->m_cat_part,1);
+#pragma omp parallel for private(i)
+      for(i=0;i<this->m_n_states_cat*this->m_n_states_cont*this->m_tgsize_x;i++)
+      {
+         this->m_cat_part[i]+=*a*x_cat[i];
+      }
+//         cblas_zaxpy(this->m_n_states_cat*this->m_n_states_cont*this->m_tgsize_x,a,x_cat,1,this->m_cat_part,1);
          delete [] x_cat;
       }
       else
          y->wf_vec(x_neut,NULL);
-      cblas_zaxpy(this->m_n_states_neut*this->m_tgsize_x,a,x_neut,1,this->m_neut_part,1);
+#pragma omp parallel for private(i)
+      for(i=0;i<this->m_n_states_neut*this->m_tgsize_x;i++)
+      {
+         this->m_neut_part[i]+=*a*x_neut[i];
+      }
+//      cblas_zaxpy(this->m_n_states_neut*this->m_tgsize_x,a,x_neut,1,this->m_neut_part,1);
       delete [] x_neut;
    }
    else
@@ -742,84 +772,154 @@ void wavefunction::analytic_propagation(hamilton_matrix *H,int timestep_number)
 void wavefunction::photoelectron_density(hamilton_matrix *H,double *cube_density,int nx,int ny,int nz,double xmin,double xmax,double ymin,double ymax,double zmin,double zmax,double time_index)
 {
 
-   std::complex<double> photoelectron_wavefunction; 
+   std::complex<double> *photoelectron_wavefunction=new std::complex<double>[nx*ny*nz]; 
    std::complex<double> eikr;
    double x(0);
    double y(0); 
    double z(0);
-   double kx(0);
-   double ky(0);
-   double kz(0);
-   double kp(0);
-   double thet(0);
-   double phi(0);
+
+   int k_mod_index(0);
+   int k_angle_index(0);
+
    double *pot_vec=new double [3];
    std::complex<double> basis_func_val(std::complex<double>(0,0));
    std::complex<double> orthog(std::complex<double>(0,0));
+   double *mo_val=new double [this->m_tgsize_x*H->pice_data_n_occ()];
+
+
+   int g(0);
+   int mm(0);
+
+   double *kx =new double[this->m_n_states_cont];
+   double *ky =new double[this->m_n_states_cont];
+   double *kz =new double[this->m_n_states_cont];
+   double *kp =new double[this->m_n_states_cont];
+   double *thet =new double[this->m_n_states_cont];
+   double *phi =new double[this->m_n_states_cont];
+   std::complex<double> *mo_ft=new std::complex<double> [this->m_n_states_cont*H->pice_data_n_occ()*this->m_tgsize_x];
 
    H->potential_vector(time_index,pot_vec);
 
-   for(int m=0;m!=nx;m++)
+   //FIRST, EVALUATE THE VARIABLES IN RECIPROCAL SPACE THAT DO NOT DEPEND ON THE POSITION OF THE PHOTOELECTRON IN DIRECT SPACE.
+
+   for(int k=0;k<this->m_n_states_cont;k++)
    {
-      x=xmin+m*(xmax-xmin)/nx;
-      for(int n=0;n!=ny;n++)
+      k_angle_index=int(k%H->n_angles());
+      k_mod_index=int((k-k_angle_index)/H->n_angles());
+
+      std::cout<<" k = "<<k<<"==>"<<k_mod_index<<","<<k_angle_index<<std::endl; 
+//      std::cout<<" pot vec =  "<<pot_vec[0]<<","<<pot_vec[1]<<","<<pot_vec[2]<<std::endl; 
+
+      kx[k]=(H->k_mod_val(k_mod_index))*sin(H->k_spher_orient(0,k_angle_index))*cos(H->k_spher_orient(1,k_angle_index))+pot_vec[0];
+      ky[k]=(H->k_mod_val(k_mod_index))*sin(H->k_spher_orient(0,k_angle_index))*sin(H->k_spher_orient(1,k_angle_index))+pot_vec[1];
+      kz[k]=(H->k_mod_val(k_mod_index))*cos(H->k_spher_orient(0,k_angle_index))+pot_vec[2];
+//      std::cout<<" kx = "<<kx[k]<<" ky = "<<ky[k]<<" kz = "<<kz[k]<<std::endl; 
+      kp[k]=sqrt(pow(kx[k],2)+pow(ky[k],2)+pow(kz[k],2));
+      if(kp[k]==0)
       {
-         y=ymin+n*(ymax-ymin)/ny;
-         for(int o=0;o!=nz;o++)
+         thet[k]=0;
+         phi[k]=0;
+      }
+      else
+      {
+         thet[k]=acos(kz[k]/kp[k]);
+         if( kx[k] == 0 && kx[k] >= 0 )
          {
-            z=zmin+o*(zmax-zmin)/nz;
-            for(int i = 0;i != this->m_n_states_cat;i++ )
+            phi[k]=acos(-1)/2;
+         }
+         else if(kx[k] == 0 && ky[k] < 0)
+         {
+            phi[k]=3.*acos(-1)/2; 
+         }
+         else if(kx[k] < 0 && ky[k] == 0)
+         {
+            phi[k]=acos(-1); 
+         }
+         else
+         {
+            phi[k]=atan2(ky[k],kx[k]);
+            if(phi[k]<0)
+               phi[k]+=2*acos(-1);
+         }
+      }
+//      std::cout<<"SPHERICAL COORD: "<<kp[k]<<"::"<<thet[k]<<","<<phi[k]<<std::endl;
+      #pragma omp parallel for private(g,mm) shared(k)
+      for(g=0;g < this->m_tgsize_x;g++)
+      {
+         for(mm=0;mm < H->pice_data_n_occ();mm++)
+         {
+            mo_ft[k*H->pice_data_n_occ()*this->m_tgsize_x+g*H->pice_data_n_occ()+mm]=H->pice_data_mo_ft_value(kp[k],thet[k],phi[k],mm,g);
+//            std::cout<<"MO FT VALUES "<<k<<"::"<<g<<","<<mm<<" == "<<mo_ft[k*H->pice_data_n_occ()*this->m_tgsize_x+g*H->pice_data_n_occ()+mm]<<std::endl;
+            if(isnan(real(mo_ft[k*H->pice_data_n_occ()*this->m_tgsize_x+g*H->pice_data_n_occ()+mm]))||isnan(imag(mo_ft[k*H->pice_data_n_occ()*this->m_tgsize_x+g*H->pice_data_n_occ()+mm])))
             {
-               for(int k=0;k!=this->m_n_states_cont;k++)
-               {
-                  kx=(H->k_mod_val(k))*sin(H->k_spher_orient(0,k))*cos(H->k_spher_orient(1,k))+pot_vec[0];
-                  ky=(H->k_mod_val(k))*sin(H->k_spher_orient(0,k))*sin(H->k_spher_orient(1,k))+pot_vec[1];
-                  kz=(H->k_mod_val(k))*cos(H->k_spher_orient(0,k))+pot_vec[2];
-                  kp=sqrt(pow(kx,2)+pow(ky,2)+pow(kz,2));
-                  if(kp==0)
-                  {
-                     thet=0;
-                     phi=0;
-                  }
-                  else
-                  {
-                     thet=acos(kz/k);
-                     if( kx == 0 && kx >= 0 )
-                     {
-                        phi=acos(-1)/2;
-                     }
-                     else if(kx == 0 && ky < 0)
-                     {
-                        phi=3.*acos(-1)/2; 
-                     }
-                     else if(kx < 0 && ky == 0)
-                     {
-                        phi=acos(-1); 
-                     }
-                     else
-                     {
-                        phi=atan2(ky,kx);
-                        if(phi<0)
-                           phi+=2*acos(-1);
-                     }
-                  }
-                  eikr=exp(std::complex<double>(0,-(x*kx+y*ky+z*kz)));
-                  for(int g=0;g!=this->m_tgsize_x;g++)
-                  {
-                     orthog=std::complex<double>(0,0);
-                     for(int mm=0;mm!=H->pice_data_n_occ();mm++)
-                     {
-                        orthog+=H->pice_data_mo_value(x,y,z,mm,g)*H->pice_data_mo_ft_value(kp,thet,phi,mm,g);
-                     }
-                     basis_func_val=eikr-orthog;/*exp(-ikr)-SUM_i^MO[CDyson_i*MO_i]*/
-                     photoelectron_wavefunction+=this->m_cat_part[i*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+g]*basis_func_val;
-                  }
-               }
+               std::cout<<"error in the reading of MO FT values !! EXIT"<<std::endl;
+               exit(EXIT_FAILURE);
             }
-            cube_density[m*ny*nx+n*nz+o]=pow(abs(photoelectron_wavefunction),2);
          }
       }
    }
+//   std::cout<<"We made it"<<std::endl;
+//      exit(EXIT_SUCCESS);
+
+   //THEN, USE THEM IN THE COMPUTATION OF THE DIRECT SPACE WAVEFUNCTION. 
+   for(int m=0;m<nx;m++)
+   {
+      x=xmin+m*(xmax-xmin)/nx;
+      for(int n=0;n<ny;n++)
+      {
+         y=ymin+n*(ymax-ymin)/ny;
+         for(int o=0;o<nz;o++)
+         {
+            z=zmin+o*(zmax-zmin)/nz;
+//            std::cout<<" z = "<<z<<std::endl; 
+
+            photoelectron_wavefunction[m*ny*nx+n*nz+o]=0;
+            //FOR EVERY POINT IN SPACE, BUILD AN ARRAY THAT CONTAINS THE VALUE OF EVERY MO
+#pragma omp parallel for private(g,mm) shared(m,n,o)
+            for(mm=0;mm < H->pice_data_n_occ();mm++)
+            {
+               for(g=0;g < this->m_tgsize_x;g++)
+               {
+                   mo_val[g*H->pice_data_n_occ()+mm]=H->pice_data_mo_value(x,y,z,mm,g);
+               }
+            }
+            for(int i = 0;i < this->m_n_states_cat;i++ )
+            {
+               for(int k=0;k<this->m_n_states_cont;k++)
+               {
+//                  std::cout<<" k = "<<k<<std::endl; 
+                  eikr=exp(std::complex<double>(0,-(x*kx[k]+y*ky[k]+z*kz[k])));
+#pragma omp parallel for private(g,mm,orthog,basis_func_val) shared(eikr,m,n,o,i,k,nx,ny,nz)
+                  for(g=0;g < this->m_tgsize_x;g++)
+                  {
+//                     orthog=std::complex<double>(0,0);
+                     basis_func_val=eikr;
+                     
+                     for(mm=0;mm < H->pice_data_n_occ();mm++)
+                     {
+                        //orthog+=H->pice_data_mo_value(x,y,z,mm,g)*mo_ft[k*H->pice_data_n_occ()*this->m_tgsize_x+g*H->pice_data_n_occ()+mm];
+                        basis_func_val-=mo_val[g*H->pice_data_n_occ()+mm]*mo_ft[k*H->pice_data_n_occ()*this->m_tgsize_x+g*H->pice_data_n_occ()+mm];
+                     }
+//                     basis_func_val=eikr-orthog;/*exp(-ikr)-SUM_i^MO[FT_MO_i*MO_i]*/
+                     photoelectron_wavefunction[m*ny*nx+n*nz+o]+=this->m_cat_part[i*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+g]*basis_func_val*H->dk(k);
+//                     std::cout<<k<<","<<g<<"-"<<". vals :  "<<this->m_cat_part[i*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+g]<<" * "<<basis_func_val<<std::endl;
+
+                  }
+               }
+            }
+            cube_density[m*ny*nx+n*nz+o]=pow(abs(photoelectron_wavefunction[m*ny*nx+n*nz+o]),2);
+//            std::cout<<"val : "<<cube_density[m*ny*nx+n*nz+o]<<std::endl;
+         }
+      }
+   }
+   delete [] photoelectron_wavefunction;
+   delete [] mo_val;
+   delete [] kx;
+   delete [] ky;
+   delete [] kz;
+   delete [] thet;
+   delete [] phi;
+   delete [] mo_ft;
 }
 //##########################################################################
 //

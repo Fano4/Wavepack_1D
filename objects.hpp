@@ -192,5 +192,7 @@ class hamilton_matrix {
       int pice_data_n_occ();
       double pice_data_mo_value(double x,double y,double z,int mo_index,int grid_index);
       std::complex<double> pice_data_mo_ft_value(double k,double thet,double phi,int mo_index,int grid_index);
+      int n_angles() const;
+      int n_k_mod() const;
 };
 

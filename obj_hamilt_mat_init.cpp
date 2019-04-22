@@ -37,6 +37,10 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
 {
    using namespace std;
    //initialize grid parameters and time settings
+
+   int ii(0);
+
+
    this->m_gsize_x=gsize_x;
    this->m_tgsize_x=tgsize_x;
    this->m_small_gsize_x=small_gsize_x;
@@ -264,10 +268,11 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    this->m_eigenvalue_neut=new double [this->m_tgsize_x*this->m_n_states_neut];
    this->m_eigenvalue_cat=new double [this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont];
    this->m_eigenstate=new wavefunction* [this->m_tgsize_x*this->m_n_states_neut+this->m_tgsize_x*this->m_n_states_cat];
-   for(int i=0;i!=this->m_tgsize_x*this->m_n_states_neut+this->m_tgsize_x*this->m_n_states_cat;i++)
+#pragma omp parallel for private(ii)
+   for( ii=0;ii<this->m_tgsize_x*this->m_n_states_neut+this->m_tgsize_x*this->m_n_states_cat;ii++)
    {
-      std::cout<<i<<"...";
-      this->m_eigenstate[i]=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+      std::cout<<ii<<"...";
+      this->m_eigenstate[ii]=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
    }
 
    std::cout<<"Eigenvectors and eigenvalues arrays initialized!"<<std::endl;
@@ -936,8 +941,9 @@ void hamilton_matrix::sphere_dist_read(std::string dist_file_s)
 
    if(!dist_file.is_open())
    {
-      std::cout<<"ERROR WHILE OPENING ANGULAR DISTRIBUTION FILE"<<std::endl<<dist_file_s.c_str()<<std::endl;
-      exit(EXIT_FAILURE);
+      std::cout<<"ANGULAR DISTRIBUTION FILE DOES NOT EXIST"<<std::endl
+         <<"CREATING A NEW ANGULAR DISTRIBUTION"<<dist_file_s.c_str()<<std::endl;
+//      exit(EXIT_FAILURE);
    }
    else
    {
@@ -1321,4 +1327,15 @@ void hamilton_matrix::diagonalize_Hamilton()
 //##########################################################################
 //
 //##########################################################################
+int hamilton_matrix::n_angles() const
+{
+   return this->m_n_angles;
+}
+//##########################################################################
+//
+//##########################################################################
+int hamilton_matrix::n_k_mod() const
+{
+   return this->m_n_k;
+}
 //END OF HAMILTON MATRIX OBJECT INITIALIZATION AND SETTINGS
