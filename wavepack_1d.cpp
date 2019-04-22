@@ -306,8 +306,8 @@ int main( int argc, char * argv [])
 */
        read.open(ionization_rate_file.c_str());
        read.close();
- //      read.open("/data1/home/stephan/wavepack_test/photoelec_Z.txt");//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
- //      read.close();
+       read.open("/data1/home/stephan/wavepack_test/photoelec_Z.txt");//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
+       read.close();
        int ncx=5;
        int ncy=5;
        int ncz=48;
@@ -461,8 +461,8 @@ int main( int argc, char * argv [])
        }read<<std::endl;
        read.close();
 
-//       Psi->photoelectron_density(H,cube_photoelec_dens,ncx,ncy,ncz,cxmin,cxmax,cymin,cymax,czmin,czmax,time_index);
-/*       read.open("/data1/home/stephan/wavepack_test/photoelec_Z.txt",ios_base::app);//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
+       Psi->photoelectron_density(H,cube_photoelec_dens,ncx,ncy,ncz,cxmin,cxmax,cymin,cymax,czmin,czmax,time_index);
+       read.open("/data1/home/stephan/wavepack_test/photoelec_Z.txt",ios_base::app);//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
        for(int i=0;i!=ncz;i++)
        {
           z=czmin+i*dz;
@@ -477,7 +477,7 @@ int main( int argc, char * argv [])
           read<<time_index*h*0.02418884<<"  "<<z<<"  "<<dens_sum<<std::endl;
        }read<<std::endl;
        read.close();
-*/
+
        Psi->save_wf(s_savefile.c_str());
     }
 
