@@ -306,15 +306,15 @@ int main( int argc, char * argv [])
 */
        read.open(ionization_rate_file.c_str());
        read.close();
-       read.open("/data1/home/stephan/wavepack_photoelect_230419/photoelec_Z.txt");//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
+       read.open("/data1/home/stephan/wavepack_photoelectron_020519/photoelec_Z.txt");//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
        read.close();
        const int ncx=2;
        const int ncy=2;
-       const int ncz=50;
-       const double cxmin(-8);
-       const double cxmax(10);
-       const double cymin(-8);
-       const double cymax(10);
+       const int ncz=100;
+       const double cxmin(-9);
+       const double cxmax(9);
+       const double cymin(-9);
+       const double cymax(9);
        const double czmin(-30);
        const double czmax(30);
        const double dx((cxmax-cxmin)/ncx);
@@ -461,23 +461,37 @@ int main( int argc, char * argv [])
        }read<<std::endl;
        read.close();
 
-       Psi->photoelectron_density(H,cube_photoelec_dens,ncx,ncy,ncz,cxmin,cxmax,cymin,cymax,czmin,czmax,time_index);
-       read.open("/data1/home/stephan/wavepack_photoelect_230419/photoelec_Z.txt",ios_base::app);//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
-       for(int i=0;i!=ncz;i++)
+       if(Psi->state_pop(1,0,H) != 0)
        {
-          z=czmin+i*dz;
-          dens_sum=0;
-          for(int j=0;j!=ncx;j++)
+          Psi->photoelectron_density(H,cube_photoelec_dens,ncx,ncy,ncz,cxmin,cxmax,cymin,cymax,czmin,czmax,time_index);
+          read.open("/data1/home/stephan/wavepack_photoelectron_020519/photoelec_Z.txt",ios_base::app);//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
+          for(int i=0;i!=ncz;i++)
           {
-             for(int kp=0;kp!=ncy;kp++)
+             z=czmin+i*dz;
+             dens_sum=0;
+             for(int j=0;j!=ncx;j++)
              {
-                dens_sum+=cube_photoelec_dens[j*ncy*ncz+kp*ncz+i]*dx*dy;
+                for(int kp=0;kp!=ncy;kp++)
+                {
+                   dens_sum+=cube_photoelec_dens[j*ncy*ncz+kp*ncz+i]*dx*dy;
+                }
              }
-          }
-          read<<time_index*h*0.02418884<<"  "<<z<<"  "<<dens_sum<<std::endl;
-       }read<<std::endl;
-       read.close();
+             read<<time_index*h*0.02418884<<"  "<<z<<"  "<<dens_sum<<std::endl;
+          }read<<std::endl;
+          read.close();
 
+       }
+       else
+       {
+          read.open("/data1/home/stephan/wavepack_photoelectron_020519/photoelec_Z.txt",ios_base::app);//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
+          for(int i=0;i!=ncz;i++)
+          {
+             z=czmin+i*dz;
+             dens_sum=0;
+             read<<time_index*h*0.02418884<<"  "<<z<<"  "<<dens_sum<<std::endl;
+          }read<<std::endl;
+          read.close();
+       }
        Psi->save_wf(s_savefile.c_str());
     }
 

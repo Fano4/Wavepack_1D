@@ -897,6 +897,12 @@ void wavefunction::photoelectron_density(hamilton_matrix *H,double *cube_density
                   for(mm=0;mm < H->pice_data_n_occ();mm++)
                   {
                       mo_val[g*H->pice_data_n_occ()+mm]=H->pice_data_mo_value(x,y,z,mm,g);
+
+                      if(isnan(mo_val[g*H->pice_data_n_occ()+mm]))
+                      {
+                         std::cout<<"error in the reading of MO values !! EXIT"<<std::endl;
+                         exit(EXIT_FAILURE);
+                      }
                   }
                }
                for(i = 0;i < this->m_n_states_cat;i++ )
@@ -927,6 +933,11 @@ void wavefunction::photoelectron_density(hamilton_matrix *H,double *cube_density
                if(cube_density[m*ny*nz+n*nz+o] < 0)
                {
                   std::cout<<"FATAL ERROR !!! cube density > 0 :"<<cube_density[m*ny*nz+n*nz+o]<<std::endl;
+                  exit(EXIT_FAILURE);
+               }
+               else if(isnan(cube_density[m*ny*nz+n*nz+o]))
+               {
+                  std::cout<<"FATAL ERROR !!! Cube density is Not A Number! "<<std::endl;
                   exit(EXIT_FAILURE);
                }
 //               std::cout<<"val : "<<cube_density[m*ny*nz+n*nz+o]<<std::endl;
