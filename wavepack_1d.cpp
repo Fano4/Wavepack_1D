@@ -474,6 +474,10 @@ int main( int argc, char * argv [])
                 for(int kp=0;kp!=ncy;kp++)
                 {
                    dens_sum+=cube_photoelec_dens[j*ncy*ncz+kp*ncz+i]*dx*dy;
+                   if(isnan(dens_sum))
+                   {
+                      std::cout<<" ERROR : Nan raised in dens_sum computation. "<<cube_photoelec_dens[j*ncy*ncz+kp*ncz+i]<<"*"<<dx<<"*"<<dy<<std::endl;
+                   }
                 }
              }
              read<<time_index*h*0.02418884<<"  "<<z<<"  "<<dens_sum<<std::endl;

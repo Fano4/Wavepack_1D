@@ -983,8 +983,11 @@ double hamilton_matrix::pice_data_mo_value(double x,double y,double z,int mo_ind
 {
    int dgsize(this->m_tgsize_x-this->m_small_gsize_x);
    int ratio=(this->m_gsize_x/this->m_small_gsize_x);
+   //
+   std::cout<<"grid_index : "<<grid_index<<" ;dgsize = "<<dgsize<<" ;ratio = "<<ratio<<std::endl;
+   std::cout<<ratio*(grid_index-dgsize)<<std::endl;
 
-   if(grid_index<dgsize)
+   if(ratio*(grid_index-dgsize) < 0)
       return 0;
    else
       return this->pice_data->mo_value(x,y,z,mo_index,ratio*(grid_index-dgsize));
@@ -996,6 +999,7 @@ std::complex<double> hamilton_matrix::pice_data_mo_ft_value(double k,double thet
 {
    int dgsize(this->m_tgsize_x-this->m_small_gsize_x);
    int ratio=(this->m_gsize_x/this->m_small_gsize_x);
+
    if(grid_index<dgsize)
       return 0;
    else

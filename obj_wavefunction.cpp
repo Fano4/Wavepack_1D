@@ -815,7 +815,7 @@ void wavefunction::photoelectron_density(hamilton_matrix *H,double *cube_density
          k_angle_index=int(k%H->n_angles());
          k_mod_index=int((k-k_angle_index)/H->n_angles());
 
-      std::cout<<" k = "<<k<<"==>"<<k_mod_index<<","<<k_angle_index<<std::endl; 
+//      std::cout<<" k = "<<k<<"==>"<<k_mod_index<<","<<k_angle_index<<std::endl; 
 //      std::cout<<" pot vec =  "<<pot_vec[0]<<","<<pot_vec[1]<<","<<pot_vec[2]<<std::endl; 
 
          kx[k]=(H->k_mod_val(k_mod_index))*sin(H->k_spher_orient(0,k_angle_index))*cos(H->k_spher_orient(1,k_angle_index))+pot_vec[0];
@@ -887,11 +887,11 @@ void wavefunction::photoelectron_density(hamilton_matrix *H,double *cube_density
             for(o=0;o<nz;o++)
             {
                z=zmin+o*(zmax-zmin)/nz;
-               std::cout<<" m = "<<m<<"/"<<nx<<" ; n = "<<n<<"/"<<ny<<" ; o = "<<o<<"/"<<nz<<std::endl; 
+ //              std::cout<<" m = "<<m<<"/"<<nx<<" ; n = "<<n<<"/"<<ny<<" ; o = "<<o<<"/"<<nz<<std::endl; 
 
                photoelectron_wavefunction[m*ny*nz+n*nz+o]=0;
                //FOR EVERY POINT IN SPACE, BUILD AN ARRAY THAT CONTAINS THE VALUE OF EVERY MO
-#pragma omp parallel for private(g,mm) shared(m,n,o)
+//#pragma omp parallel for private(g,mm) shared(m,n,o)
                for(g=0;g < this->m_tgsize_x;g++)
                {
                   for(mm=0;mm < H->pice_data_n_occ();mm++)
