@@ -428,6 +428,7 @@ int main( int argc, char * argv [])
       average_mom_x=0;
       average_mom_y=0;
       average_mom_z=0;
+      H->potential_vector(time_index,efield);
        for(int k=0;k!=n_k;k++)
        {
           temp=0;
