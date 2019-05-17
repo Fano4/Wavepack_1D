@@ -51,6 +51,7 @@ int main( int argc, char * argv [])
     stringstream ss_wf;
     string s_wf;
     string dist_file;
+    string average_mom_file;
     ofstream output;
     ofstream read;
     ofstream wf_out;
@@ -107,7 +108,7 @@ int main( int argc, char * argv [])
    double respectrum(0);
    double imspectrum(0);
 
-    input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&ionization_rate_file,&dist_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
+    input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&ionization_rate_file,&average_mom_file,&dist_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
 
     int tgsize_x(small_gsize_x+6);
     int n_times(int(total_time/h));
@@ -304,8 +305,17 @@ int main( int argc, char * argv [])
        dipole_output.close();
        exit(EXIT_SUCCESS);
 */
+
        read.open(ionization_rate_file.c_str());
        read.close();
+
+       read.open(average_mom_file.c_str());
+       read.close();
+
+       double average_mom_x(0);
+       double average_mom_y(0);
+       double average_mom_z(0);
+       /*
        read.open("/data1/home/stephan/wavepack_photoelectron_020519/photoelec_Z.txt");//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
        read.close();
        const int ncx=2;
@@ -323,7 +333,7 @@ int main( int argc, char * argv [])
        double z(0);
        double *cube_photoelec_dens=new double [ncx*ncy*ncz];
        double dens_sum(0);
-
+      */
 //     read.open(read_file.c_str());
 //    std::cout<<"Initial state:"<<std::endl;
 //    for(int i=0;i!=tgsize_x;i++)
@@ -415,6 +425,9 @@ int main( int argc, char * argv [])
          output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<read_file.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
          exit(EXIT_FAILURE);
        }
+      average_mom_x=0;
+      average_mom_y=0;
+      average_mom_z=0;
        for(int k=0;k!=n_k;k++)
        {
           temp=0;
@@ -424,6 +437,12 @@ int main( int argc, char * argv [])
              {
                 for(int r=0;r!=tgsize_x;r++)
                 {
+                   if(Psi->state_pop(1,0,H) != 0)
+                   {
+                      average_mom_x+=(H->k_mod_val(k)*sin(H->k_spher_orient(0,o))*cos(H->k_spher_orient(1,o))+efield[0])*H->dk(k)*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
+                      average_mom_y+=(H->k_mod_val(k)*sin(H->k_spher_orient(0,o))*sin(H->k_spher_orient(1,o))+efield[1])*H->dk(k)*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
+                      average_mom_z+=(H->k_mod_val(k)*cos(H->k_spher_orient(0,o))+efield[2])*H->dk(k)*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
+                   }
         //           read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<std::endl;
                    temp+=std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
                 }
@@ -434,6 +453,10 @@ int main( int argc, char * argv [])
           spectrum<<std::endl;
       // read.close();
        spectrum.close();
+
+       read.open(average_mom_file.c_str(),ios_base::app);
+       read<<time_index*h*0.02418884<<"   "<<average_mom_x<<"   "<<average_mom_y<<"   "<<average_mom_z<<std::endl;
+       read.close();
        
        for(int m=0;m!=n_states_cat;m++)
        {
@@ -461,6 +484,7 @@ int main( int argc, char * argv [])
        }read<<std::endl;
        read.close();
 
+       /*
        if(Psi->state_pop(1,0,H) != 0)
        {
           Psi->photoelectron_density(H,cube_photoelec_dens,ncx,ncy,ncz,cxmin,cxmax,cymin,cymax,czmin,czmax,time_index);
@@ -496,6 +520,7 @@ int main( int argc, char * argv [])
           }read<<std::endl;
           read.close();
        }
+       */
        Psi->save_wf(s_savefile.c_str());
     }
 

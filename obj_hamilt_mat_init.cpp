@@ -779,6 +779,9 @@ void hamilton_matrix::set_NAC(std::string file_address)
    }
 
 }
+//##########################################################################
+//
+//##########################################################################
 double hamilton_matrix::kinetic_energy_matrix(int i,int j)
 {
    return this->kinetic_energy[this->m_tgsize_x*i+j];
