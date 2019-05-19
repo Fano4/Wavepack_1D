@@ -438,11 +438,11 @@ int main( int argc, char * argv [])
              {
                 for(int r=0;r!=tgsize_x;r++)
                 {
-                   if(Psi->state_pop(1,0,H) != 0)
+//                   if(Psi->state_pop(1,0,H) != 0)
                    {
-                      average_mom_x+=(H->k_mod_val(k)*sin(H->k_spher_orient(0,o))*cos(H->k_spher_orient(1,o))+efield[0])*H->dk(k)*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
-                      average_mom_y+=(H->k_mod_val(k)*sin(H->k_spher_orient(0,o))*sin(H->k_spher_orient(1,o))+efield[1])*H->dk(k)*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
-                      average_mom_z+=(H->k_mod_val(k)*cos(H->k_spher_orient(0,o))+efield[2])*H->dk(k)*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
+                      average_mom_x+=(H->k_mod_val(k)*sin(H->k_spher_orient(0,o))*cos(H->k_spher_orient(1,o))+efield[0])*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
+                      average_mom_y+=(H->k_mod_val(k)*sin(H->k_spher_orient(0,o))*sin(H->k_spher_orient(1,o))+efield[1])*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
+                      average_mom_z+=(H->k_mod_val(k)*cos(H->k_spher_orient(0,o))+efield[2])*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
                    }
         //           read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<std::endl;
                    temp+=std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
@@ -485,43 +485,6 @@ int main( int argc, char * argv [])
        }read<<std::endl;
        read.close();
 
-       /*
-       if(Psi->state_pop(1,0,H) != 0)
-       {
-          Psi->photoelectron_density(H,cube_photoelec_dens,ncx,ncy,ncz,cxmin,cxmax,cymin,cymax,czmin,czmax,time_index);
-          read.open("/data1/home/stephan/wavepack_photoelectron_020519/photoelec_Z.txt",ios_base::app);//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
-          for(int i=0;i!=ncz;i++)
-          {
-             z=czmin+i*dz;
-             dens_sum=0;
-             for(int j=0;j!=ncx;j++)
-             {
-                for(int kp=0;kp!=ncy;kp++)
-                {
-                   dens_sum+=cube_photoelec_dens[j*ncy*ncz+kp*ncz+i]*dx*dy;
-                   if(isnan(dens_sum))
-                   {
-                      std::cout<<" ERROR : Nan raised in dens_sum computation. "<<cube_photoelec_dens[j*ncy*ncz+kp*ncz+i]<<"*"<<dx<<"*"<<dy<<std::endl;
-                   }
-                }
-             }
-             read<<time_index*h*0.02418884<<"  "<<z<<"  "<<dens_sum<<std::endl;
-          }read<<std::endl;
-          read.close();
-
-       }
-       else
-       {
-          read.open("/data1/home/stephan/wavepack_photoelectron_020519/photoelec_Z.txt",ios_base::app);//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
-          for(int i=0;i!=ncz;i++)
-          {
-             z=czmin+i*dz;
-             dens_sum=0;
-             read<<time_index*h*0.02418884<<"  "<<z<<"  "<<dens_sum<<std::endl;
-          }read<<std::endl;
-          read.close();
-       }
-       */
        Psi->save_wf(s_savefile.c_str());
     }
 
