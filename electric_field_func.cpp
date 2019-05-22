@@ -45,8 +45,8 @@ double hamilton_matrix::potential_vector(double time_index,double* vector)
    double CEP_probe(this->m_probe_CEP-2*acos(-1)*int((energy_probe*origin_probe)/(2*acos(-1))));
 
    double time(this->m_h*time_index);
-   double amplitude(strength*exp(-pow((time-origin),2)/(2*sigma*sigma))*sin(energy*(time-origin)+CEP)
-                  +strength_probe*exp(-pow((time-origin_probe),2)/(2*sigma_probe*sigma_probe))*sin(energy_probe*(time-origin_probe)+CEP_probe)
+   double amplitude(-strength*exp(-pow((time-origin),2)/(2*sigma*sigma))*sin(energy*(time-origin)+CEP)/energy
+                  -strength_probe*exp(-pow((time-origin_probe),2)/(2*sigma_probe*sigma_probe))*sin(energy_probe*(time-origin_probe)+CEP_probe)/energy_probe
          );
    vector[0]=0;
    vector[1]=0;

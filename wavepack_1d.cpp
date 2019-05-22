@@ -51,6 +51,7 @@ int main( int argc, char * argv [])
     stringstream ss_wf;
     string s_wf;
     string dist_file;
+    string average_mom_file;
     ofstream output;
     ofstream read;
     ofstream wf_out;
@@ -107,7 +108,7 @@ int main( int argc, char * argv [])
    double respectrum(0);
    double imspectrum(0);
 
-    input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&ionization_rate_file,&dist_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
+    input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&ionization_rate_file,&average_mom_file,&dist_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
 
     int tgsize_x(small_gsize_x+6);
     int n_times(int(total_time/h));
@@ -124,6 +125,7 @@ int main( int argc, char * argv [])
     H->set_dm_neut(neutral_dipole.c_str());
     H->set_dm_cat(cation_dipole.c_str());
     H->set_NAC(neutral_nac);
+    
 
     /*
     for(int i=0;i!=tgsize_x;i++)
@@ -251,8 +253,87 @@ int main( int argc, char * argv [])
         std::cout<<"Wave function restarted from checkpoint file!"<<std::endl;
     }
 
+
+       H->diagonalize_Hamilton();
+/*
+       double *eigenmat=new double[n_states_neut*tgsize_x*tgsize_x*n_states_neut];
+       H->eigenstates_matrix(0,eigenmat);
+       ofstream eigenout;
+       eigenout.open("/data1/home/stephan/test_diago_hamilt/big_eigenmatrix_512.txt");
+       for(int n=0;n!=n_states_neut*tgsize_x;n++)
+       {
+          for(int m=0;m!=n_states_neut*tgsize_x;m++)
+          {
+             eigenout<<eigenmat[m*n_states_neut*tgsize_x+n]<<",";
+
+          }eigenout<<std::endl;
+       }
+       eigenout.close();
+       eigenout.open("/data1/home/stephan/test_diago_hamilt/eigenvalues_512.txt");
+       for(int n=0;n!=n_states_neut;n++)
+       {
+          for(int g=0;g!=tgsize_x;g++)
+          {
+             eigenout<<H->eigenvalue_neut(n,g)<<std::endl;
+          }
+       }
+       eigenout.close();
+       */
+      // Psi->projection_eigenstates(1);
+      
+/*
+       for(int n=0;n!=n_states_neut;n++)
+       {
+          for( int g=0;g!=tgsize_x;g++)
+          {
+             std::cout<<eigenval[n*tgsize_x+g]<<"  "<<real(proj_state->show_neut_psi(g,n))<<"  "<<imag(proj_state->show_neut_psi(g,n))<<"  "<<pow(abs(proj_state->show_neut_psi(g,n)),2)<<std::endl;
+          }
+       }*/
+       /*
+       double *dipole_mat=new double[n_states_neut*tgsize_x*tgsize_x*n_states_neut];
+       H->change_basis_dipole(dipole_mat);
+       ofstream dipole_output;
+       dipole_output.open("/data1/home/stephan/test_diago_hamilt/dipole_mat_eigenbasis_256.txt");
+       for(int n=0;n!=tgsize_x*n_states_neut;n++)
+       {
+          for(int k=0;k!=tgsize_x*n_states_neut;k++)
+          {
+             dipole_output<<dipole_mat[n*tgsize_x*n_states_neut+k]<<",";
+          }dipole_output<<endl;
+       }
+
+       dipole_output.close();
+       exit(EXIT_SUCCESS);
+*/
+
        read.open(ionization_rate_file.c_str());
        read.close();
+
+       read.open(average_mom_file.c_str());
+       read.close();
+
+       double average_mom_x(0);
+       double average_mom_y(0);
+       double average_mom_z(0);
+       /*
+       read.open("/data1/home/stephan/wavepack_photoelectron_020519/photoelec_Z.txt");//!!! YOU HAVE TO REPLACE THIS WITH A NON-CONSTANT USER DEFINED STRING
+       read.close();
+       const int ncx=2;
+       const int ncy=2;
+       const int ncz=100;
+       const double cxmin(-9);
+       const double cxmax(9);
+       const double cymin(-9);
+       const double cymax(9);
+       const double czmin(-30);
+       const double czmax(30);
+       const double dx((cxmax-cxmin)/ncx);
+       const double dy((cymax-cymin)/ncy);
+       const double dz((czmax-czmin)/ncz);
+       double z(0);
+       double *cube_photoelec_dens=new double [ncx*ncy*ncz];
+       double dens_sum(0);
+      */
 //     read.open(read_file.c_str());
 //    std::cout<<"Initial state:"<<std::endl;
 //    for(int i=0;i!=tgsize_x;i++)
@@ -285,9 +366,15 @@ int main( int argc, char * argv [])
     }
 
 
+    bool test(0);
     while(time_index <= n_times)
     {
-       propagate(Psi,H,&time_index,25);
+       if( test )
+       {
+           propagate(Psi,H,&time_index,250);
+       }
+       test=1;
+
        H->electric_field(time_index,efield);
        Psi->set_dipole(H);
        output.open(out_file.c_str(),ios_base::app);
@@ -338,6 +425,10 @@ int main( int argc, char * argv [])
          output<<"!!!!!!!!!!!! UNABLE TO WRITE IN "<<read_file.c_str()<<std::endl<<"PROGRAM TERMINATION"<<std::endl;
          exit(EXIT_FAILURE);
        }
+      average_mom_x=0;
+      average_mom_y=0;
+      average_mom_z=0;
+      H->potential_vector(time_index,efield);
        for(int k=0;k!=n_k;k++)
        {
           temp=0;
@@ -347,6 +438,12 @@ int main( int argc, char * argv [])
              {
                 for(int r=0;r!=tgsize_x;r++)
                 {
+//                   if(Psi->state_pop(1,0,H) != 0)
+                   {
+                      average_mom_x+=(H->k_mod_val(k)*sin(H->k_spher_orient(0,o))*cos(H->k_spher_orient(1,o))+efield[0])*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
+                      average_mom_y+=(H->k_mod_val(k)*sin(H->k_spher_orient(0,o))*sin(H->k_spher_orient(1,o))+efield[1])*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
+                      average_mom_z+=(H->k_mod_val(k)*cos(H->k_spher_orient(0,o))+efield[2])*std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
+                   }
         //           read<<time_index*h*0.02418884<<"   "<<H->k_mod_val(k)<<"    "<<H->k_spher_orient(0,o)<<"    "<<H->k_spher_orient(1,o)<<"    "<<Psi->show_cat_psi(r,c,k*n_angles+o)<<std::endl;
                    temp+=std::norm(Psi->show_cat_psi(r,c,k*n_angles+o));
                 }
@@ -357,6 +454,10 @@ int main( int argc, char * argv [])
           spectrum<<std::endl;
       // read.close();
        spectrum.close();
+
+       read.open(average_mom_file.c_str(),ios_base::app);
+       read<<time_index*h*0.02418884<<"   "<<average_mom_x<<"   "<<average_mom_y<<"   "<<average_mom_z<<std::endl;
+       read.close();
        
        for(int m=0;m!=n_states_cat;m++)
        {

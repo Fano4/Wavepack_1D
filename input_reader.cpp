@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 
-bool input_reader(std::string input_loc,std::string* neutral_pes,std::string* cation_pes,std::string* neutral_dipole,std::string* cation_dipole,std::string* neutral_nac,std::string* ionization_coupling_file,std::string* out_file,std::string* read_file,std::string* wf_out_file,std::string* spectrum_out_file,std::string* mfpad_out_file,std::string* pi_cs_file,std::string* ionization_rate_file,std::string *dist_file,int* gsize_x,int* small_gsize_x,int* n_states_neut,int* n_states_cat,int* n_angles,int* n_k,int* k_mfpad,double* kmin,double* kmax,double* xmin,double* xmax,double* mass,double* total_time,double* h,double* efield_thresh,double* pot_vec_thresh,double* pump_strength,double* pump_origin,double* pump_sigma,double* pump_energy,double* pump_CEP,double* pprobe_delay,double* probe_strength,double* probe_sigma,double* probe_energy,double* probe_CEP )
+bool input_reader(std::string input_loc,std::string* neutral_pes,std::string* cation_pes,std::string* neutral_dipole,std::string* cation_dipole,std::string* neutral_nac,std::string* ionization_coupling_file,std::string* out_file,std::string* read_file,std::string* wf_out_file,std::string* spectrum_out_file,std::string* mfpad_out_file,std::string* pi_cs_file,std::string* ionization_rate_file,std::string* average_mom_file,std::string *dist_file,int* gsize_x,int* small_gsize_x,int* n_states_neut,int* n_states_cat,int* n_angles,int* n_k,int* k_mfpad,double* kmin,double* kmax,double* xmin,double* xmax,double* mass,double* total_time,double* h,double* efield_thresh,double* pot_vec_thresh,double* pump_strength,double* pump_origin,double* pump_sigma,double* pump_energy,double* pump_CEP,double* pprobe_delay,double* probe_strength,double* probe_sigma,double* probe_energy,double* probe_CEP )
 {
    std::ifstream input;
 
@@ -28,6 +28,7 @@ bool input_reader(std::string input_loc,std::string* neutral_pes,std::string* ca
       input>>*mfpad_out_file;
       input>>*pi_cs_file;
       input>>*ionization_rate_file;
+      input>>*average_mom_file;
       input>>*dist_file;
       input>>*gsize_x;
       input>>*small_gsize_x;
@@ -68,8 +69,9 @@ bool input_reader(std::string input_loc,std::string* neutral_pes,std::string* ca
       <<"wf_out_file :"<<*wf_out_file<<std::endl
       <<"spectrum_out_file :"<<*spectrum_out_file<<std::endl
       <<"mfpad_out_file :"<<*mfpad_out_file<<std::endl
-      <<"ionization_rate_file"<<*ionization_rate_file<<std::endl
       <<"pi_cs_file :"<<*pi_cs_file<<std::endl
+      <<"ionization_rate_file"<<*ionization_rate_file<<std::endl
+      <<"average_mom_file"<<*average_mom_file<<std::endl
       <<"dist_file :"<<*dist_file<<std::endl
       <<"gsize_x :"<<*gsize_x<<std::endl
       <<"small_gsize_x :"<<*small_gsize_x<<std::endl

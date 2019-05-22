@@ -1,3 +1,5 @@
+
+
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
@@ -9,7 +11,9 @@
 #include <omp.h>
 #include <hdf5.h>
 #include <complex>
+
 #include "mkl.h"
+#define MKL_Complex16 std::complex<double>
 
 #include "pice_module.cpp"
 #include "objects.hpp"

@@ -37,6 +37,10 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
 {
    using namespace std;
    //initialize grid parameters and time settings
+
+   int ii(0);
+
+
    this->m_gsize_x=gsize_x;
    this->m_tgsize_x=tgsize_x;
    this->m_small_gsize_x=small_gsize_x;
@@ -258,6 +262,20 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
    }
    std::cout<<"derivative matrix array initialized!"<<std::endl;
 
+   std::cout<<"Initializing eigenvectors and eigenvalues arrays... "<<std::endl;
+   
+
+   this->m_eigenvalue_neut=new double [this->m_tgsize_x*this->m_n_states_neut];
+   this->m_eigenvalue_cat=new double [this->m_tgsize_x*this->m_n_states_cat*this->m_n_states_cont];
+   this->m_eigenstate=new wavefunction* [this->m_tgsize_x*this->m_n_states_neut+this->m_tgsize_x*this->m_n_states_cat];
+#pragma omp parallel for private(ii)
+   for( ii=0;ii<this->m_tgsize_x*this->m_n_states_neut+this->m_tgsize_x*this->m_n_states_cat;ii++)
+   {
+      std::cout<<ii<<"...";
+      this->m_eigenstate[ii]=new wavefunction(this->m_gsize_x,this->m_tgsize_x,this->m_n_states_neut,this->m_n_states_cat,this->m_n_states_cont);
+   }
+
+   std::cout<<"Eigenvectors and eigenvalues arrays initialized!"<<std::endl;
 }
 //##########################################################################
 //
@@ -761,6 +779,9 @@ void hamilton_matrix::set_NAC(std::string file_address)
    }
 
 }
+//##########################################################################
+//
+//##########################################################################
 double hamilton_matrix::kinetic_energy_matrix(int i,int j)
 {
    return this->kinetic_energy[this->m_tgsize_x*i+j];
@@ -923,8 +944,9 @@ void hamilton_matrix::sphere_dist_read(std::string dist_file_s)
 
    if(!dist_file.is_open())
    {
-      std::cout<<"ERROR WHILE OPENING ANGULAR DISTRIBUTION FILE"<<std::endl<<dist_file_s.c_str()<<std::endl;
-      exit(EXIT_FAILURE);
+      std::cout<<"ANGULAR DISTRIBUTION FILE DOES NOT EXIST"<<std::endl
+         <<"CREATING A NEW ANGULAR DISTRIBUTION"<<dist_file_s.c_str()<<std::endl;
+//      exit(EXIT_FAILURE);
    }
    else
    {
@@ -1152,4 +1174,171 @@ void hamilton_matrix::set_pice_mapping()
 }
 //##########################################################################
 //
+//##########################################################################
+void hamilton_matrix::diagonalize_Hamilton()
+{
+   
+   //FIRST, DIAGONALIZE THE NEUTRAL PARTITION OF THE HAMILTONIAN.
+
+   double *H_mat_neut=new double[(this->m_tgsize_x)*(this->m_tgsize_x)*this->m_n_states_neut*this->m_n_states_neut];
+   double *d=new double[(this->m_tgsize_x)*(this->m_n_states_neut)];
+   double *e=new double [(this->m_tgsize_x)*(this->m_n_states_neut)-1];
+   std::complex<double> *tau=new std::complex<double> [(this->m_tgsize_x)*(this->m_n_states_neut)-1];
+   std::complex<double> *cmatrix=new std::complex<double> [(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)*(this->m_n_states_neut)];
+
+   using namespace std;
+
+   for(int m=0;m!=this->m_n_states_neut;m++)
+   {
+      for(int n=0;n!=this->m_n_states_neut;n++)
+      {
+         for(int i=0;i!=this->m_tgsize_x;i++)
+         {
+            for(int j=0;j!=this->m_tgsize_x;j++)
+            {
+               H_mat_neut[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j]=0;
+               if(m==n)
+               {
+                  if(i==j)
+                  {
+                     H_mat_neut[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+i]+=this->pot_neut(m,i);
+                  }
+
+                  H_mat_neut[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j]+=this->kinetic_energy_matrix(i,j);
+               }
+               if(m<n)
+               {
+                  if(this->m_NAC[m*this->m_n_states_neut+n][i]!=0)
+                     H_mat_neut[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j]+=
+                     -(this->m_NAC[m*this->m_n_states_neut+n][i]
+                     *this->derivative_matrix[i*this->m_tgsize_x+j]
+                     )/((this->m_mass));//*(fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_1]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_1])))
+               }
+               else
+               {
+                   if(this->m_NAC[m*this->m_n_states_neut+n][j]!=0)
+                      H_mat_neut[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j]+=
+                     (this->m_NAC[n*this->m_n_states_neut+m][j]
+                     *this->derivative_matrix[i*this->m_tgsize_x+j]
+                     )/((this->m_mass));//*(fabs(this->m_pot_neut[state_index_1*this->m_tgsize_x+grid_index_2]-this->m_pot_neut[state_index_2*this->m_tgsize_x+grid_index_2])))
+               }
+               cmatrix[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j]=std::complex<double>(H_mat_neut[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_neut)+i*(this->m_tgsize_x)*this->m_n_states_neut+n*(this->m_tgsize_x)+j],0);
+            }
+         }
+      }
+   }
+
+
+   
+   std::cout<<"#############################"<<std::endl;
+
+   std::cout<<"DIAGONALIZING NEUTRAL HAMILTONIAN...";
+
+   std::cout<<"LAPACKE zhetrd returns "<<LAPACKE_zhetrd(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_neut),cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut),d,e,tau)<<"...";
+   std::cout<<"LAPACKE zungtr returns "<<LAPACKE_zungtr(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_neut),cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut),tau)<<"...";
+   std::cout<<"LAPACKE zstedc returns "<<LAPACKE_zstedc(LAPACK_ROW_MAJOR,'V',(this->m_tgsize_x)*(this->m_n_states_neut),d,e,cmatrix,(this->m_tgsize_x)*(this->m_n_states_neut))<<"...";
+
+   std::cout<<"DONE!"<<std::endl;
+
+
+   for(int n=0 ; n!=this->m_tgsize_x*this->m_n_states_neut;n++)
+   {
+      this->m_eigenvalue_neut[n]=d[n];
+      for(int m=0;m!=this->m_n_states_neut;m++)
+      {
+         for(int i=0;i!=this->m_tgsize_x;i++)
+         {
+              this->m_eigenstate[n]->set_neut_psi(m,i,cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_neut+i*this->m_tgsize_x*this->m_n_states_neut+n]);
+         }
+      }
+   }
+   delete [] H_mat_neut;
+   delete [] d;
+   delete [] e;
+   delete [] tau;
+   delete [] cmatrix;
+   //THEN, DIAGONALIZE CATION HAMILTONIAN.
+   //THE CATION HAMILTONIAN IS FULLY DIAGONAL ON THE INDEX OF THE PHOTOELECTRON STATE.
+   //WE ONLY DIAGONALIZE THE PEC+KINETIC ENERGY PART OF THE HAMILTONIAN AND THE EIGENSTATES 
+   // ARE THE SAME FOR ALL PHOTOELECTRON STATES
+   
+   if(this->m_n_states_cat !=0)
+   {
+      double *H_mat_cat=new double[(this->m_tgsize_x)*(this->m_tgsize_x)*this->m_n_states_cat*this->m_n_states_cat];
+      d=new double[(this->m_tgsize_x)*(this->m_n_states_cat)];
+      e=new double [(this->m_tgsize_x)*(this->m_n_states_cat)-1];
+      tau=new std::complex<double> [(this->m_tgsize_x)*(this->m_n_states_cat)-1];
+      cmatrix=new std::complex<double> [(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_cat)*(this->m_n_states_cat)];
+
+      for(int m=0;m!=this->m_n_states_cat;m++)
+      {
+         for(int n=0;n!=this->m_n_states_cat;n++)
+         {
+            for(int i=0;i!=this->m_tgsize_x;i++)
+            {
+               for(int j=0;j!=this->m_tgsize_x;j++)
+               {
+                  H_mat_cat[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_cat)+i*(this->m_tgsize_x)*this->m_n_states_cat+n*(this->m_tgsize_x)+j]=0;
+                  if(m==n)
+                  {
+                     if(i==j)
+                     {
+                        H_mat_cat[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_cat)+i*(this->m_tgsize_x)*this->m_n_states_cat+n*(this->m_tgsize_x)+i]+=this->pot_cat(m,i);
+                     }
+   
+                     H_mat_cat[m*(this->m_tgsize_x)*(this->m_tgsize_x)*(this->m_n_states_cat)+i*(this->m_tgsize_x)*this->m_n_states_cat+n*(this->m_tgsize_x)+j]+=this->kinetic_energy_matrix(i,j);
+                  }
+               }
+            }
+         }
+      }
+      std::cout<<"DIAGONALIZING CATION HAMILTONIAN...";
+      std::cout<<"LAPACKE zhetrd returns "<<LAPACKE_zhetrd(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_cat),cmatrix,(this->m_tgsize_x)*(this->m_n_states_cat),d,e,tau)<<"...";
+      std::cout<<"LAPACKE zungtr returns "<<LAPACKE_zungtr(LAPACK_ROW_MAJOR,'U',(this->m_tgsize_x)*(this->m_n_states_cat),cmatrix,(this->m_tgsize_x)*(this->m_n_states_cat),tau)<<"...";
+      std::cout<<"LAPACKE zstedc returns "<<LAPACKE_zstedc(LAPACK_ROW_MAJOR,'V',(this->m_tgsize_x)*(this->m_n_states_cat),d,e,cmatrix,(this->m_tgsize_x)*(this->m_n_states_cat))<<"...";
+      std::cout<<"DONE!"<<std::endl;
+
+      for(int k=0;k!=this->m_n_states_cont;k++)
+      {
+         for(int n = 0 ; n!=this->m_n_states_cat;n++)
+         {
+            for(int i=0;i!=this->m_tgsize_x;i++)
+            {
+               this->m_eigenvalue_cat[n*this->m_n_states_cont*this->m_tgsize_x+k*this->m_tgsize_x+i]=0.5*pow(this->k_modulus[(k-k%(this->m_n_states_cont/this->m_n_k))/(this->m_n_states_cont/this->m_n_k)],2)+d[n*this->m_tgsize_x+i];
+               for(int m=0;m!=this->m_n_states_cat;m++)
+               {
+                  for(int j=0;j!=this->m_tgsize_x;j++)
+                  {
+                    this->m_eigenstate[this->m_tgsize_x*this->m_n_states_neut+n*this->m_tgsize_x+i]->set_cat_psi(m,k,j,cmatrix[m*(this->m_tgsize_x)*this->m_tgsize_x*this->m_n_states_cat+j*this->m_tgsize_x*this->m_n_states_cat+n*this->m_tgsize_x+i]);
+                  }
+               }
+            }
+         }
+      }
+
+      delete [] H_mat_cat;
+      delete [] d;
+      delete [] e;
+      delete [] tau;
+      delete [] cmatrix;
+   }
+
+   std::cout<<" Diagonalized field free Hamiltonian "<<std::endl;
+
+   std::cout<<"#############################"<<std::endl;
+}
+//##########################################################################
+//
+//##########################################################################
+int hamilton_matrix::n_angles() const
+{
+   return this->m_n_angles;
+}
+//##########################################################################
+//
+//##########################################################################
+int hamilton_matrix::n_k_mod() const
+{
+   return this->m_n_k;
+}
 //END OF HAMILTON MATRIX OBJECT INITIALIZATION AND SETTINGS

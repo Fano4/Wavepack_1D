@@ -22,6 +22,7 @@ class wavefunction {
       int n_states_cat();
       int n_states_cont();
       void initialize(hamilton_matrix* H);
+      void diagonalize_Hamilton(hamilton_matrix* H,double* eigenval,wavefunction** eigenstates);
       void set_norm(double value);
       double norm(hamilton_matrix *H);
       void set_dipole(hamilton_matrix *H);
@@ -35,6 +36,9 @@ class wavefunction {
       double state_pop(bool species,int state,hamilton_matrix* H=NULL);
       void save_wf(std::string file_loc);
       bool load_wf(std::string file_loc);
+      void projection_eigenstates(hamilton_matrix *H,int direction);
+      void analytic_propagation(hamilton_matrix *H,int timestep_number);
+      void photoelectron_density(hamilton_matrix *H,double *cube_density,int nx,int ny,int nz,double xmin,double xmax,double ymin,double ymax,double zmin,double zmax,double time_index);
    private:
       int m_gsize_x;
       int m_tgsize_x;
@@ -126,6 +130,9 @@ class hamilton_matrix {
       double *position_array_script;
       double *m_dk_vec;
       pice_set *pice_data;
+      wavefunction **m_eigenstate;
+      double *m_eigenvalue_neut;
+      double *m_eigenvalue_cat;
 
    public:
       hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double kmin,double kmax,double xmin,double xmax,double mass,int n_times,double h,double pump_strength,double probe_strength,double pump_origin,double pprobe_delay,double pump_sigma,double probe_sigma,double pump_energy,double probe_energy,double pump_CEP,double probe_CEP,double efield_thresh,double pot_vec_thresh,std::string pice_data_loc);
@@ -145,6 +152,7 @@ class hamilton_matrix {
       double electric_field(double time_index,double* vector);
       double potential_vector(double time_index,double* vector);
       double kinetic_energy_matrix(int i,int j);
+      double show_derivative_matrix(int i,int j);
       double pot_neut(int state_index,int grid_index);
       double pot_cat(int state_index,int grid_index);
       double energy(wavefunction* Psi,double time_index);
@@ -157,7 +165,7 @@ class hamilton_matrix {
       void set_phase(std::string file_address);
       void print_dipole_neut();
       void dk_vec(double *array);
-      double show_nac(int state_index_1,int state_index_2,int grid_index_1,int grid_index_2);
+      double show_nac(int state_index_1,int state_index_2,int grid_index_1,int grid_index_2,int state_index_cont_1=-1);
 //      void spherical_extract_from_cube(int neut_state,int cat_state,int r_index,int component,double *Recube,double *Imcube,double *pot_vec);
       void sphere_dist_gen(bool randiso=1,int n_phi=0);
 //      bool cube_reader(std::string MO_cube_loc,double *cube_array,bool extract_dimensions=0);
@@ -174,5 +182,17 @@ class hamilton_matrix {
       void sphere_dist_save(std::string dist_file);
       void set_pice_mapping();
       void PI_rate(int time_index,double** ionization_rate,wavefunction* Psi);
+      double mass();
+      void change_basis_dipole(double *dipole_new_basis);
+      void eigenstate(int grid_index,int state_index,int state_index_cont,wavefunction* psi );
+      void eigenstates_matrix(int cat,double* matrix);
+      double eigenvalue_neut(int state_index,int grid_index);
+      double eigenvalue_cat(int state_index,int state_index_cont,int grid_index);
+      void diagonalize_Hamilton();
+      int pice_data_n_occ();
+      double pice_data_mo_value(double x,double y,double z,int mo_index,int grid_index);
+      std::complex<double> pice_data_mo_ft_value(double k,double thet,double phi,int mo_index,int grid_index);
+      int n_angles() const;
+      int n_k_mod() const;
 };
 

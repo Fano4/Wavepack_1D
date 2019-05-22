@@ -717,12 +717,17 @@ void hamilton_matrix::dk_vec(double *array)
 //##########################################################################
 //
 //##########################################################################
-double hamilton_matrix::show_nac(int state_index_1,int state_index_2,int grid_index_1,int grid_index_2)
+double hamilton_matrix::show_nac(int state_index_1,int state_index_2,int grid_index_1,int grid_index_2,int state_index_cont_1)
 {
-   if(state_index_1<state_index_2)
-      return this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2];
+   if(state_index_cont_1==0)
+   {
+      if(state_index_1<state_index_2)
+         return this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_1]*this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2];
+      else
+         return this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_2]*this->derivative_matrix[grid_index_2*this->m_tgsize_x+grid_index_1];
+   }
    else
-      return this->m_NAC[state_index_1*this->m_n_states_neut+state_index_2][grid_index_2]*this->derivative_matrix[grid_index_2*this->m_tgsize_x+grid_index_1];
+      return 0;
 }
 //##########################################################################
 //
@@ -854,6 +859,170 @@ void hamilton_matrix::PI_rate(int time_index,double** ionization_rate,wavefuncti
    }
       delete [] elec_field;
 }
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::mass()
+{
+   return this->m_mass;
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::show_derivative_matrix(int grid_index_1,int grid_index_2)
+{
+   return this->derivative_matrix[grid_index_1*this->m_tgsize_x+grid_index_2];
+}
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::change_basis_dipole(double *dipole_new_basis)
+{
+   double *S=new double[this->m_n_states_neut*this->m_n_states_neut*this->m_tgsize_x*this->m_tgsize_x];
+   double *A=new double[this->m_n_states_neut*this->m_n_states_neut*this->m_tgsize_x*this->m_tgsize_x];
+   double *C=new double[this->m_n_states_neut*this->m_n_states_neut*this->m_tgsize_x*this->m_tgsize_x];
+
+   std::cout<<"probe dipole"<<std::endl;
+   for(int m=0;m!=this->m_n_states_neut;m++)
+   {
+      for(int n=0;n!=this->m_n_states_neut;n++)
+      {
+         for(int i=0;i!=this->m_tgsize_x;i++)
+         {
+            for(int j=0;j!=this->m_tgsize_x;j++)
+            {
+               S[m*this->m_n_states_neut*this->m_tgsize_x*this->m_tgsize_x+i*this->m_n_states_neut*this->m_tgsize_x+n*this->m_tgsize_x+j]=real(this->m_eigenstate[m*this->m_tgsize_x+i]->show_neut_psi(j,n));
+            }
+               A[m*this->m_n_states_neut*this->m_tgsize_x*this->m_tgsize_x+i*this->m_n_states_neut*this->m_tgsize_x+n*this->m_tgsize_x+i]=this->show_dm_neut(m,n,i,2);
+         }
+      }
+   }
+   //A*D
+   cblas_dgemm (CblasRowMajor, CblasNoTrans,CblasTrans, this->m_n_states_neut*this->m_tgsize_x, this->m_n_states_neut*this->m_tgsize_x, this->m_n_states_neut*this->m_tgsize_x,1, A, this->m_n_states_neut*this->m_tgsize_x, S, this->m_n_states_neut*this->m_tgsize_x, 0,C,this->m_n_states_neut*this->m_tgsize_x);
+   //DT*(A*D)
+   cblas_dgemm (CblasRowMajor, CblasNoTrans,CblasNoTrans, this->m_n_states_neut*this->m_tgsize_x, this->m_n_states_neut*this->m_tgsize_x, this->m_n_states_neut*this->m_tgsize_x,1, S, this->m_n_states_neut*this->m_tgsize_x, C, this->m_n_states_neut*this->m_tgsize_x, 0,dipole_new_basis,this->m_n_states_neut*this->m_tgsize_x);
+
+
+   delete [] S;
+   delete [] C;
+   delete [] A;
+
+
+}
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::eigenstate(int grid_index,int state_index,int state_index_cont,wavefunction* psi )
+{
+   if(state_index_cont==-1)
+   {
+      psi->set_wf(this->m_eigenstate[state_index*this->m_tgsize_x+grid_index],1);
+   }
+   else
+   {
+      psi->set_wf(this->m_eigenstate[this->m_n_states_neut*this->m_tgsize_x+state_index*this->m_tgsize_x+grid_index],1);
+   }
+}
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::eigenstates_matrix(int cation,double * matrix )
+{
+   if(!cation)
+   {
+      for(int m=0;m!=this->m_n_states_neut*this->m_tgsize_x;m++)
+      {
+         for(int n=0;n!=this->m_n_states_neut;n++)
+         {
+            for(int g=0;g!=this->m_tgsize_x;g++)
+            {
+               matrix[m*this->m_n_states_neut*this->m_tgsize_x+n*this->m_tgsize_x+g]=real(this->m_eigenstate[m]->show_neut_psi(g,n));
+            }
+         }
+      }
+   }
+   else
+   {
+      for(int m=0;m!=this->m_n_states_cat*this->m_tgsize_x;m++)
+      {
+         for(int n=0;n!=this->m_n_states_cat;n++)
+         {
+            for(int g=0;g!=this->m_tgsize_x;g++)
+            {
+               matrix[m*this->m_n_states_cat*this->m_tgsize_x+n*this->m_tgsize_x+g]=real(this->m_eigenstate[this->m_n_states_neut*this->m_tgsize_x+m]->show_cat_psi(g,n,0));
+            }
+         }
+      }
+   }
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::eigenvalue_neut(int state_index,int grid_index)
+{
+   return this->m_eigenvalue_neut[state_index*this->m_tgsize_x+grid_index];
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::eigenvalue_cat(int state_index,int state_index_cont,int grid_index)
+{
+   return this->m_eigenvalue_cat[state_index*this->m_tgsize_x*this->m_n_states_cont+state_index_cont*this->m_tgsize_x+grid_index];
+}
+//##########################################################################
+//
+//##########################################################################
+int hamilton_matrix::pice_data_n_occ()
+{
+   return this->pice_data->n_occ();
+}
+//##########################################################################
+//
+//##########################################################################
+double hamilton_matrix::pice_data_mo_value(double x,double y,double z,int mo_index,int grid_index)
+{
+   int dgsize(this->m_tgsize_x-this->m_small_gsize_x);
+   int ratio=(this->m_gsize_x/this->m_small_gsize_x);
+   //
+   std::cout<<"grid_index : "<<grid_index<<" ;dgsize = "<<dgsize<<" ;ratio = "<<ratio<<std::endl;
+   std::cout<<ratio*(grid_index-dgsize)<<std::endl;
+
+   if(ratio*(grid_index-dgsize) < 0)
+      return 0;
+   else
+      return this->pice_data->mo_value(x,y,z,mo_index,ratio*(grid_index-dgsize));
+}
+//##########################################################################
+//
+//##########################################################################
+std::complex<double> hamilton_matrix::pice_data_mo_ft_value(double k,double thet,double phi,int mo_index,int grid_index)
+{
+   int dgsize(this->m_tgsize_x-this->m_small_gsize_x);
+   int ratio=(this->m_gsize_x/this->m_small_gsize_x);
+
+   if(grid_index<dgsize)
+      return 0;
+   else
+      return this->pice_data->mo_ft_value(k,thet,phi,mo_index,ratio*(grid_index-dgsize));
+}
+//##########################################################################
+//
+// !!!! TEMPORARY FUNCTION. IT WILL ONLY WORK IN THIS CASE !!!
+//
+//THIS INTEGRATES THE PROBABILITY OF BEING IN THE DISSOCIATION CONTINUUM FOR EVERY
+//VIBRONIC EIGENSTATE OF THE MOLECULE.
+//##########################################################################
+/*
+void hamilton_matrix::partition_scattering_states() 
+{
+   int *scat_states=new int [this->m_n_states_neut*this->m_tgsize_x];
+   for(int i=0;i!=21;i++)
+   {
+      scat_states[i]=1;
+   }
+   scat_states[143]=1;scat_states[148]=1;scat_states[153]=1;scat_states[158]=1;scat_states[163]=1;scat_states[168]=1;scat_states[173]=1;scat_states[178]=1;scat_states[184]=1;scat_states[189]=1;scat_states[194]=1;scat_states[199]=1;scat_states[203]=1;scat_states[209]=1;scat_states[214]=1;scat_states[220]=1;scat_states[225]=1;scat_states[230]=1;scat_states[235]=1;scat_states[240]=1;scat_states[245]=1;scat_states[249]=1;scat_states[252]=1;scat_states[384]=1;scat_states[389]=1;scat_states[393]=1;scat_states[397];scat_states[401]=1;scat_states[406]=1;scat_states[410]=1;scat_states[414]=1;scat_states[417]=1;scat_states[422]=1;scat_states[425]=1;scat_states[428]=1;scat_states[432]=1;scat_states[435]=1;scat_states[438];scat_states[441]=1;scat_states[444]=1;scat_states[447]=1;scat_states[451]=1;scat_states[454]=1;scat_states[457]=1;scat_states[459]=1;scat_states[462]=1;scat_states[463]=1;scat_states[465]=1;scat_states[468]=1;scat_states[470]=1;scat_states[472]=1;scat_states[474]=1;scat_states[476]=1;scat_states[477]=1;scat_states[509];scat_states[512];scat_states[515];scat_states[517];scat_states[520];scat_states[522];scat_states[532];scat_states[534];scat_states[538];scat_states[556];scat_states[560];scat_states[567];scat_states[575];scat_states[578];scat_states[583];
+}
+*/
 //##########################################################################
 //
 //##########################################################################
