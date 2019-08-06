@@ -751,7 +751,7 @@ void hamilton_matrix::set_NAC(std::string file_address)
                 for (int k=dgsize; k!=this->m_tgsize_x; k++)
                 {
                    input_file>>temp;
-                   this->m_NAC[i*this->m_n_states_neut+j][k]=temp;
+                   this->m_NAC[i*this->m_n_states_neut+j][k]=-temp;
                    for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
                    {
                       input_file>>temp;
