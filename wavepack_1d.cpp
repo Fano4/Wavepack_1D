@@ -8,6 +8,7 @@ int main( int argc, char * argv [])
     std::string restart_file_loc;
     int init_time_index(0);
     int nproc(0);
+    bool restart_bool(0);
 
     if(argc<3)
     {
@@ -29,6 +30,7 @@ int main( int argc, char * argv [])
           restart_file_loc=std::string(argv[3]);
           init_time_index=std::atoi(std::string(argv[4]).c_str());
           std::cout<<"Restarting wave packet at time_index "<<init_time_index<<" from input file "<<restart_file_loc.c_str()<<std::endl;
+          restart_bool=1;
        }
     }
 
@@ -179,6 +181,11 @@ int main( int argc, char * argv [])
        }
         output.open(out_file.c_str());
         output<<"Output from Wavepack_1D, developped by Stephan van den Wildenberg (Theoretical Physical Chemistry, University of Liege)"<<std::endl<<"File generated on "<<date_str<<std::endl;
+        output<<"Reading input from "<<input_file_loc.c_str()<<std::endl;
+
+        if(restart_bool)
+           output<<"Restarting wave packet at time_index "<<init_time_index<<" from input file "<<restart_file_loc.c_str()<<std::endl;
+
         output<<"Pump and probe pulses have the following parameters:"<<std::endl
           <<"Strength: "<<pump_strength<<" (pump) ; "<<probe_strength<<" (probe) "<<std::endl
           <<"Sigma: "<<pump_sigma<<" (pump) ; "<<probe_sigma<<" (probe) "<<std::endl
@@ -257,6 +264,7 @@ int main( int argc, char * argv [])
        H->diagonalize_Hamilton();
        double *eigenmat=new double[n_states_neut*tgsize_x*tgsize_x*n_states_neut];
        H->eigenstates_matrix(0,eigenmat);
+       /*
        ofstream eigenout;
        eigenout.open("/data1/home/stephan/test_diago_hamilt/LiH_eigenvectors_40Ang.txt");
        for(int n=0;n!=n_states_neut*tgsize_x;n++)
@@ -278,7 +286,7 @@ int main( int argc, char * argv [])
        }
        eigenout.close();
        exit(EXIT_SUCCESS);
-       
+       */
       // Psi->projection_eigenstates(1);
       
 /*
