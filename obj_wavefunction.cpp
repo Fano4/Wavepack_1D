@@ -716,9 +716,9 @@ bool wavefunction::load_wf(std::string file_loc)
     if(tgsize_x != this->m_tgsize_x || gsize_x != this->m_gsize_x || n_states_neut != this->m_n_states_neut || n_states_cat != this->m_n_states_cat || n_states_cont != this->m_n_states_cont)
     {
        std::cout<<"ERROR WHEN LOADING WAVEFUNCTION UPON RESTART. RESTARTED WF PARAMETERS DO NOT CORRESPOND TO SIMULATION PARAMETERS. EXIT"<<std::endl;
-       exit(EXIT_FAILURE);
+//       exit(EXIT_FAILURE);
     }
-    else
+//    else
     {
        for(int i=0;i!=this->m_tgsize_x*this->m_n_states_neut;i++)
        {

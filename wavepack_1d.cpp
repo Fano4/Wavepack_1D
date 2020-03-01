@@ -255,11 +255,10 @@ int main( int argc, char * argv [])
 
 
        H->diagonalize_Hamilton();
-/*
        double *eigenmat=new double[n_states_neut*tgsize_x*tgsize_x*n_states_neut];
        H->eigenstates_matrix(0,eigenmat);
        ofstream eigenout;
-       eigenout.open("/data1/home/stephan/test_diago_hamilt/big_eigenmatrix_512.txt");
+       eigenout.open("/data1/home/stephan/test_diago_hamilt/LiH_eigenvectors_40Ang.txt");
        for(int n=0;n!=n_states_neut*tgsize_x;n++)
        {
           for(int m=0;m!=n_states_neut*tgsize_x;m++)
@@ -269,7 +268,7 @@ int main( int argc, char * argv [])
           }eigenout<<std::endl;
        }
        eigenout.close();
-       eigenout.open("/data1/home/stephan/test_diago_hamilt/eigenvalues_512.txt");
+       eigenout.open("/data1/home/stephan/test_diago_hamilt/LiH_eigenvalues_40Ang.txt");
        for(int n=0;n!=n_states_neut;n++)
        {
           for(int g=0;g!=tgsize_x;g++)
@@ -278,7 +277,8 @@ int main( int argc, char * argv [])
           }
        }
        eigenout.close();
-       */
+       exit(EXIT_SUCCESS);
+       
       // Psi->projection_eigenstates(1);
       
 /*

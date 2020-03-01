@@ -39,15 +39,16 @@ spectrum_root=${OUTPUT_DIR}/spectrum_${1}.txt
 mfpad_root=${OUTPUT_DIR}/mfpad_${1}.txt
 cs_root=${OUTPUT_DIR}/cs_${1}_
 ionization_rate_root=${OUTPUT_DIR}/ionization_rate_${1}.txt
-dist_root=${INPUT_DIR}/sphere_dist.txt
+average_momentum_root=${OUTPUT_DIR}/average_mom_${1}.txt
+dist_root=${INPUT_DIR}/sphere_dist_512.txt
 
 #Simulation parameters
 
 grid_size=512
-small_grid_size=128
-n_states_neut=19
+small_grid_size=256
+n_states_neut=10
 n_states_cat=1
-n_points_sphere=128
+n_points_sphere=512
 n_k=56
 k_sample=35
 kmin=0.0001
@@ -55,18 +56,18 @@ kmax=1.5
 xmin=$(awk 'BEGIN {print 0.8/0.529}')
 xmax=$(awk 'BEGIN {print 21.6/0.529}')
 mass=$(awk 'BEGIN {print (1.007825*7.01600455/(1.007825+7.01600455))*1836}')
-total_time=$(awk 'BEGIN {print 230/0.02418884}')
+total_time=$(awk 'BEGIN {print 20./0.02418884}')
 h=$(awk 'BEGIN {print 0.0004/0.02418884}')
 efield_thresh=0.0001
-pot_vec_thresh=0.005
+pot_vec_thresh=0.05
 
 #Pump and probe parameters
 
-pump_strength=0.025
-pump_origin=$(awk 'BEGIN {print 15.0/0.02418884}')
-pump_sigma=$(awk 'BEGIN {print 4.0/0.02418884}') #$(awk 'BEGIN {print 1.1890505204/0.02418884}')
-pump_energy=$(awk 'BEGIN {print 1.5/27.211}')
-pump_CEP=0.0
+pump_strength=0.017
+pump_origin=$(awk 'BEGIN {print 10.0/0.02418884}')
+pump_sigma=$(awk 'BEGIN {print 1.5/0.02418884}') #$(awk 'BEGIN {print 1.1890505204/0.02418884}')
+pump_energy=$(awk 'BEGIN {print 1.724/27.211}')
+pump_CEP=3.14159264
 pprobe_delay=$(awk "BEGIN {print $1/0.02418884}")
 probe_strength=0.00 #0.005
 probe_sigma=$(awk 'BEGIN {print 0.30800/0.02418884}')
@@ -89,6 +90,7 @@ ${spectrum_root}
 ${mfpad_root}
 ${cs_root}
 ${ionization_rate_root}
+${average_momentum_root}
 ${dist_root}
 ${grid_size}
 ${small_grid_size}
@@ -144,7 +146,7 @@ echo "#!/bin/bash
 #SUBMISSION SCRIPT
 #
 #SBATCH --job-name=${job_name}
-#SBATCH --time=1-12:00:00
+#SBATCH --time=7-00:00:00
 #
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
