@@ -1,4 +1,4 @@
-#include "wavepack_1d.hpp"
+#include <wavepack_1d.hpp>
 
 int main( int argc, char * argv [])
 {

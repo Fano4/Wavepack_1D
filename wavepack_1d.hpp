@@ -12,7 +12,7 @@
 #include <hdf5.h>
 #include <complex>
 
-#include "mkl.h"
+#include <mkl.h>
 #define MKL_Complex16 std::complex<double>
 
 #include "pice_module.cpp"
@@ -23,5 +23,3 @@
 #include "obj_hamilt_mat_comp.cpp"
 #include "electric_field_func.cpp"
 #include "input_reader.cpp"
-
-
