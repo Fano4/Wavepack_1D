@@ -1,4 +1,4 @@
-#include <wavepack_1d.hpp>
+#include "wavepack_1d.hpp"
 
 int main( int argc, char * argv [])
 {
@@ -42,6 +42,7 @@ int main( int argc, char * argv [])
     string neutral_dipole;
     string cation_dipole;
     string neutral_nac;
+    string neutral_spinorb;
     string ionization_coupling_file;//LiH_PICE_R_i_j.txt
     string out_file;
     string read_file;
@@ -110,7 +111,7 @@ int main( int argc, char * argv [])
    double respectrum(0);
    double imspectrum(0);
 
-    input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&ionization_rate_file,&average_mom_file,&dist_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
+    input_reader(input_file_loc,&neutral_pes,&cation_pes,&neutral_dipole,&cation_dipole,&neutral_nac,&neutral_spinorb,&ionization_coupling_file,&out_file,&read_file,&wf_out_file,&spectrum_out_file,&mfpad_out_file,&pi_cs_file,&ionization_rate_file,&average_mom_file,&dist_file,&gsize_x,&small_gsize_x,&n_states_neut,&n_states_cat,&n_angles,&n_k,&kp,&kmin,&kmax,&xmin,&xmax,&mass,&total_time,&h,&efield_thresh,&pot_vec_thresh,&pump_strength,&pump_origin,&pump_sigma,&pump_energy,&pump_CEP,&pprobe_delay,&probe_strength,&probe_sigma,&probe_energy,&probe_CEP);
 
     int tgsize_x(small_gsize_x+6);
     int n_times(int(total_time/h));
@@ -127,6 +128,7 @@ int main( int argc, char * argv [])
     H->set_dm_neut(neutral_dipole.c_str());
     H->set_dm_cat(cation_dipole.c_str());
     H->set_NAC(neutral_nac);
+    H->set_spinorb_neut(neutral_spinorb);
     
 
     /*

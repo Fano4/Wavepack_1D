@@ -111,6 +111,14 @@ hamilton_matrix::hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int 
       this->m_dmz_neut[i]=new double[tgsize_x];
    }
    std::cout<<"dipole arrays of the neutral initialized!"<<std::endl;
+
+   std::cout<<"Initializing spin-orbit coupling array...";
+   this->m_spinorb_neut=new double*[n_states_neut*n_states_neut];
+   for(int i=0;i!=n_states_neut*n_states_neut;i++)
+   {
+      this->m_spinorb_neut[i]=new double[tgsize_x];
+   }
+   std::cout<<"Spn-orbit coupling array initialized!"<<std::endl;
    //
    //initialize dipole moment surfaces arrays
    //of the cation
@@ -292,6 +300,8 @@ hamilton_matrix::~hamilton_matrix()
    delete [] this->m_dmx_cat;
    delete [] this->m_dmy_cat;
    delete [] this->m_dmz_cat;
+   delete [] this->m_spinorb_neut;
+
    if(this->m_PICE_sto_x != NULL)
        delete [] this->m_PICE_sto_x;
    if(this->m_PICE_sto_y != NULL)
@@ -624,6 +634,57 @@ void hamilton_matrix::set_dm_cat(std::string file_address)
    }
 }
 
+//##########################################################################
+//
+//##########################################################################
+void hamilton_matrix::set_spinorb_neut(std::string file_address)
+{
+   using namespace std;
+   stringstream name_indenter;
+   string filename;
+   double var(0);
+   int dgsize (this->m_tgsize_x-this->m_small_gsize_x);
+
+   ifstream input_file;
+
+   cout<<"gathering Spin orbit coupling files"<<endl;
+
+   for(int i=0;i!=m_n_states_neut;i++)
+   {
+      for(int j=i;j!=m_n_states_neut;j++)
+      {
+         name_indenter.str("");
+         name_indenter<<file_address<<j+1<<"_"<<i+1<<".input";
+         filename=name_indenter.str();
+         input_file.open(filename.c_str());
+
+         if(input_file.is_open())
+         {
+            for(int g=dgsize;g!=this->m_tgsize_x;g++)
+            { 
+               input_file>>this->m_spinorb_neut[this->m_n_states_neut*i+j][g];
+               this->m_spinorb_neut[this->m_n_states_neut*j+i][g]=-this->m_spinorb_neut[this->m_n_states_neut*i+j][g];
+
+               for(int t=0;t!=this->m_gsize_x/this->m_small_gsize_x-1;t++)
+               {
+                  input_file>>var;
+               }
+            }
+            input_file.close();
+            for(int g=1;g<=dgsize;g++)
+            {
+               this->m_spinorb_neut[this->m_n_states_neut*i+j][dgsize-g]=this->m_spinorb_neut[this->m_n_states_neut*i+j][dgsize];
+               this->m_spinorb_neut[this->m_n_states_neut*i+j][g]=-this->m_spinorb_neut[this->m_n_states_neut*i+j][dgsize];
+            }
+         }
+         else
+         {
+            cout<<"ERROR SPIN ORBIT COUPLING FILE NOT FOUND:"<<filename.c_str()<<endl<<"EXIT"<<endl;
+            exit(EXIT_FAILURE);
+         }
+      }
+   }
+}
 //##########################################################################
 //
 //##########################################################################

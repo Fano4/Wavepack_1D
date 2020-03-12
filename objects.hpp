@@ -134,6 +134,8 @@ class hamilton_matrix {
       double *m_eigenvalue_neut;
       double *m_eigenvalue_cat;
 
+      double **m_spinorb_neut;
+
    public:
       hamilton_matrix(int gsize_x,int tgsize_x,int small_gsize_x,int n_states_neut,int n_states_cat,int n_k,int n_angles,double kmin,double kmax,double xmin,double xmax,double mass,int n_times,double h,double pump_strength,double probe_strength,double pump_origin,double pprobe_delay,double pump_sigma,double probe_sigma,double pump_energy,double probe_energy,double pump_CEP,double probe_CEP,double efield_thresh,double pot_vec_thresh,std::string pice_data_loc);
       ~hamilton_matrix();
@@ -141,9 +143,11 @@ class hamilton_matrix {
       void set_pot_cat(std::string file_address);
       void set_dm_neut(std::string file_address);
       void set_dm_cat(std::string file_address);
+      void set_spinorb_neut(std::string file_address);
       double show_dm_neut(int state_index_1,int state_index_2,int grid_index,int component);
       double show_dm_cat(int state_index_1,int state_index_2,int grid_index,int component);
-//      void set_PICE(double *pot_vec=NULL);
+      double show_spinorb_neut(int state_index_1,int state_index_2,int grid_index);
+
       void set_PICE();
       void set_NAC(std::string file_address);
       std::complex<double> hamilt_element(double time_index,int i,int j);

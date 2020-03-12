@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 
-bool input_reader(std::string input_loc,std::string* neutral_pes,std::string* cation_pes,std::string* neutral_dipole,std::string* cation_dipole,std::string* neutral_nac,std::string* ionization_coupling_file,std::string* out_file,std::string* read_file,std::string* wf_out_file,std::string* spectrum_out_file,std::string* mfpad_out_file,std::string* pi_cs_file,std::string* ionization_rate_file,std::string* average_mom_file,std::string *dist_file,int* gsize_x,int* small_gsize_x,int* n_states_neut,int* n_states_cat,int* n_angles,int* n_k,int* k_mfpad,double* kmin,double* kmax,double* xmin,double* xmax,double* mass,double* total_time,double* h,double* efield_thresh,double* pot_vec_thresh,double* pump_strength,double* pump_origin,double* pump_sigma,double* pump_energy,double* pump_CEP,double* pprobe_delay,double* probe_strength,double* probe_sigma,double* probe_energy,double* probe_CEP )
+bool input_reader(std::string input_loc,std::string* neutral_pes,std::string* cation_pes,std::string* neutral_dipole,std::string* cation_dipole,std::string* neutral_nac,std::string *neutral_spinorb,std::string* ionization_coupling_file,std::string* out_file,std::string* read_file,std::string* wf_out_file,std::string* spectrum_out_file,std::string* mfpad_out_file,std::string* pi_cs_file,std::string* ionization_rate_file,std::string* average_mom_file,std::string *dist_file,int* gsize_x,int* small_gsize_x,int* n_states_neut,int* n_states_cat,int* n_angles,int* n_k,int* k_mfpad,double* kmin,double* kmax,double* xmin,double* xmax,double* mass,double* total_time,double* h,double* efield_thresh,double* pot_vec_thresh,double* pump_strength,double* pump_origin,double* pump_sigma,double* pump_energy,double* pump_CEP,double* pprobe_delay,double* probe_strength,double* probe_sigma,double* probe_energy,double* probe_CEP )
 {
    std::ifstream input;
 
@@ -20,6 +20,7 @@ bool input_reader(std::string input_loc,std::string* neutral_pes,std::string* ca
       input>>*neutral_dipole;
       input>>*cation_dipole;
       input>>*neutral_nac;
+      input>>*neutral_spinorb;
       input>>*ionization_coupling_file;
       input>>*out_file;
       input>>*read_file;
@@ -63,6 +64,7 @@ bool input_reader(std::string input_loc,std::string* neutral_pes,std::string* ca
       <<"neutral_dipole :"<<*neutral_dipole<<std::endl
       <<"cation_dipole :"<<*cation_dipole<<std::endl
       <<"neutral_nac :"<<*neutral_nac<<std::endl
+      <<"spin orbit coupling file :"<<*neutral_spinorb<<std::endl
       <<"ionization_coupling_file :"<<*ionization_coupling_file<<std::endl
       <<"out_file :"<<*out_file<<std::endl
       <<"read_file :"<<*read_file<<std::endl
