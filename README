@@ -1,2 +1,54 @@
 # Wavepack_1D
 Quantum propagation of electronic-vibrational wavepacket including photoionization in 1D molecules
+
+The code works with a set of data files whose locations are provided along with the parameters in the input file ( eg. wvpck_input.in)
+
+For all the data files to be used  by the dynamics, only the rootname is provided in the main input file. The data files are single column files representing values along the grid. Their name has to be formatted as: "filename_stati.input", where stati has to be replaced by the state index.
+For coupling files, the filename has to be formatted as : "filename_stati_statj.input". The corresponding matrix elements should be <stati|J|statj>
+
+Only the rootname has to be provided in the input file. for instance, if the sought filename is "filename_stati.input", we write only "filename_" in the input file and the code will fill the blank
+
+Structure of the input file wvpck_input.in:
+
+location of the neutral PEC files
+location of the cation PEC files
+location of the neutral_dipole_files
+location of the cation dipole files
+location of the NAC files
+location of the spin-orbit coupling files
+location of the ionization h5 datafile
+location of the output file
+location of the continuum wavepacket files
+location fo the neutral wavepacket files
+location of the photoelectron spectrum file
+location of the mfpad file
+location of the cs files
+location of the ionization rate files
+location of the angular distribution of ther continuum
+grid size of the input files
+grid size for the dynamics
+number of neutral states
+number of cation states
+number of angular distributions
+number of kinetic energies for the photelectron
+index of the kinetic energy to be sampled for wave packet in the continuum
+minimum photoelectron momentum
+maximum photoelectron momentum
+minimum R value on the grid (bohr)
+maximum R value on the grid (bohr)
+reduced mass of the system (atomic units)
+total simulation time (atomic units)
+integration timestep (atomic units)
+threshold of electric field for analytic propagation
+threshold of potential vector for translation of pice
+field strength pulse 1
+pulse 1 center time
+sigma time pulse 1
+frequency pulse 1 (atomic units)
+CEP pulse 1
+delay between pulse 1 and pulse 2
+field strength pulse 2
+sigma pulse 2
+frequency pulse 2
+CEP pulse 2
+
